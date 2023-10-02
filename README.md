@@ -1,6 +1,69 @@
 # IFJ-IAL_project
 
 ## Code style
+* Naming
+    * all variables, functions and classes will be written in "camelCase" convention (way of seperating words in phrase)
+    * functions and variables will start with with lowercase letter and each new word in the word will have first letter as uppercase
+    * classes will start with uppercase, rest is the same
+    * The word doesn't end on a capital letter
+    * No dots, underscores, numbers, dashes, or any other special characters are allowed within the word
+    * examples: 
+        * variable =>
+        ```
+        $firstVariable = 0;
+        ```
+        * function =>
+        ```
+        protected function testVariable(&$firstVariable) {}
+        ```
+        * class    =>
+        ```
+        class GeographyPlaceImporter extends CsvImporter {}
+        ```
+
+* Braces placement {} - at the end of line
+    * in class declaration
+    * in function declaration
+    * in control statements (if, while, for...)
+    * examples
+        * function =>
+        ```
+        protected function testVariable(&$firstVariable) {
+            return null;                  
+        }
+        ```
+        
+        * if statement =>
+        ```
+        if ($grade >= self::A) {
+            echo "GG";
+        }
+        ```
+
+* if and else statements
+    * dont use a "cuddled else"
+      * right example =>
+      ```
+      if ($boolVar){
+          return true;
+      }
+      else {
+          return false;
+      }
+      ```
+      * wrong example =>
+      ```
+      if ($boolVar){
+          return true;
+      } else {
+          return false;
+      }
+      ```
+    * if "if" or "else" statement has only one line of code, still use brackets and seperate them with whitespace
+      * example =>
+      ```
+      if (1 > 0) { return true; }
+      ```
 
 ## Project structure
 
