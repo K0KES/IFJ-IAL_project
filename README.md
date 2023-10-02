@@ -64,6 +64,13 @@
       ```
       if (1 > 0) { return true; }
       ```
+* Comments
+     * Should be written before the wanted line of code, NOT on the same level
+     * example =>
+     ```
+     // creation od db object
+     $newGeographyPlace = GeographyPlace::create($dbConnectionId);
+     ```
 
 ## Project structure
 
