@@ -1,6 +1,7 @@
 #include <stdio.h>
 
-void main()
+int main()
 {
     printf("Hello IFJ!");
+    return 0;
 }
