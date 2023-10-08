@@ -19,7 +19,7 @@ int getToken(token *token) {
     printf("\"");
     while (c != EOF) {
         c = getc(source);
-        printf("%c", c);
+        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT) { printf("%c", c); }
         switch (state) {
             case S_START:
                 switch (c) {
@@ -65,7 +65,9 @@ int getToken(token *token) {
                         strAddChar(token->value, c);
                         state = S_UNDERSCORE_IDENTIFIER;
                         break;
-
+                    case '/':
+                        state = S_BLOCK_LINE_COMMENT;
+                        break;
                     //EASY chars
                     case '*':
                         token->tokenType = T_MULTIPLICATION;
@@ -239,52 +241,52 @@ int getToken(token *token) {
                         ungetc(c, source);
                         return 1;
                     }
-                    if (strCmpConstStr(token->value, "else") == 0) {
+                    else if (strCmpConstStr(token->value, "else") == 0) {
                         token->tokenType = KW_ELSE;
                         ungetc(c, source);
                         return 1;
                     }
-                    if (strCmpConstStr(token->value, "func") == 0) {
+                    else if (strCmpConstStr(token->value, "func") == 0) {
                         token->tokenType = KW_FUNC;
                         ungetc(c, source);
                         return 1;
                     }
-                    if (strCmpConstStr(token->value, "if") == 0) {
+                    else if (strCmpConstStr(token->value, "if") == 0) {
                         token->tokenType = KW_FUNC;
                         ungetc(c, source);
                         return 1;
                     }
-                    if (strCmpConstStr(token->value, "Int") == 0) {
+                    else if (strCmpConstStr(token->value, "Int") == 0) {
                         token->tokenType = KW_IF;
                         ungetc(c, source);
                         return 1;
                     }
-                    if (strCmpConstStr(token->value, "let") == 0) {
+                    else if (strCmpConstStr(token->value, "let") == 0) {
                         token->tokenType = KW_INT;
                         ungetc(c, source);
                         return 1;
                     }
-                    if (strCmpConstStr(token->value, "nil") == 0) {
+                    else if (strCmpConstStr(token->value, "nil") == 0) {
                         token->tokenType = KW_NIL;
                         ungetc(c, source);
                         return 1;
                     }
-                    if (strCmpConstStr(token->value, "return") == 0) {
+                    else if (strCmpConstStr(token->value, "return") == 0) {
                         token->tokenType = KW_RETURN;
                         ungetc(c, source);
                         return 1;
                     }
-                    if (strCmpConstStr(token->value, "String") == 0) {
+                    else if (strCmpConstStr(token->value, "String") == 0) {
                         token->tokenType = KW_STRING;
                         ungetc(c, source);
                         return 1;
                     }
-                    if (strCmpConstStr(token->value, "var") == 0) {
+                    else if (strCmpConstStr(token->value, "var") == 0) {
                         token->tokenType = KW_VAR;
                         ungetc(c, source);
                         return 1;
                     }
-                    if (strCmpConstStr(token->value, "while") == 0) {
+                    else if (strCmpConstStr(token->value, "while") == 0) {
                         token->tokenType = KW_WHILE;
                         ungetc(c, source);
                         return 1;
@@ -326,6 +328,35 @@ int getToken(token *token) {
                     }
                     break;
                 }
+                break;
+            case S_DOUBLE:
+                    if (!isalpha(c) && isalnum(c)) {  
+                        strAddChar(token->value, c);
+                    }
+                    else {
+                        token->tokenType = T_DOUBLE;
+                        ungetc(c, source);
+                        return 1;
+                    }
+                    break;
+                break;
+            case S_BLOCK_LINE_COMMENT:
+                switch (c) {
+                case '/':
+                    state = S_LINE_COMMENT;
+                    break;
+                case '*':
+                    state = S_BLOCK_COMMENT;
+                    break;
+                default:
+                    strAddChar(token->value, lastChar);
+                    token->tokenType = T_DIVISION;
+                    return 1;
+                    break;
+                }
+                break;
+            case S_LINE_COMMENT:
+                if (c == '\n') { state = S_START; }
                 break;
         }
 

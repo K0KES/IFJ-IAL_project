@@ -35,11 +35,12 @@ void strClear(string *s) {
 
 // prida na konec retezce jeden znak
 int strAddChar(string *s1, char c) {
-   if (s1->length + 1 >= s1->allocSize)
-   {
+   if (s1->length +1 >= s1->allocSize)
+   {  
       // pamet nestaci, je potreba provest realokaci
-      if ((s1->str = (char*) realloc(s1->str, s1->length + STR_LEN_INC)) == NULL)
+      if ((s1->str = (char*) realloc(s1->str, s1->length + STR_LEN_INC)) == NULL) {   
          return STR_ERROR;
+      }
       s1->allocSize = s1->length + STR_LEN_INC;
    }
    s1->str[s1->length] = c;
@@ -90,4 +91,9 @@ void strPrint (string *s) {
       i++;
    }
    
+}
+
+void strpPop (string *s) {
+   s->length--;
+   s->str[s->length-1] = '\0';
 }

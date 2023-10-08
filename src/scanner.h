@@ -78,7 +78,10 @@ enum state {
     S_DECREMENT,
     S_VAR_MUL_VAR,
     S_VAR_DIV_VAR,
-    S_NIL_OP
+    S_NIL_OP,
+    S_BLOCK_LINE_COMMENT,
+    S_LINE_COMMENT,
+    S_BLOCK_COMMENT,
 };
 
 typedef struct {
