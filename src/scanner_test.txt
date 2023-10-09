@@ -3,10 +3,15 @@ _39
 jaj
 aaaaaaaaa
 bbbcccdddeeeqqq
-eeeeeeeeeeeeeeeeeeeee
-iiiiiiiiiiiiiiiiiiiii
-oooooooooooooooooooooo
-__
+iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+/* komentuju kokotiny
+ko\ment*uju hahaha
+uz nevim co psat CAu
+hej 
+*\
+__ "string je to"p"string\a\"";
 /
 ! !==
 //CAu zmrde

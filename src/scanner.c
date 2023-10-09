@@ -16,11 +16,14 @@ int getToken(token *token) {
     int charNumber = 0;
     int lineNumber = 1;
     enum state state = S_START;
-    printf("\"");
+    printf("'");
     while (c != EOF) {
         c = getc(source);
-        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT) { printf("%c", c); }
+        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { printf("%c", c); }
         switch (state) {
+            /////////////////////////  
+            //first starting STATE
+            /////////////////////////  
             case S_START:
                 switch (c) {
                     case '\t':
@@ -32,7 +35,9 @@ int getToken(token *token) {
                         lineNumber++;
                         charNumber = 0;
                         break;
+                    /////////////////////////  
                     //STATES chars
+                    /////////////////////////  
                     case '+':
                         strAddChar(token->value, c);
                         state = S_INCREMENT;
@@ -68,7 +73,13 @@ int getToken(token *token) {
                     case '/':
                         state = S_BLOCK_LINE_COMMENT;
                         break;
+                    case '"':
+                        strAddChar(token->value, c);
+                        state = S_MULTILINE_LINE_STRING;
+                        break;
+                    /////////////////////////    
                     //EASY chars
+                    /////////////////////////  
                     case '*':
                         token->tokenType = T_MULTIPLICATION;
                         strAddChar(token->value, c);
@@ -104,6 +115,9 @@ int getToken(token *token) {
                         strAddChar(token->value, c);
                         return 1;
                         break;
+                    /////////////////////////  
+                    //ID || KW || INT || DOUBLE
+                    /////////////////////////  
                     default:
                         if (isalpha(c)) { 
                             strAddChar(token->value, c);  
@@ -119,7 +133,9 @@ int getToken(token *token) {
                 charNumber++;
                 lastChar = c;
                 break;
-            //STATES
+            /////////////////////////  
+            //STATES continues
+            /////////////////////////  
             case S_INCREMENT:
                 if (c == '+') { 
                     token->tokenType = T_INCREMENT;
@@ -351,12 +367,89 @@ int getToken(token *token) {
                 default:
                     strAddChar(token->value, lastChar);
                     token->tokenType = T_DIVISION;
+                    printf("%c", lastChar);
                     return 1;
                     break;
                 }
                 break;
             case S_LINE_COMMENT:
                 if (c == '\n') { state = S_START; }
+                break;
+            case S_BLOCK_COMMENT:
+                if (c == '\\' && lastChar == '*') { state = S_START; }
+                lastChar = c;
+                break;
+            case S_MULTILINE_LINE_STRING:
+                switch (c) {
+                case '"':
+                    strAddChar(token->value, c);
+                    state = S_MULTILINE_LINE_STRING_CHECK;
+                    break;
+                default:
+                    strAddChar(token->value, c);
+                    state = S_STRING;
+                    break;
+                }
+                break;
+            case S_STRING:
+                switch (c) {
+                case '\\':
+                    state = S_STRING_ESCAPE;
+                    lastChar = c;
+                    break;
+                case '\"':
+                    strAddChar(token->value, c);
+                    state = S_START;
+                    token->tokenType = T_STRING;
+                    return 1;
+                    break;
+
+                default:
+                    lastChar = c;
+                    strAddChar(token->value, c);
+                    break;
+                }
+                break;
+            case S_STRING_ESCAPE:
+                switch (c) {
+                case 'n':
+                case '\"':
+                case 'r':
+                case 't':
+                case '\\':
+                    strAddChar(token->value, lastChar);
+                    strAddChar(token->value, c);
+                    state = S_STRING;
+                    break;
+                
+                default:
+                    printf("\n\nLEXERROR ESCAPE SEQUENCE\n\n");
+                    strAddChar(token->value, lastChar);
+                     strAddChar(token->value, c);
+                    state = S_STRING;
+                    break;
+                }
+                break;
+            case S_MULTILINE_LINE_STRING_CHECK:
+                switch (c) {
+                case '"':
+                    strAddChar(token->value, c);
+                    state = S_MULTILINE_STRING;
+                    break;
+                
+                default:
+                    break;
+                }
+                break;
+            case S_MULTILINE_STRING:
+                switch (c) {
+                case '\n':
+                    
+                    break;
+                
+                default:
+                    break;
+                }
                 break;
         }
 
@@ -383,7 +476,7 @@ int main(int argc, char const *argv[])
     setSourceFile(f);
     int tokenReturnValue = getToken(token_e);   
     while (tokenReturnValue != 2) {
-        printf("\"");
+        printf("'");
         printf("\ntoken type: %d, value: ", token_e->tokenType);
         strPrint(token_e->value);
         printf("\n\n");
