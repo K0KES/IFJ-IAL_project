@@ -6,6 +6,7 @@ typedef struct {
 } positionInfo;
 
 enum tokenType {
+    T_NO_TOKEN,
     T_WHITESPACE,
     T_EOF,
     T_START,
@@ -93,5 +94,12 @@ typedef struct {
     enum tokenType tokenType;
     string *value;
     positionInfo *position;
+    char lastChar;
 } token;
+
+void tokenClear (token* token) {
+    strClear(token->value);
+    token->tokenType = T_NO_TOKEN;
+    token->lastChar = '\0';
+}
 

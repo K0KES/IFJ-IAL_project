@@ -5,6 +5,9 @@
 
 
 FILE *source;
+int charNumber = 0;
+int lineNumber = 1;
+char lastChar = '\0';
 
 void setSourceFile(FILE *f) {
     source = f;
@@ -12,9 +15,6 @@ void setSourceFile(FILE *f) {
 
 int getToken(token *token) {
     char c;
-    char lastChar;
-    int charNumber = 0;
-    int lineNumber = 1;
     enum state state = S_START;
     printf("'");
     while (c != EOF) {
@@ -25,15 +25,20 @@ int getToken(token *token) {
             //first starting STATE
             /////////////////////////  
             case S_START:
+                charNumber++;
+                token->lastChar = lastChar;
                 switch (c) {
                     case '\t':
+                        charNumber++;
+                        charNumber++;
+                        break;
                     case ' ':
-                        state = S_START;
                         break;
                     case '\n':
                     case '\r':
                         lineNumber++;
                         charNumber = 0;
+                        printf("\nEOL\n");
                         break;
                     /////////////////////////  
                     //STATES chars
@@ -83,35 +88,56 @@ int getToken(token *token) {
                     case '*':
                         token->tokenType = T_MULTIPLICATION;
                         strAddChar(token->value, c);
+                        token->lastChar = lastChar;
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                         break;
                     case '(':
                         token->tokenType = T_LEFT_BRACKET;
                         strAddChar(token->value, c);
+                        token->lastChar = lastChar;
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                         break;
                     case ')':
                         token->tokenType = T_RIGHT_BRACKET;
                         strAddChar(token->value, c);
+                        token->lastChar = lastChar;
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                         break;
                     case '{':
                         token->tokenType = T_LEFT_CURLY_BRACKET;
+                        token->lastChar = lastChar;
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
                         return 1;
                         break;
                     case '}':
                         token->tokenType = T_RIGHT_CURLY_BRACKET;
+                        token->lastChar = lastChar;
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
                         return 1;
                         break;
                     case ':':
                         token->tokenType = T_COLON;
+                        token->lastChar = lastChar;
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
                         return 1;
                         break;
                     case ';':
                         token->tokenType = T_SEMICOLON;
+                        token->lastChar = lastChar;
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
                         return 1;
                         break;
@@ -130,7 +156,6 @@ int getToken(token *token) {
                         }
                         break;
                 }
-                charNumber++;
                 lastChar = c;
                 break;
             /////////////////////////  
@@ -139,12 +164,17 @@ int getToken(token *token) {
             case S_INCREMENT:
                 if (c == '+') { 
                     token->tokenType = T_INCREMENT;
+                    charNumber++;
                     strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 else {
                     token->tokenType = T_PLUS;
                     ungetc(c, source);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 break;
@@ -152,11 +182,16 @@ int getToken(token *token) {
              case S_DECREMENT:
                 if (c == '-') { 
                     token->tokenType = T_DECREMENT;
+                    charNumber++;
                     strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 else {
                     token->tokenType = T_MINUS;
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     ungetc(c, source);
                     return 1;
                 }
@@ -165,12 +200,17 @@ int getToken(token *token) {
              case S_LESS_EQUAL:
                 if (c == '=') { 
                     token->tokenType = T_LESS_EQUAL;
+                    charNumber++;
                     strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 else {
                     token->tokenType = T_LESS;
                     ungetc(c, source);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 break;
@@ -178,12 +218,17 @@ int getToken(token *token) {
              case S_GREATER_EQUAL:
                 if (c == '=') { 
                     token->tokenType = T_GREATER_EQUAL;
+                    charNumber++;
                     strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 else {
                     token->tokenType = T_GREATER;
                     ungetc(c, source);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 break;
@@ -191,12 +236,17 @@ int getToken(token *token) {
             case S_EQUAL:
                 if (c == '=') { 
                     token->tokenType = T_EQUAL; 
+                    charNumber++;
                     strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 else {
                     token->tokenType = T_ASSIGNMENT;
                     ungetc(c, source);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 break;
@@ -204,36 +254,48 @@ int getToken(token *token) {
             case S_NIL_OP:
                 if (c == '?') { 
                     token->tokenType = T_NIL_OP; 
+                    charNumber++;
                     strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 else {
                     token->tokenType = T_NULLABLE;
                     ungetc(c, source);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 break;
             case S_NOT_EQUAL:
                 if (c == '=') { 
                     token->tokenType = T_NOT_EQUAL; 
+                    charNumber++;
                     strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 else {
                     token->tokenType = T_NOT;
                     ungetc(c, source);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                 }
                 break;
             case S_UNDERSCORE_IDENTIFIER:
                 switch (c) {
                     //it is _
-                    case '\r':
                     case '\t':
                     case ' ':
+                    case '\r':
                     case '\n':
                         token->tokenType = KW_UNDERSCORE;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                         break;
                     //it is identifier
@@ -241,6 +303,7 @@ int getToken(token *token) {
                         if (isalnum(c) || c == '_') {
                             state = S_IDENTIFIER_KW;
                             strAddChar(token->value, c);
+                            charNumber++;
                         }
                         break;
                 }
@@ -255,61 +318,85 @@ int getToken(token *token) {
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "else") == 0) {
                         token->tokenType = KW_ELSE;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "func") == 0) {
                         token->tokenType = KW_FUNC;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "if") == 0) {
                         token->tokenType = KW_FUNC;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "Int") == 0) {
                         token->tokenType = KW_IF;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "let") == 0) {
                         token->tokenType = KW_INT;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "nil") == 0) {
                         token->tokenType = KW_NIL;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "return") == 0) {
                         token->tokenType = KW_RETURN;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "String") == 0) {
                         token->tokenType = KW_STRING;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "var") == 0) {
                         token->tokenType = KW_VAR;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "while") == 0) {
                         token->tokenType = KW_WHILE;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     else {
                         token->tokenType = T_IDENTIFIER;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }       
                     break;
@@ -317,10 +404,13 @@ int getToken(token *token) {
                 default:
                     if (isalnum(c) || c == '_') {
                         strAddChar(token->value, c);
+                        charNumber++;
                     }
                     else {
                         token->tokenType = T_IDENTIFIER;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     break;
@@ -331,15 +421,19 @@ int getToken(token *token) {
                 case '.':
                     state = S_DOUBLE;
                     strAddChar(token->value, c);
+                    charNumber++;
                     break;
                 
                 default:
                     if (!isalpha(c) && isalnum(c)) {  
                         strAddChar(token->value, c);
+                        charNumber++;
                     }
                     else {
                         token->tokenType = T_INT;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     break;
@@ -348,10 +442,13 @@ int getToken(token *token) {
             case S_DOUBLE:
                     if (!isalpha(c) && isalnum(c)) {  
                         strAddChar(token->value, c);
+                        charNumber++;
                     }
                     else {
                         token->tokenType = T_DOUBLE;
                         ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
                         return 1;
                     }
                     break;
@@ -368,14 +465,18 @@ int getToken(token *token) {
                     strAddChar(token->value, lastChar);
                     token->tokenType = T_DIVISION;
                     printf("%c", lastChar);
+                    ungetc(c, source);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                     break;
                 }
                 break;
             case S_LINE_COMMENT:
-                if (c == '\n') { state = S_START; }
+                if (c == '\n') { lineNumber++; lastChar = c; charNumber = 0; state = S_START; }
                 break;
             case S_BLOCK_COMMENT:
+                if (c == '\n' || c == '\r') { lineNumber++; }
                 if (c == '\\' && lastChar == '*') { state = S_START; }
                 lastChar = c;
                 break;
@@ -399,8 +500,11 @@ int getToken(token *token) {
                     break;
                 case '\"':
                     strAddChar(token->value, c);
+                    charNumber++;
                     state = S_START;
                     token->tokenType = T_STRING;
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
                     return 1;
                     break;
 
@@ -419,13 +523,17 @@ int getToken(token *token) {
                 case '\\':
                     strAddChar(token->value, lastChar);
                     strAddChar(token->value, c);
+                    charNumber++;
+                    charNumber++;
                     state = S_STRING;
                     break;
                 
                 default:
                     printf("\n\nLEXERROR ESCAPE SEQUENCE\n\n");
                     strAddChar(token->value, lastChar);
-                     strAddChar(token->value, c);
+                    strAddChar(token->value, c);
+                    charNumber++;
+                    charNumber++;
                     state = S_STRING;
                     break;
                 }
@@ -463,6 +571,7 @@ int main(int argc, char const *argv[])
 {
     token *token_e = (token*)malloc(sizeof(token));
     strInit(token_e->value);
+    token_e->position = (positionInfo*)malloc(sizeof(positionInfo));
 
     FILE *f;
     if (argc == 1) {
@@ -477,10 +586,11 @@ int main(int argc, char const *argv[])
     int tokenReturnValue = getToken(token_e);   
     while (tokenReturnValue != 2) {
         printf("'");
-        printf("\ntoken type: %d, value: ", token_e->tokenType);
+        printf("\ntoken type:%d, value:", token_e->tokenType);
         strPrint(token_e->value);
+        printf(", lastChar='%c', lineNumber=%d, charNumber=%d", token_e->lastChar, token_e->position->lineNumber, token_e->position->charNumber);
         printf("\n\n");
-        strClear(token_e->value);
+        tokenClear(token_e);
         tokenReturnValue = getToken(token_e);
     };
 

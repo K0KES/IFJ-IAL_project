@@ -1,20 +1,18 @@
-while  While
-_39
-jaj
-aaaaaaaaa
-bbbcccdddeeeqqq
-iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
-oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
 
 /* komentuju kokotiny
 ko\ment*uju hahaha
 uz nevim co psat CAu
 hej 
 *\
-__ "string je to"p"string\a\"";
+
 /
 ! !==
 //CAu zmrde
+//komentar
+a + 5 = c -- ++
 * (){}:
 4558745.85
 1234.56789
+a= 5
+aaaaa a     
