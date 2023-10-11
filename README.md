@@ -1,49 +1,58 @@
 # IFJ-IAL_project
 
 ## Code style
+
 * Naming
-    * all variables, functions and classes will be written in "camelCase" convention (way of seperating words in phrase)
-    * functions and variables will start with with lowercase letter and each new word in the word will have first letter as uppercase
-    * classes will start with uppercase, rest is the same
-    * The word doesn't end on a capital letter
-    * No dots, underscores, numbers, dashes, or any other special characters are allowed within the word
-    * examples: 
-        * variable =>
-        ```
+  * all variables, functions and classes will be written in "camelCase" convention (way of seperating words in phrase)
+  * functions and variables will start with with lowercase letter and each new word in the word will have first letter as uppercase
+  * classes will start with uppercase, rest is the same
+  * The word doesn't end on a capital letter
+  * No dots, underscores, numbers, dashes, or any other special characters are allowed within the word
+  * examples:
+    * variable =>
+
+        ```c
         $firstVariable = 0;
         ```
-        * function =>
-        ```
+
+    * function =>
+
+        ```c
         protected function testVariable(&$firstVariable) {}
         ```
-        * class    =>
-        ```
+
+    * class    =>
+
+        ```c
         class GeographyPlaceImporter extends CsvImporter {}
         ```
 
 * Braces placement {} - at the end of line
-    * in class declaration
-    * in function declaration
-    * in control statements (if, while, for...)
-    * examples
-        * function =>
-        ```
+  * in class declaration
+  * in function declaration
+  * in control statements (if, while, for...)
+  * examples
+    * function =>
+
+        ```c
         protected function testVariable(&$firstVariable) {
             return null;                  
         }
         ```
-        
-        * if statement =>
-        ```
+
+    * if statement =>
+
+        ```c
         if ($grade >= self::A) {
             echo "GG";
         }
         ```
 
 * if and else statements
-    * dont use a "cuddled else"
-      * right example =>
-      ```
+  * dont use a "cuddled else"
+    * right example =>
+
+      ```c
       if ($boolVar){
           return true;
       }
@@ -51,23 +60,29 @@
           return false;
       }
       ```
-      * wrong example =>
-      ```
+
+    * wrong example =>
+
+      ```c
       if ($boolVar){
           return true;
       } else {
           return false;
       }
       ```
-    * if "if" or "else" statement has only one line of code, still use brackets and seperate them with whitespace
-      * example =>
-      ```
+
+  * if "if" or "else" statement has only one line of code, still use brackets and seperate them with whitespace
+    * example =>
+
+      ```c
       if (1 > 0) { return true; }
       ```
+
 * Comments
-     * Should be written before the wanted line of code, NOT on the same level
-     * example =>
-     ```
+  * Should be written before the wanted line of code, NOT on the same level
+  * example =>
+
+     ```c
      // creation od db object
      $newGeographyPlace = GeographyPlace::create($dbConnectionId);
      ```
