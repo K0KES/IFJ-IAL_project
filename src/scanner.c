@@ -7,7 +7,6 @@
 FILE *source;
 int charNumber = 0;
 int lineNumber = 1;
-char lastChar = '\0';
 
 void setSourceFile(FILE *f) {
     source = f;
@@ -17,6 +16,7 @@ int getToken(token *token) {
     char c;
     enum state state = S_START;
     printf("'");
+    char lastChar = '\0';
     while (c != EOF) {
         c = getc(source);
         if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { printf("%c", c); }
@@ -141,6 +141,14 @@ int getToken(token *token) {
                         strAddChar(token->value, c);
                         return 1;
                         break;
+                    case ',':
+                        token->tokenType = T_COLON;
+                        token->lastChar = lastChar;
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        strAddChar(token->value, c);
+                        return 1;
+                        break;
                     /////////////////////////  
                     //ID || KW || INT || DOUBLE
                     /////////////////////////  
@@ -182,6 +190,14 @@ int getToken(token *token) {
              case S_DECREMENT:
                 if (c == '-') { 
                     token->tokenType = T_DECREMENT;
+                    charNumber++;
+                    strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return 1;
+                }
+                else if (c == '>') {
+                    token->tokenType = T_ARROW;
                     charNumber++;
                     strAddChar(token->value, c);
                     token->position->charNumber = charNumber;
@@ -483,17 +499,28 @@ int getToken(token *token) {
             case S_MULTILINE_LINE_STRING:
                 switch (c) {
                 case '"':
+                    charNumber++;
                     strAddChar(token->value, c);
                     state = S_MULTILINE_LINE_STRING_CHECK;
                     break;
+                case EOF:
+                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    return 2;
+                    break;
                 default:
-                    strAddChar(token->value, c);
+                    ungetc(c, source);
                     state = S_STRING;
                     break;
                 }
                 break;
             case S_STRING:
                 switch (c) {
+                case '\t':
+                    charNumber++;
+                    charNumber++;
+                    charNumber++;
+                    strAddChar(token->value, c);
+                    break;
                 case '\\':
                     state = S_STRING_ESCAPE;
                     lastChar = c;
@@ -507,10 +534,15 @@ int getToken(token *token) {
                     token->position->lineNumber = lineNumber;
                     return 1;
                     break;
-
+                case '\r':
+                case '\n':
+                case EOF:
+                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    return 2;
                 default:
+                    charNumber++;
                     lastChar = c;
-                    strAddChar(token->value, c);
+                    strAddChar(token->value, c);              
                     break;
                 }
                 break;
@@ -527,35 +559,114 @@ int getToken(token *token) {
                     charNumber++;
                     state = S_STRING;
                     break;
-                
+                //ERROR
                 default:
-                    printf("\n\nLEXERROR ESCAPE SEQUENCE\n\n");
-                    strAddChar(token->value, lastChar);
-                    strAddChar(token->value, c);
                     charNumber++;
-                    charNumber++;
-                    state = S_STRING;
+                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    return 2;
                     break;
                 }
                 break;
             case S_MULTILINE_LINE_STRING_CHECK:
                 switch (c) {
                 case '"':
+                    charNumber++;
                     strAddChar(token->value, c);
                     state = S_MULTILINE_STRING;
+                    lastChar = c;
                     break;
                 
                 default:
+                    ungetc(c, source);
+                    state = S_START;
+                    token->tokenType = T_STRING;
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return 1;
                     break;
                 }
                 break;
             case S_MULTILINE_STRING:
                 switch (c) {
-                case '\n':
-                    
+                case '\t':
+                    charNumber++;
+                    charNumber++;
+                    charNumber++;
+                    strAddChar(token->value, c);
                     break;
-                
+                case '\r':
+                case '\n':
+                    lineNumber++;
+                    charNumber = 0;
+                    strAddChar(token->value, c);
+                    break;
+                case '\\':
+                    state = S_MULTILINE_STRING_ESCAPE;
+                    lastChar = c;
+                    break;
+                case '"':
+                    strAddChar(token->value, c);
+                    charNumber++;
+                    state = S_MULTILINE_STRING_EXIT;
+                    lastChar = '\0';
+                    break;
+                //ERROR
                 default:
+                    if (lastChar == '"') {
+                        charNumber++;
+                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        return 2;
+                    }
+
+                    strAddChar(token->value, c);
+                    charNumber++;
+                    break;
+                }
+                if (state != S_MULTILINE_STRING_EXIT) { lastChar = c; } 
+                break;
+            
+            case S_MULTILINE_STRING_EXIT:
+                switch (c) {
+                case '"':
+                    if (lastChar == '"') {
+                        strAddChar(token->value, c);
+                        charNumber++;
+                        state = S_START;
+                        token->tokenType = T_MULTILINE_STRING;
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    strAddChar(token->value, c);
+                    charNumber++;
+                    lastChar = c;
+                    break;
+                default:
+                    charNumber++;
+                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    return 2;
+                    break;
+                }
+                break;
+            
+            case S_MULTILINE_STRING_ESCAPE:
+                switch (c) {
+                case 'n':
+                case '\"':
+                case 'r':
+                case 't':
+                case '\\':
+                    strAddChar(token->value, lastChar);
+                    strAddChar(token->value, c);
+                    charNumber++;
+                    charNumber++;
+                    state = S_MULTILINE_STRING;
+                    break;
+                //ERROR
+                default:
+                    charNumber++;
+                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    return 2;
                     break;
                 }
                 break;
