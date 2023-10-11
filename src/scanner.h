@@ -63,7 +63,17 @@ enum tokenType {
     KW_WHILE,
     KW_VAR,
     KW_LET,
-    KW_UNDERSCORE
+    KW_UNDERSCORE,
+    KW_READSTRING,
+    KW_READINT,
+    KW_READDOUBLE,
+    KW_WRITE,
+    KW_INT_TO_DOUBLE,
+    KW_DOUBLE_TO_INT,
+    KW_LENGTH,
+    KW_SUBSTRING,
+    KW_ORD,
+    KW_CHR,
 };
 
 

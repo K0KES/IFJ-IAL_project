@@ -331,6 +331,7 @@ int getToken(token *token) {
                 case '\t':
                 case ' ':
                 case '\n':
+                case '(':
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
                         ungetc(c, source);
@@ -403,6 +404,76 @@ int getToken(token *token) {
                     }
                     else if (strCmpConstStr(token->value, "while") == 0) {
                         token->tokenType = KW_WHILE;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "readString") == 0) {
+                        token->tokenType = KW_READSTRING;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "readInt") == 0) {
+                        token->tokenType = KW_READINT;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "readDouble") == 0) {
+                        token->tokenType = KW_READDOUBLE;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "write") == 0) {
+                        token->tokenType = KW_WRITE;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "Int2Double") == 0) {
+                        token->tokenType = KW_INT_TO_DOUBLE;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "Double2Int") == 0) {
+                        token->tokenType = KW_DOUBLE_TO_INT;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "length") == 0) {
+                        token->tokenType = KW_LENGTH;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "substring") == 0) {
+                        token->tokenType = KW_SUBSTRING;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "ord") == 0) {
+                        token->tokenType = KW_ORD;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "chr") == 0) {
+                        token->tokenType = KW_CHR;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
