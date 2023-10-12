@@ -354,21 +354,21 @@ int getToken(token *token) {
                         return 1;
                     }
                     else if (strCmpConstStr(token->value, "if") == 0) {
-                        token->tokenType = KW_FUNC;
-                        ungetc(c, source);
-                        token->position->charNumber = charNumber;
-                        token->position->lineNumber = lineNumber;
-                        return 1;
-                    }
-                    else if (strCmpConstStr(token->value, "Int") == 0) {
                         token->tokenType = KW_IF;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         return 1;
                     }
-                    else if (strCmpConstStr(token->value, "let") == 0) {
+                    else if (strCmpConstStr(token->value, "Int") == 0) {
                         token->tokenType = KW_INT;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    else if (strCmpConstStr(token->value, "let") == 0) {
+                        token->tokenType = KW_LET;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
@@ -510,11 +510,78 @@ int getToken(token *token) {
                     strAddChar(token->value, c);
                     charNumber++;
                     break;
-                
+                case 'e':
+                case 'E':
+                    strAddChar(token->value, c);
+                    charNumber++;
+                    lastChar = c;
+                    state = S_EXPONENT_INT;
+                    break;
                 default:
                     if (!isalpha(c) && isalnum(c)) {  
                         strAddChar(token->value, c);
                         charNumber++;
+                    }
+                    else {
+                        token->tokenType = T_INT;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    break;
+                }
+                break;
+            case S_EXPONENT_INT:
+                switch (c) {
+                case 'e':
+                case 'E':
+                case '.':
+                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    return 2;
+                    break;
+                case ' ':
+                case '\t':
+                case '\n':
+                case '\r':
+                    if (lastChar == 'e' || lastChar == 'E' || lastChar == '+' || lastChar == '-') {
+                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        return 2;    
+                    }
+                    token->tokenType = T_INT;
+                    ungetc(c, source);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return 1;
+                    break;
+                case '+':
+                case '-':
+                    if (lastChar == 'e' || lastChar == 'E') {
+                        strAddChar(token->value, c);
+                        charNumber++;
+                        lastChar = c;
+                    }
+                    else if (lastChar == '+' || lastChar == '-') {
+                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        return 2;
+                    }
+                    else {
+                        token->tokenType = T_INT;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    break;
+                default:
+                    if (!isalpha(c) && isalnum(c)) {  
+                        strAddChar(token->value, c);
+                        charNumber++;
+                        lastChar = c;
+                    }
+                    else if (lastChar == '+' || lastChar == '-') {
+                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        return 2;
                     }
                     else {
                         token->tokenType = T_INT;
@@ -531,6 +598,12 @@ int getToken(token *token) {
                         strAddChar(token->value, c);
                         charNumber++;
                     }
+                    else if (c == 'e' || c == 'E') {
+                        strAddChar(token->value, c);
+                        charNumber++;
+                        lastChar = c;
+                        state = S_EXPONENT_DOUBLE;
+                    }
                     else {
                         token->tokenType = T_DOUBLE;
                         ungetc(c, source);
@@ -539,6 +612,67 @@ int getToken(token *token) {
                         return 1;
                     }
                     break;
+                break;
+             case S_EXPONENT_DOUBLE:
+                switch (c) {
+                case 'e':
+                case 'E':
+                case '.':
+                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    return 2;
+                    break;
+                case ' ':
+                case '\t':
+                case '\n':
+                case '\r':
+                    if (lastChar == 'e' || lastChar == 'E' || lastChar == '+' || lastChar == '-') {
+                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        return 2;    
+                    }
+                    token->tokenType = T_DOUBLE;
+                    ungetc(c, source);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return 1;
+                    break;
+                case '+':
+                case '-':
+                    if (lastChar == 'e' || lastChar == 'E') {
+                        strAddChar(token->value, c);
+                        charNumber++;
+                        lastChar = c;
+                    }
+                    else if (lastChar == '+' || lastChar == '-') {
+                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        return 2;
+                    }
+                    else {
+                        token->tokenType = T_DOUBLE;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    break;
+                default:
+                    if (!isalpha(c) && isalnum(c)) {  
+                        strAddChar(token->value, c);
+                        charNumber++;
+                        lastChar = c;
+                    }
+                    else if (lastChar == '+' || lastChar == '-') {
+                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        return 2;
+                    }
+                    else {
+                        token->tokenType = T_DOUBLE;
+                        ungetc(c, source);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return 1;
+                    }
+                    break;
+                }
                 break;
             case S_BLOCK_LINE_COMMENT:
                 switch (c) {
@@ -564,7 +698,7 @@ int getToken(token *token) {
                 break;
             case S_BLOCK_COMMENT:
                 if (c == '\n' || c == '\r') { lineNumber++; }
-                if (c == '\\' && lastChar == '*') { state = S_START; }
+                if (c == '/' && lastChar == '*') { state = S_START; }
                 lastChar = c;
                 break;
             case S_MULTILINE_LINE_STRING:
