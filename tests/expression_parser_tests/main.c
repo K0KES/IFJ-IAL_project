@@ -26,12 +26,20 @@ TEST(ExpressionParserTest, Test2) {
         {T_DIVISION, NULL, NULL, '/'},
         {T_IDENTIFIER, NULL, NULL, 'e'},
         {T_GREATER, NULL, NULL, '>'},
-        {T_IDENTIFIER, NULL, NULL, 'f'}
+        {T_LEFT_BRACKET, NULL, NULL, '('},
+        {T_IDENTIFIER, NULL, NULL, 'f'},
+        {T_RIGHT_BRACKET, NULL, NULL, ')'}
     };
 
-    EXPECT_EQ(parseExpression(tokenArr, 11, 'a'), 0);
+    EXPECT_EQ(parseExpression(tokenArr, 13, 'a'), 0);
 }
 
+TEST(ExpressionParserTest, Test3) {
+    token tokenArr[] = {
+    };
+
+    EXPECT_EQ(parseExpression(tokenArr, 0, 'a'), 1);
+}
 
 
 
