@@ -23,5 +23,35 @@ enum tokenType acceptedTokenTypes[] = {
     T_NIL_OP
 };
 
+    char precedenceTable[9][9] = {
+        {'<', '=', '<', '<', '<', '<', '<', '<', ' '},
+        {' ', '>', '>', '>', '>', '>', '>', ' ', '>'},
+        {'<', '>', '>', '>', '>', '>', '>', '<', '>'},
+        {'<', '>', '<', '>', '>', '>', '>', '<', '>'},
+        {'<', '>', '<', '<', '>', '>', '>', '<', '>'},
+        {'<', '>', '<', '<', '>', '>', '>', '<', '>'},
+        {'<', '>', '<', '<', '>', '<', '<', '<', '>'},
+        {' ', '>', '>', '>', '>', '>', '>', ' ', '>'},
+        {'<', ' ', '<', '<', '<', '<', '<', '<', ' '}
+    };
+
 int parseExpression(token *tokenArr, unsigned tokenArrLenght, char thisWillBePointerOnTheTopOfTheSubDerivationTree);
+
+
+/// @brief Function returns precedence of two tokens 
+/// @param topOfStack token on the top of the stack
+/// @param currentToken token that is being processed
+/// @param precedenceTable source of precedence table
+/// @return returns < > = or ' ' (space) based on precedence of two tokens
+char getPrecedence(token topOfStack, token currentToken, char *precedenceTable);
+
+
+/// 
+/// @brief Get the Index In Precedence Table object
+/// 
+/// @param tokenType type of token whose index we want to get
+/// @return unsigned int index of token in precedence table
+/// 
+unsigned int getIndexInPrecedenceTable(enum tokenType tokenType);
+
 

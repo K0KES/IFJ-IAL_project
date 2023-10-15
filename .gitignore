@@ -3,3 +3,4 @@ build/*
 *.exe
 .vscode/*
 my_gtest_*
+.idea/*

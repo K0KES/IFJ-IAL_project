@@ -24,7 +24,7 @@ $(BUILD_DIR)/%.c.o: %.c %.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 test: $(BUILD_DIR)/$(TARGET_EXEC)
-	$(TEST_CC) -o my_gtest_test $(TEST_DIR)/expression_parser_tests/main.c -lgtest -lgtest_main
+	$(TEST_CC) -o my_gtest_test $(TEST_DIR)/expression_parser_tests/main.cpp -lgtest -lgtest_main
 	./my_gtest_test
 
 
