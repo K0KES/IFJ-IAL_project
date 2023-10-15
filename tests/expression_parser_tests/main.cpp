@@ -89,6 +89,19 @@ TEST(getPrecedence,Test5){
     EXPECT_EQ(getPrecedence(topOfStack, currentToken, *precedenceTable), ' ');    
 }
 
+TEST(getPrecedence,Test6){
+    token topOfStack = {T_LEFT_BRACKET, NULL, NULL, ' '};
+    token currentToken = {T_EOF, NULL, NULL, ' '};
+    EXPECT_EQ(getPrecedence(topOfStack, currentToken, *precedenceTable), ' ');    
+}
+
+TEST(getPrecedence,Test7){
+    token topOfStack = {T_EOF, NULL, NULL, ' '};
+    token currentToken = {T_LEFT_BRACKET, NULL, NULL, ' '};
+    EXPECT_EQ(getPrecedence(topOfStack, currentToken, *precedenceTable), '<');    
+}
+
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

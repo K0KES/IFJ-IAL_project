@@ -40,7 +40,6 @@ char getPrecedence(token topOfStack, token currentToken, char *precedenceTable)
 }
 
 
-
 unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
 {
     switch (tokenType)

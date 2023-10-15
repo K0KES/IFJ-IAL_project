@@ -1,6 +1,7 @@
 #include "scanner.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // Lenght of array of accepted token types
 unsigned int acceptedTokenTypesLenght = 14;
@@ -35,6 +36,8 @@ enum tokenType acceptedTokenTypes[] = {
         {'<', ' ', '<', '<', '<', '<', '<', '<', ' '}
     };
 
+
+
 int parseExpression(token *tokenArr, unsigned tokenArrLenght, char thisWillBePointerOnTheTopOfTheSubDerivationTree);
 
 
@@ -54,4 +57,25 @@ char getPrecedence(token topOfStack, token currentToken, char *precedenceTable);
 /// 
 unsigned int getIndexInPrecedenceTable(enum tokenType tokenType);
 
+
+/*  Token stack*/
+
+struct tokenStackElement
+{
+    token *tokenValue;
+    struct tokenStackElement *next;
+};
+
+struct tokenStack
+{
+    struct tokenStackElement *top;
+};
+
+void tokenStackPush(struct tokenStack *stack, token *tokenValue)
+{
+    struct tokenStackElement *newElement = (struct tokenStackElement *) malloc(sizeof(struct tokenStackElement));
+    newElement->tokenValue = tokenValue;
+    newElement->next = stack->top;
+    stack->top = newElement;
+}
 
