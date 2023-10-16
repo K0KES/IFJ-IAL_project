@@ -42,7 +42,7 @@ struct precedenceRule
     // Basic description that is meant to be used only for debugging
     char *description;
     // Length of token list
-    unsigned tokenListLen;
+    unsigned rightSideLen;
     // List of tokens that are meant to be reduced
     token *rightSide;
     // Token to which they should be reduced
@@ -57,6 +57,117 @@ struct precedenceRulesList
     // List of all precedence rules
     struct precedenceRule *precedenceRuleList;
 };
+
+struct precedenceRulesList getPrecedenceRulesList()
+{
+    struct precedenceRulesList outputPrecedenceRulesList;
+    outputPrecedenceRulesList.precedenceRuleListLen = 13;
+    outputPrecedenceRulesList.precedenceRuleList = ( struct precedenceRule *) malloc(sizeof(struct precedenceRule) * outputPrecedenceRulesList.precedenceRuleListLen);
+
+    outputPrecedenceRulesList.precedenceRuleList[0].description = "E -> (E)";
+    outputPrecedenceRulesList.precedenceRuleList[0].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[0].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[0].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[0].rightSide[0].tokenType = T_LEFT_BRACKET;
+    outputPrecedenceRulesList.precedenceRuleList[0].rightSide[1].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[0].rightSide[2].tokenType = T_RIGHT_BRACKET;
+    outputPrecedenceRulesList.precedenceRuleList[0].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[1].description = "E -> E * E";
+    outputPrecedenceRulesList.precedenceRuleList[1].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[1].rightSide = (token *)malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[1].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[1].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[1].rightSide[1].tokenType = T_MULTIPLICATION;
+    outputPrecedenceRulesList.precedenceRuleList[1].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[1].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[2].description = "E -> E / E";
+    outputPrecedenceRulesList.precedenceRuleList[2].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[2].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[2].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[2].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[2].rightSide[1].tokenType = T_DIVISION;
+    outputPrecedenceRulesList.precedenceRuleList[2].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[2].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[3].description = "E -> E + E";
+    outputPrecedenceRulesList.precedenceRuleList[3].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[3].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[3].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[3].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[3].rightSide[1].tokenType = T_PLUS;
+    outputPrecedenceRulesList.precedenceRuleList[3].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[3].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[4].description = "E -> E - E";
+    outputPrecedenceRulesList.precedenceRuleList[4].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[4].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[4].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[4].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[4].rightSide[1].tokenType = T_MINUS;
+    outputPrecedenceRulesList.precedenceRuleList[4].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[4].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[5].description = "E -> E > E";
+    outputPrecedenceRulesList.precedenceRuleList[5].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[5].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[5].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[5].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[5].rightSide[1].tokenType = T_GREATER;
+    outputPrecedenceRulesList.precedenceRuleList[5].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[5].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[6].description = "E -> E >= E";
+    outputPrecedenceRulesList.precedenceRuleList[6].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[6].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[6].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[6].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[6].rightSide[1].tokenType = T_GREATER_EQUAL;
+    outputPrecedenceRulesList.precedenceRuleList[6].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[6].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[7].description = "E -> E < E";
+    outputPrecedenceRulesList.precedenceRuleList[7].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[7].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[7].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[7].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[7].rightSide[1].tokenType = T_LESS;
+    outputPrecedenceRulesList.precedenceRuleList[7].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[7].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[8].description = "E -> E <= E";
+    outputPrecedenceRulesList.precedenceRuleList[8].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[8].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[8].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[8].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[8].rightSide[1].tokenType = T_LESS_EQUAL;
+    outputPrecedenceRulesList.precedenceRuleList[8].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[8].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[9].description = "E -> E == E";
+    outputPrecedenceRulesList.precedenceRuleList[9].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[9].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[9].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[9].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[9].rightSide[1].tokenType = T_EQUAL;
+    outputPrecedenceRulesList.precedenceRuleList[9].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[9].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[10].description = "E -> E != E";
+    outputPrecedenceRulesList.precedenceRuleList[10].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[10].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[10].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[10].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[10].rightSide[1].tokenType = T_NOT_EQUAL;
+    outputPrecedenceRulesList.precedenceRuleList[10].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[10].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[11].description = "E -> E ?? E";
+    outputPrecedenceRulesList.precedenceRuleList[11].rightSideLen = 3;
+    outputPrecedenceRulesList.precedenceRuleList[11].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[11].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[11].rightSide[0].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[11].rightSide[1].tokenType = T_NIL_OP;
+    outputPrecedenceRulesList.precedenceRuleList[11].rightSide[2].tokenType = EP_E;
+    outputPrecedenceRulesList.precedenceRuleList[11].leftSide.tokenType = EP_E;
+
+    outputPrecedenceRulesList.precedenceRuleList[12].description = "E -> id";
+    outputPrecedenceRulesList.precedenceRuleList[12].rightSideLen = 1;
+    outputPrecedenceRulesList.precedenceRuleList[12].rightSide = (token *) malloc(sizeof(token) * outputPrecedenceRulesList.precedenceRuleList[12].rightSideLen);
+    outputPrecedenceRulesList.precedenceRuleList[12].rightSide[0].tokenType = T_IDENTIFIER;
+    outputPrecedenceRulesList.precedenceRuleList[12].leftSide.tokenType = EP_E;
+
+    return outputPrecedenceRulesList;    
+}
 
 /*Token stack*/
 
@@ -82,9 +193,12 @@ void tokenStackPush(struct tokenStack *stack, token *tokenValue)
     stack->top = newElement;
 }
 
-
+/// @brief Function parse expression and returns precedence rules list
+/// @param tokenArr array of tokens
+/// @param tokenArrLength length of array of tokens
+/// @param outputPrecedenceRulesList output list of precedence rules that are necessary for parsing expression
+/// @return returns 0 if everything went well, otherwise returns error code
 int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceRulesList *outputPrecedenceRulesList);
-
 
 /// @brief Function returns precedence of two tokens
 /// @param topOfStack token on the top of the stack
@@ -93,11 +207,8 @@ int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceR
 /// @return returns < > = or ' ' (space) based on precedence of two tokens
 char getPrecedence(token topOfStack, token currentToken, char *precedenceTable);
 
-
-///
 /// @brief Get the Index In Precedence Table object
-///
 /// @param tokenType type of token whose index we want to get
 /// @return unsigned int index of token in precedence table
-///
 unsigned int getIndexInPrecedenceTable(enum tokenType tokenType);
+

@@ -28,7 +28,7 @@ int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceR
         }
     }
 
-    // Stack of tokens initalized with EOF token ($)
+    // Stack of tokens initalized with EP_$ token
     struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
     tokenStackPush(tokenStack, (token *)malloc(sizeof(token)));
     tokenStack->top->tokenValue->tokenType = EP_$;
@@ -47,7 +47,6 @@ int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceR
 
         tokenArrIndex++;
     }
-
     return 0;
 }
 
