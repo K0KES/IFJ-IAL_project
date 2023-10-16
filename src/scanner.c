@@ -3,16 +3,13 @@
 #include <malloc.h>
 #include "scanner.h"
 
-
-FILE *source;
-int charNumber = 0;
-int lineNumber = 1;
-
-void setSourceFile(FILE *f) {
-    source = f;
+void tokenClear (token* token) {
+    strClear(token->value);
+    token->tokenType = T_NO_TOKEN;
+    token->lastChar = '\0';
 }
 
-int getToken(token *token) {
+int getToken(token *token, int charNumber, int lineNumber, FILE *source) {
     char c;
     enum state state = S_START;
     printf("'");
@@ -91,7 +88,7 @@ int getToken(token *token) {
                         token->lastChar = lastChar;
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                         break;
                     case '(':
                         token->tokenType = T_LEFT_BRACKET;
@@ -99,7 +96,7 @@ int getToken(token *token) {
                         token->lastChar = lastChar;
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                         break;
                     case ')':
                         token->tokenType = T_RIGHT_BRACKET;
@@ -107,7 +104,7 @@ int getToken(token *token) {
                         token->lastChar = lastChar;
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                         break;
                     case '{':
                         token->tokenType = T_LEFT_CURLY_BRACKET;
@@ -115,7 +112,7 @@ int getToken(token *token) {
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
-                        return 1;
+                        return 0;
                         break;
                     case '}':
                         token->tokenType = T_RIGHT_CURLY_BRACKET;
@@ -123,7 +120,7 @@ int getToken(token *token) {
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
-                        return 1;
+                        return 0;
                         break;
                     case ':':
                         token->tokenType = T_COLON;
@@ -131,7 +128,7 @@ int getToken(token *token) {
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
-                        return 1;
+                        return 0;
                         break;
                     case ';':
                         token->tokenType = T_SEMICOLON;
@@ -139,7 +136,7 @@ int getToken(token *token) {
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
-                        return 1;
+                        return 0;
                         break;
                     case ',':
                         token->tokenType = T_COLON;
@@ -147,7 +144,7 @@ int getToken(token *token) {
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
-                        return 1;
+                        return 0;
                         break;
                     /////////////////////////  
                     //ID || KW || INT || DOUBLE
@@ -176,14 +173,14 @@ int getToken(token *token) {
                     strAddChar(token->value, c);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 else {
                     token->tokenType = T_PLUS;
                     ungetc(c, source);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 break;
 
@@ -194,7 +191,7 @@ int getToken(token *token) {
                     strAddChar(token->value, c);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 else if (c == '>') {
                     token->tokenType = T_ARROW;
@@ -202,14 +199,14 @@ int getToken(token *token) {
                     strAddChar(token->value, c);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 else {
                     token->tokenType = T_MINUS;
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
                     ungetc(c, source);
-                    return 1;
+                    return 0;
                 }
                 break;
 
@@ -220,14 +217,14 @@ int getToken(token *token) {
                     strAddChar(token->value, c);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 else {
                     token->tokenType = T_LESS;
                     ungetc(c, source);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 break;
 
@@ -238,14 +235,14 @@ int getToken(token *token) {
                     strAddChar(token->value, c);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 else {
                     token->tokenType = T_GREATER;
                     ungetc(c, source);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 break;
             
@@ -256,14 +253,14 @@ int getToken(token *token) {
                     strAddChar(token->value, c);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 else {
                     token->tokenType = T_ASSIGNMENT;
                     ungetc(c, source);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 break;
 
@@ -274,14 +271,14 @@ int getToken(token *token) {
                     strAddChar(token->value, c);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 else {
                     token->tokenType = T_NULLABLE;
                     ungetc(c, source);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 break;
             case S_NOT_EQUAL:
@@ -291,14 +288,14 @@ int getToken(token *token) {
                     strAddChar(token->value, c);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 else {
                     token->tokenType = T_NOT;
                     ungetc(c, source);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                 }
                 break;
             case S_UNDERSCORE_IDENTIFIER:
@@ -312,7 +309,7 @@ int getToken(token *token) {
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                         break;
                     //it is identifier
                     default:
@@ -337,154 +334,154 @@ int getToken(token *token) {
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "else") == 0) {
                         token->tokenType = KW_ELSE;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "func") == 0) {
                         token->tokenType = KW_FUNC;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "if") == 0) {
                         token->tokenType = KW_IF;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "Int") == 0) {
                         token->tokenType = KW_INT;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "let") == 0) {
                         token->tokenType = KW_LET;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "nil") == 0) {
                         token->tokenType = KW_NIL;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "return") == 0) {
                         token->tokenType = KW_RETURN;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "String") == 0) {
                         token->tokenType = KW_STRING;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "var") == 0) {
                         token->tokenType = KW_VAR;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "while") == 0) {
                         token->tokenType = KW_WHILE;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "readString") == 0) {
                         token->tokenType = KW_READSTRING;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "readInt") == 0) {
                         token->tokenType = KW_READINT;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "readDouble") == 0) {
                         token->tokenType = KW_READDOUBLE;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "write") == 0) {
                         token->tokenType = KW_WRITE;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
-                    else if (strCmpConstStr(token->value, "Int2Double") == 0) {
+                    else if (strCmpConstStr(token->value, "Int1Double") == 0) {
                         token->tokenType = KW_INT_TO_DOUBLE;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
-                    else if (strCmpConstStr(token->value, "Double2Int") == 0) {
+                    else if (strCmpConstStr(token->value, "Double1Int") == 0) {
                         token->tokenType = KW_DOUBLE_TO_INT;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "length") == 0) {
                         token->tokenType = KW_LENGTH;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "substring") == 0) {
                         token->tokenType = KW_SUBSTRING;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "ord") == 0) {
                         token->tokenType = KW_ORD;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else if (strCmpConstStr(token->value, "chr") == 0) {
                         token->tokenType = KW_CHR;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     else {
                         token->tokenType = T_IDENTIFIER;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }       
                     break;
                 //IDENTIFIER
@@ -498,7 +495,7 @@ int getToken(token *token) {
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     break;
                 }
@@ -527,7 +524,7 @@ int getToken(token *token) {
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     break;
                 }
@@ -538,7 +535,7 @@ int getToken(token *token) {
                 case 'E':
                 case '.':
                     printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return 2;
+                    return 1;
                     break;
                 case ' ':
                 case '\t':
@@ -546,13 +543,13 @@ int getToken(token *token) {
                 case '\r':
                     if (lastChar == 'e' || lastChar == 'E' || lastChar == '+' || lastChar == '-') {
                         printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return 2;    
+                        return 1;    
                     }
                     token->tokenType = T_INT;
                     ungetc(c, source);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                     break;
                 case '+':
                 case '-':
@@ -563,14 +560,14 @@ int getToken(token *token) {
                     }
                     else if (lastChar == '+' || lastChar == '-') {
                         printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return 2;
+                        return 1;
                     }
                     else {
                         token->tokenType = T_INT;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     break;
                 default:
@@ -581,14 +578,14 @@ int getToken(token *token) {
                     }
                     else if (lastChar == '+' || lastChar == '-') {
                         printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return 2;
+                        return 1;
                     }
                     else {
                         token->tokenType = T_INT;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     break;
                 }
@@ -609,7 +606,7 @@ int getToken(token *token) {
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     break;
                 break;
@@ -619,7 +616,7 @@ int getToken(token *token) {
                 case 'E':
                 case '.':
                     printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return 2;
+                    return 1;
                     break;
                 case ' ':
                 case '\t':
@@ -627,13 +624,13 @@ int getToken(token *token) {
                 case '\r':
                     if (lastChar == 'e' || lastChar == 'E' || lastChar == '+' || lastChar == '-') {
                         printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return 2;    
+                        return 1;    
                     }
                     token->tokenType = T_DOUBLE;
                     ungetc(c, source);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                     break;
                 case '+':
                 case '-':
@@ -644,14 +641,14 @@ int getToken(token *token) {
                     }
                     else if (lastChar == '+' || lastChar == '-') {
                         printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return 2;
+                        return 1;
                     }
                     else {
                         token->tokenType = T_DOUBLE;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     break;
                 default:
@@ -662,14 +659,14 @@ int getToken(token *token) {
                     }
                     else if (lastChar == '+' || lastChar == '-') {
                         printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return 2;
+                        return 1;
                     }
                     else {
                         token->tokenType = T_DOUBLE;
                         ungetc(c, source);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     break;
                 }
@@ -689,7 +686,7 @@ int getToken(token *token) {
                     ungetc(c, source);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                     break;
                 }
                 break;
@@ -710,7 +707,7 @@ int getToken(token *token) {
                     break;
                 case EOF:
                     printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return 2;
+                    return 1;
                     break;
                 default:
                     ungetc(c, source);
@@ -737,13 +734,13 @@ int getToken(token *token) {
                     token->tokenType = T_STRING;
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                     break;
                 case '\r':
                 case '\n':
                 case EOF:
                     printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return 2;
+                    return 1;
                 default:
                     charNumber++;
                     lastChar = c;
@@ -768,7 +765,7 @@ int getToken(token *token) {
                 default:
                     charNumber++;
                     printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return 2;
+                    return 1;
                     break;
                 }
                 break;
@@ -787,7 +784,7 @@ int getToken(token *token) {
                     token->tokenType = T_STRING;
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
-                    return 1;
+                    return 0;
                     break;
                 }
                 break;
@@ -820,7 +817,7 @@ int getToken(token *token) {
                     if (lastChar == '"') {
                         charNumber++;
                         printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return 2;
+                        return 1;
                     }
 
                     strAddChar(token->value, c);
@@ -840,7 +837,7 @@ int getToken(token *token) {
                         token->tokenType = T_MULTILINE_STRING;
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
-                        return 1;
+                        return 0;
                     }
                     strAddChar(token->value, c);
                     charNumber++;
@@ -849,7 +846,7 @@ int getToken(token *token) {
                 default:
                     charNumber++;
                     printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return 2;
+                    return 1;
                     break;
                 }
                 break;
@@ -871,7 +868,7 @@ int getToken(token *token) {
                 default:
                     charNumber++;
                     printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return 2;
+                    return 1;
                     break;
                 }
                 break;
@@ -879,35 +876,5 @@ int getToken(token *token) {
 
 
     }
-    return 2;
-}
-
-
-int main(int argc, char const *argv[])
-{
-    token *token_e = (token*)malloc(sizeof(token));
-    strInit(token_e->value);
-    token_e->position = (positionInfo*)malloc(sizeof(positionInfo));
-
-    FILE *f;
-    if (argc == 1) {
-        printf("Neni zadan vstupni soubor\n");
-        return 1;
-    }
-    if ((f = fopen(argv[1], "r")) == NULL) {
-        printf("Soubor se nepodarilo otevrit\n");
-        return 2;
-    }   
-    setSourceFile(f);
-    int tokenReturnValue = getToken(token_e);   
-    while (tokenReturnValue != 2) {
-        printf("'");
-        printf("\ntoken type:%d, value:", token_e->tokenType);
-        strPrint(token_e->value);
-        printf(", lastChar='%c', lineNumber=%d, charNumber=%d", token_e->lastChar, token_e->position->lineNumber, token_e->position->charNumber);
-        printf("\n\n");
-        tokenClear(token_e);
-        tokenReturnValue = getToken(token_e);
-    };
-
+    return 1;
 }

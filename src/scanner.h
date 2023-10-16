@@ -113,9 +113,7 @@ typedef struct {
     char lastChar;
 } token;
 
-void tokenClear (token* token) {
-    strClear(token->value);
-    token->tokenType = T_NO_TOKEN;
-    token->lastChar = '\0';
-}
+void tokenClear (token* token);
+int getToken(token *token, int charNumber, int lineNumber, FILE *source);
+
 
