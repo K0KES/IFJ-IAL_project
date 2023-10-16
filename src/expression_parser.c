@@ -1,19 +1,19 @@
 #include "expression_parser.h"
 
-int parseExpression(token *tokenArr, unsigned tokenArrLenght, char thisWillBePointerOnTheTopOfTheSubDerivationTree)
+int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceRulesList *outputPrecedenceRulesList)
 {
     // Check if tokenArr is not empty
-    if (tokenArrLenght == 0)
+    if (tokenArrLength == 0)
     {
         return 1;
     }
 
     // Check if all tokens are supported
     bool validTokenType;
-    for (unsigned iToken = 0; iToken < tokenArrLenght; iToken++)
+    for (unsigned iToken = 0; iToken < tokenArrLength; iToken++)
     {
         validTokenType = false;
-        for (unsigned iType = 0; iType < acceptedTokenTypesLenght; iType++)
+        for (unsigned iType = 0; iType < acceptedTokenTypesLength; iType++)
         {
 
             if (tokenArr[iToken].tokenType == acceptedTokenTypes[iType])
@@ -28,6 +28,26 @@ int parseExpression(token *tokenArr, unsigned tokenArrLenght, char thisWillBePoi
         }
     }
 
+    // Stack of tokens initalized with EOF token ($)
+    struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
+    tokenStackPush(tokenStack, (token *)malloc(sizeof(token)));
+    tokenStack->top->tokenValue->tokenType = EP_$;
+
+    unsigned tokenArrIndex = 0;
+    while (tokenArrLength > tokenArrIndex)
+    {
+        char tokenPrecedence = getPrecedence(*tokenStack->top->tokenValue, tokenArr[tokenArrIndex], *precedenceTable);
+
+        switch (tokenPrecedence)
+        {
+        case '<':
+            tokenStackPush(tokenStack, &tokenArr[tokenArrIndex]);
+            break;
+        }
+
+        tokenArrIndex++;
+    }
+
     return 0;
 }
 
@@ -38,7 +58,6 @@ char getPrecedence(token topOfStack, token currentToken, char *precedenceTable)
 
     return precedenceTable[topOfStackIndex * 9 + currentTokenIndex];
 }
-
 
 unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
 {
@@ -77,16 +96,17 @@ unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
     case T_NIL_OP:
         return 6;
         break;
-    
+
     case T_IDENTIFIER:
         return 7;
         break;
 
-    case T_EOF:
+    case EP_$:
         return 8;
         break;
 
     default:
+        fprintf(stderr, "%s", "Error: invalid token type in expression_parser.c in getIndexInPrecedenceTable()!\n");
         return -1;
         break;
     }

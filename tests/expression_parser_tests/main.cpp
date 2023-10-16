@@ -1,5 +1,5 @@
-// #include <cstddef>
 #include <gtest/gtest.h>
+#include <stdlib.h>
 #include "../../src/expression_parser.c"
 
 // Define your test cases here
@@ -8,10 +8,11 @@ TEST(ExpressionParserTest, Test1) {
         {T_IDENTIFIER, NULL, NULL, 'a'},
         {T_PLUS, NULL, NULL, '+'},
         {T_IDENTIFIER, NULL, NULL, 'b'},
-        {T_EOF, NULL, NULL, 0}
+        {EP_$, NULL, NULL, 0}
     };
+    struct precedenceRulesList *outputPrecedenceRulesList = (struct precedenceRulesList *) malloc(sizeof(struct precedenceRulesList));
 
-    EXPECT_EQ(parseExpression(tokenArr, 4, 'a'), 1);
+    EXPECT_EQ(parseExpression(tokenArr, 4, outputPrecedenceRulesList), 1);
 }
 
 TEST(ExpressionParserTest, Test2) {
@@ -30,15 +31,17 @@ TEST(ExpressionParserTest, Test2) {
         {T_IDENTIFIER, NULL, NULL, 'f'},
         {T_RIGHT_BRACKET, NULL, NULL, ')'}
     };
+    struct precedenceRulesList *outputPrecedenceRulesList = (struct precedenceRulesList *) malloc(sizeof(struct precedenceRulesList));
 
-    EXPECT_EQ(parseExpression(tokenArr, 13, 'a'), 0);
+    EXPECT_EQ(parseExpression(tokenArr, 13, outputPrecedenceRulesList), 0);
 }
 
 TEST(ExpressionParserTest, Test3) {
     token tokenArr[] = {
     };
+    struct precedenceRulesList *outputPrecedenceRulesList = (struct precedenceRulesList *) malloc(sizeof(struct precedenceRulesList));
 
-    EXPECT_EQ(parseExpression(tokenArr, 0, 'a'), 1);
+    EXPECT_EQ(parseExpression(tokenArr, 0, outputPrecedenceRulesList), 1);
 }
 
 TEST(TokenToIndex, Test1){
@@ -56,7 +59,7 @@ TEST(TokenToIndex, Test1){
     EXPECT_EQ(getIndexInPrecedenceTable(T_NOT_EQUAL), 5);
     EXPECT_EQ(getIndexInPrecedenceTable(T_NIL_OP), 6);
     EXPECT_EQ(getIndexInPrecedenceTable(T_IDENTIFIER), 7);
-    EXPECT_EQ(getIndexInPrecedenceTable(T_EOF), 8);
+    EXPECT_EQ(getIndexInPrecedenceTable(EP_$), 8);
 }
 
 TEST(getPrecedence,Test1){
@@ -72,9 +75,9 @@ TEST(getPrecedence,Test2){
 }
 
 TEST(getPrecedence,Test3){
-    token topOfStack = {T_EOF, NULL, NULL, ' '};
-    token currentToken = {T_EOF, NULL, NULL, ' '};
-    EXPECT_EQ(getPrecedence(topOfStack, currentToken, *precedenceTable), ' ');    
+    token topOfStack = {EP_$, NULL, NULL, ' '};
+    token currentToken = {EP_$, NULL, NULL, ' '};
+    EXPECT_EQ(getPrecedence(topOfStack, currentToken, *precedenceTable), '0');    
 }
 
 TEST(getPrecedence,Test4){
@@ -86,17 +89,17 @@ TEST(getPrecedence,Test4){
 TEST(getPrecedence,Test5){
     token topOfStack = {T_IDENTIFIER, NULL, NULL, ' '};
     token currentToken = {T_IDENTIFIER, NULL, NULL, ' '};
-    EXPECT_EQ(getPrecedence(topOfStack, currentToken, *precedenceTable), ' ');    
+    EXPECT_EQ(getPrecedence(topOfStack, currentToken, *precedenceTable), '1');    
 }
 
 TEST(getPrecedence,Test6){
     token topOfStack = {T_LEFT_BRACKET, NULL, NULL, ' '};
-    token currentToken = {T_EOF, NULL, NULL, ' '};
-    EXPECT_EQ(getPrecedence(topOfStack, currentToken, *precedenceTable), ' ');    
+    token currentToken = {EP_$, NULL, NULL, ' '};
+    EXPECT_EQ(getPrecedence(topOfStack, currentToken, *precedenceTable), '1');    
 }
 
 TEST(getPrecedence,Test7){
-    token topOfStack = {T_EOF, NULL, NULL, ' '};
+    token topOfStack = {EP_$, NULL, NULL, ' '};
     token currentToken = {T_LEFT_BRACKET, NULL, NULL, ' '};
     EXPECT_EQ(getPrecedence(topOfStack, currentToken, *precedenceTable), '<');    
 }
