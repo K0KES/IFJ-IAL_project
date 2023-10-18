@@ -6,74 +6,73 @@ typedef struct {
 } positionInfo;
 
 enum tokenType {
-    T_NO_TOKEN,
-    T_WHITESPACE,
-    T_EOF,
-    T_START,
-    T_IDENTIFIER,
+    T_NO_TOKEN, //neznamena nic, je jen placeholder pro 0
+    T_WHITESPACE, //nevyužit
+    T_EOF, //nevyužit
+    T_IDENTIFIER, //variable
 
     //BRACKETS
-    T_LEFT_BRACKET,
-    T_RIGHT_BRACKET,
-    T_LEFT_CURLY_BRACKET,
-    T_RIGHT_CURLY_BRACKET,
+    T_LEFT_BRACKET, // (
+    T_RIGHT_BRACKET, // )
+    T_LEFT_CURLY_BRACKET, // {
+    T_RIGHT_CURLY_BRACKET, // }
 
     //OPERATORS
-    T_PLUS,
-    T_MINUS,
-    T_MULTIPLICATION,
-    T_DIVISION,
-    T_LESS,
-    T_LESS_EQUAL,
-    T_GREATER,
-    T_GREATER_EQUAL,
-    T_EQUAL,
-    T_NOT_EQUAL,
-    T_NIL_OP,
+    T_PLUS, // +
+    T_MINUS, // -
+    T_MULTIPLICATION, // *
+    T_DIVISION, // /
+    T_LESS, // <
+    T_LESS_EQUAL, // <=
+    T_GREATER, // >
+    T_GREATER_EQUAL, // >=
+    T_EQUAL, // ==
+    T_NOT_EQUAL, // !=
+    T_NIL_OP, // ??
 
     //VARIABLES
-    T_ASSIGNMENT,
-    T_INCREMENT,
-    T_DECREMENT,
-    T_VAR_MUL_VAR,
-    T_VAR_DIV_VAR,
-    T_NOT,
+    T_ASSIGNMENT, // =
+    T_INCREMENT, //++
+    T_DECREMENT, //--
+    // T_VAR_MUL_VAR, //
+    // T_VAR_DIV_VAR, //
+    T_NOT, // !
 
     //DATA TYPES
-    T_INT,
-    T_DOUBLE,
-    T_STRING,
-    T_MULTILINE_STRING,
-    T_NULLABLE,
+    T_INT, // Integer
+    T_DOUBLE, // Double
+    T_STRING, // String
+    T_MULTILINE_STRING, // """ """
+    T_NULLABLE, // ?
 
     //OTHERS
-    T_SEMICOLON,
-    T_COLON,
-    T_ARROW,
+    T_SEMICOLON, // ;
+    T_COLON, // ,
+    T_ARROW, // ->
 
     //KEYWORDS
-    KW_DOUBLE,
-    KW_FUNC,
-    KW_RETURN,
-    KW_INT,
-    KW_STRING,
-    KW_NIL,
-    KW_ELSE,
-    KW_IF,
-    KW_WHILE,
-    KW_VAR,
-    KW_LET,
-    KW_UNDERSCORE,
-    KW_READSTRING,
-    KW_READINT,
-    KW_READDOUBLE,
-    KW_WRITE,
-    KW_INT_TO_DOUBLE,
-    KW_DOUBLE_TO_INT,
-    KW_LENGTH,
-    KW_SUBSTRING,
-    KW_ORD,
-    KW_CHR,
+    KW_DOUBLE, // Double
+    KW_FUNC, // func
+    KW_RETURN, // return
+    KW_INT, // Int
+    KW_STRING, // String
+    KW_NIL, // nil
+    KW_ELSE, // else
+    KW_IF, // if
+    KW_WHILE, // while
+    KW_VAR, // var
+    KW_LET, // let
+    KW_UNDERSCORE, // _
+    KW_READSTRING, // readString
+    KW_READINT, // readInt
+    KW_READDOUBLE, // readDouble
+    KW_WRITE, // write
+    KW_INT_TO_DOUBLE, // int2Double
+    KW_DOUBLE_TO_INT, // double2Int
+    KW_LENGTH, // lenght
+    KW_SUBSTRING, // substring
+    KW_ORD, // ord
+    KW_CHR, // chr
 };
 
 
