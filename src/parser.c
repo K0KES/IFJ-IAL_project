@@ -3,33 +3,35 @@
 
 FILE *f;
 
-int main(int argc, char const *argv[]){
-    token *activeToken = (token*)malloc(sizeof(token));
-    strInit(activeToken->value);
-    activeToken->position = (positionInfo*)malloc(sizeof(positionInfo));
-    activeToken->position->charNumber = 0;
-    activeToken->position->lineNumber = 1;
+// int main(int argc, char const *argv[]){
+//     token *activeToken = (token*)malloc(sizeof(token));
+//     strInit(activeToken->value);
+//     activeToken->position = (positionInfo*)malloc(sizeof(positionInfo));
+//     activeToken->position->charNumber = 0;
+//     activeToken->position->lineNumber = 1;
 
-    if (argc == 1) {
-        printf("Neni zadan vstupni soubor\n");
-        return 0;
-    }
-    if ((f = fopen(argv[1], "r")) == NULL) {
-        printf("Soubor se nepodarilo otevrit\n");
-        return 1;
-    } 
+//     if (argc == 1) {
+//         printf("Neni zadan vstupni soubor\n");
+//         return 0;
+//     }
+//     if ((f = fopen(argv[1], "r")) == NULL) {
+//         printf("Soubor se nepodarilo otevrit\n");
+//         return 1;
+//     } 
 
-    getNextToken(activeToken);
-    //printf(activeToken->value);
-    if(start(activeToken)){
-        printf("Success");
-    }
-    else{
-        printf("Error");
-    }
-}
+//     getNextToken(activeToken);
+//     //printf(activeToken->value);
+//     if(start(activeToken)){
+//         printf("Success");
+//     }
+//     else{
+//         printf("Error");
+//     }
+// }
+
 int getNextToken(token *activeToken){
     int getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber, f);
+    
     return getTokenErr;
 }
 
