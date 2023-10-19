@@ -26,11 +26,11 @@ $(BUILD_DIR)/%.c.o: %.c %.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 test: $(BUILD_DIR)/$(TARGET_EXEC)
-	$(TEST_CC) -o my_gtest_test $(TEST_DIR)/expression_parser_tests/main.cpp -lgtest -lgtest_main -Wall -Wextra
+	$(TEST_CC) -o my_gtest_test $(TEST_DIR)/expression_parser_tests/main.cpp -lgtest -lgtest_main -g
 	./my_gtest_test
 
 valgrind: $(BUILD_DIR)/$(TARGET_EXEC)
-	$(TEST_CC) -o my_gtest_test $(TEST_DIR)/expression_parser_tests/main.cpp -lgtest -lgtest_main -Wall -Wextra -g
+	$(TEST_CC) -o my_gtest_test $(TEST_DIR)/expression_parser_tests/main.cpp -lgtest -lgtest_main -g
 	valgrind --leak-check=full --show-leak-kinds=all ./my_gtest_test
 
 .PHONY: clean test
