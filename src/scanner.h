@@ -1,4 +1,5 @@
 #include "str.h"
+#include "stdio.h"
 
 typedef struct {
     int lineNumber;
@@ -9,6 +10,7 @@ enum tokenType {
     T_NO_TOKEN, //neznamena nic, je jen placeholder pro 0
     T_WHITESPACE, //nevyužit
     T_EOF, //nevyužit
+    T_EOL, // EOL
     T_IDENTIFIER, //variable
 
     //BRACKETS
@@ -47,8 +49,10 @@ enum tokenType {
 
     //OTHERS
     T_SEMICOLON, // ;
-    T_COLON, // ,
+    T_COLON, // :
+    T_COMMA, // ,
     T_ARROW, // ->
+    T_END, // $
 
     //KEYWORDS
     KW_DOUBLE, // Double
