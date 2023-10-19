@@ -1,13 +1,11 @@
 #include "symtable.h"
 
-#include <string.h>
-#include <stdbool.h>
-#include <stdio.h>
+
 
 struct symtable
 {
-	list tables;
-	hmap global_table;
+	list_t tables;
+	hashmap_t global_table;
 };
 
 #define HASHMAP_SIZE 800
@@ -17,13 +15,13 @@ symtable_t symtable_init(){
     if(symtable == NULL) return NULL;
 
     symtable->tables = list_init(sizeof(hashmap_t));
-    if(symtable->tables == NULL){ free(symtable); return NULL }
+    if(symtable->tables == NULL){ free(symtable); return NULL; }
 
 
 }
 
 bool symtable_enter_scope(symtable_t symtable,const char* scopename){
-    hashmap_t hashmap = hashmap_init(HASHMAP_SIZE, sizeof(symbol_t)) //SYMBOL_T neexistuje
+    hashmap_t hashmap = hashmap_init(HASHMAP_SIZE, sizeof(symtable_t)); //SYMBOL_T neexistuje
     if(hashmap == NULL) return false;
 
     //TODO
@@ -49,6 +47,6 @@ void symtable_free(symtable_t symtable){
     
 }
 
-int main(){
-    return 0;
-}
+// int main(){
+//     return 0;
+// }

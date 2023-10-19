@@ -1,5 +1,10 @@
 
+#include <string.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include "custom_data_types/list.h"
+#include "custom_data_types/hashmap.h"
+#pragma once
 
 /**
  * @file sym_table.h
