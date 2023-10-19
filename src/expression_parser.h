@@ -1,7 +1,7 @@
 #include "scanner.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
+
 
 // Length of array of accepted token types
 unsigned int acceptedTokenTypesLength = 14;
@@ -173,7 +173,7 @@ struct precedenceRulesList getPrecedenceRulesList()
 
 struct tokenStackElement
 {
-    token *tokenValue;
+    token *tokenOnStack;
     struct tokenStackElement *next;
 };
 
@@ -185,13 +185,29 @@ struct tokenStack
 /// @brief Function returns token from the top of the stack
 /// @param stack stack of tokens
 /// @return token from the top of the stack
-void tokenStackPush(struct tokenStack *stack, token *tokenValue)
+void tokenStackPush(struct tokenStack *stack, enum tokenType tokenOnStackType)
 {
-    struct tokenStackElement *newElement = (struct tokenStackElement *)malloc(sizeof(struct tokenStackElement));
-    newElement->tokenValue = tokenValue;
+    struct tokenStackElement *newElement = (struct tokenStackElement *) malloc(sizeof(struct tokenStackElement));
+    newElement->tokenOnStack = (token *) malloc(sizeof(token));
+    newElement->tokenOnStack->tokenType = tokenOnStackType;
     newElement->next = stack->top;
     stack->top = newElement;
+
 }
+
+void tokenStackClear(struct tokenStack *stack)
+{
+    struct tokenStackElement *currentElement = stack->top;
+    while (currentElement != NULL)
+    {
+        struct tokenStackElement *nextElement = currentElement->next;
+        free (currentElement->tokenOnStack);
+        free(currentElement);
+        currentElement = nextElement;
+    }
+    free(stack);
+}
+
 
 /// @brief Function parse expression and returns precedence rules list
 /// @param tokenArr array of tokens

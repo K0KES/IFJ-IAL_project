@@ -13,6 +13,7 @@ TEST(ExpressionParserTest, Test1) {
     struct precedenceRulesList *outputPrecedenceRulesList = (struct precedenceRulesList *) malloc(sizeof(struct precedenceRulesList));
 
     EXPECT_EQ(parseExpression(tokenArr, 4, outputPrecedenceRulesList), 1);
+    free(outputPrecedenceRulesList);
 }
 
 TEST(ExpressionParserTest, Test2) {
@@ -34,6 +35,7 @@ TEST(ExpressionParserTest, Test2) {
     struct precedenceRulesList *outputPrecedenceRulesList = (struct precedenceRulesList *) malloc(sizeof(struct precedenceRulesList));
 
     EXPECT_EQ(parseExpression(tokenArr, 13, outputPrecedenceRulesList), 0);
+    free(outputPrecedenceRulesList);
 }
 
 TEST(ExpressionParserTest, Test3) {
@@ -42,6 +44,7 @@ TEST(ExpressionParserTest, Test3) {
     struct precedenceRulesList *outputPrecedenceRulesList = (struct precedenceRulesList *) malloc(sizeof(struct precedenceRulesList));
 
     EXPECT_EQ(parseExpression(tokenArr, 0, outputPrecedenceRulesList), 1);
+    free(outputPrecedenceRulesList);
 }
 
 TEST(TokenToIndex, Test1){

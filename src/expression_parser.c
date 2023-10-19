@@ -30,23 +30,24 @@ int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceR
 
     // Stack of tokens initalized with EP_$ token
     struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
-    tokenStackPush(tokenStack, (token *)malloc(sizeof(token)));
-    tokenStack->top->tokenValue->tokenType = EP_$;
+    tokenStackPush(tokenStack, EP_$);
 
     unsigned tokenArrIndex = 0;
     while (tokenArrLength > tokenArrIndex)
     {
-        char tokenPrecedence = getPrecedence(*tokenStack->top->tokenValue, tokenArr[tokenArrIndex], *precedenceTable);
+        char tokenPrecedence = getPrecedence(*tokenStack->top->tokenOnStack, tokenArr[tokenArrIndex], *precedenceTable);
 
         switch (tokenPrecedence)
         {
         case '<':
-            tokenStackPush(tokenStack, &tokenArr[tokenArrIndex]);
+            // tokenStackPush(tokenStack, &tokenArr[tokenArrIndex]);
+            tokenStackPush(tokenStack, tokenArr[tokenArrIndex].tokenType);
             break;
         }
 
         tokenArrIndex++;
     }
+    tokenStackClear(tokenStack);
     return 0;
 }
 
