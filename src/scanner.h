@@ -61,7 +61,11 @@ enum tokenType {
     KW_WHILE,
     KW_VAR,
     KW_LET,
-    KW_UNDERSCORE
+    KW_UNDERSCORE,
+
+    //TYPES FOR EXPRESSION PARSER
+    EP_$,
+    EP_E
 };
 
 
