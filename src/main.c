@@ -1,8 +1,6 @@
-#include <stdio.h>
-#include "scanner.h"
+#include "main.h"
 
-int main()
-{
+int main(){
     printf("Hello IFJ!");
     return 0;
 }

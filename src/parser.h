@@ -11,92 +11,92 @@ int getNextToken(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool start();
+bool start(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool code();
+bool code(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool eol();
+bool eol(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool type();
+bool type(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool definition();
+bool definition(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool funcDefMid();
+bool funcDefMid(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool functionParams();
+bool functionParams(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool functionParamsN();
+bool functionParamsN(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool functionParam();
+bool functionParam(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool statements();
+bool statements(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool statement();
+bool statement(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool callOrAssign();
+bool callOrAssign(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool varDec();
+bool varDec(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool varDecMid();
+bool varDecMid(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool varDef();
+bool varDef(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool returnExpression();
+bool returnExpression(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool arguments();
+bool arguments(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool argumentsN();
+bool argumentsN(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool argument();
+bool argument(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool argWithName();
+bool argWithName(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool argumentType();
+bool argumentType(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool dataType();
+bool dataType(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
-bool expression();
+bool expression(token *activeToken);
