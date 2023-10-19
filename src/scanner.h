@@ -1,5 +1,6 @@
 #include "str.h"
 #include "stdio.h"
+#pragma once
 
 typedef struct {
     int lineNumber;

@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#pragma once
 
 /// @brief Function gets next token and saves it in global var
 /// @param activeToken global var
