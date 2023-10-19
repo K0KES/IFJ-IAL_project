@@ -71,12 +71,28 @@ bool code(token *activeToken){
         case KW_WHILE:
         case KW_LET:
         case KW_VAR:
-            // 4) <code> -> <statement> <code>
-            codeStatus = statement(activeToken) && code(activeToken);
+            // 4) <code> -> <statement> EOL <code>
+            codeStatus = statement(activeToken);
+
+            // verification of: EOL
+            if (activeToken->tokenType != T_EOL){ 
+                return false;
+            }
+
+            getNextToken(activeToken);
+            codeStatus = codeStatus && code(activeToken);
             break;
         case KW_FUNC:
-            // 3) <code> -> <definition> <eol> <code>
-            codeStatus = definition(activeToken) && eol(activeToken) && code(activeToken);
+            // 3) <code> -> <definition> EOL <code>
+            codeStatus = definition(activeToken);
+
+            // verification of: EOL
+            if (activeToken->tokenType != T_EOL){ 
+                return false;
+            }
+
+            getNextToken(activeToken);
+            codeStatus = codeStatus && code(activeToken);
             break;
         case T_EOF:
             // 5) <code> -> EOF
@@ -107,9 +123,9 @@ bool eol(token *activeToken){
             eolStatus = true;
             break;
         case T_EOL:
-            // 6) <eol> -> EOL <eol>
+            // 6) <eol> -> EOL
             getNextToken(activeToken);
-            eolStatus = eol(activeToken);
+            eolStatus = true;
             break;
         default:
             return false;
@@ -317,8 +333,16 @@ bool statements(token *activeToken){
         case KW_WHILE:
         case KW_LET:
         case KW_VAR:
-            // 20) <statements> -> <statement> <eol> <statements>
-            statementsStatus = statement(activeToken) && eol(activeToken) && statements(activeToken);
+            // 20) <statements> -> <statement> EOL <statements>
+            statementsStatus = statement(activeToken);
+
+            // verification of: EOL
+            if (activeToken->tokenType != T_EOL){ 
+                return false;
+            }
+
+            getNextToken(activeToken);
+            statementsStatus = statementsStatus && statements(activeToken);
             break;
         case T_RIGHT_CURLY_BRACKET:
             // 21) <statements> -> EPS
