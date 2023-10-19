@@ -49,10 +49,12 @@ bool start(token *activeToken){
         case T_EOF:
             // 1) <start> -> <code>
             startStatus = code(activeToken);
+            break;
         case T_END:
             // 2) <start> -> EPS
             getNextToken(activeToken);  //TO DO maybe verify if non token is after END
             startStatus = true;
+            break;
         default:  
             return false;
     }
@@ -71,13 +73,16 @@ bool code(token *activeToken){
         case KW_VAR:
             // 4) <code> -> <statement> <code>
             codeStatus = statement(activeToken) && code(activeToken);
+            break;
         case KW_FUNC:
             // 3) <code> -> <definition> <eol> <code>
             codeStatus = definition(activeToken) && eol(activeToken) && code(activeToken);
+            break;
         case T_EOF:
             // 5) <code> -> EOF
             getNextToken(activeToken);  //TO DO maybe verify if non token is after EOF
             codeStatus = true;
+            break;
         default:
             return false;
         
@@ -100,10 +105,12 @@ bool eol(token *activeToken){
             // 7) <eol> -> EPS
             getNextToken(activeToken);  //TO DO maybe verify if non token is after EOF
             eolStatus = true;
+            break;
         case T_EOL:
             // 6) <eol> -> EOL <eol>
             getNextToken(activeToken);
             eolStatus = eol(activeToken);
+            break;
         default:
             return false;
     }
@@ -119,14 +126,17 @@ bool type(token *activeToken){
             // 8) <type> -> int
             getNextToken(activeToken);
             typeStatus = true;
+            break;
         case KW_DOUBLE:
             // 9) <type> -> double
             getNextToken(activeToken);
             typeStatus = true;
+            break;
         case KW_STRING:
             // 10) <type> -> string
             getNextToken(activeToken);
             typeStatus = true;
+            break;
         default: 
             return false;
     }
@@ -164,6 +174,7 @@ bool definition(token *activeToken){
             // verification of: func ID(<functionParams>) <funcDefMid>
             getNextToken(activeToken);
             definitionStatus = definitionStatus && funcDefMid(activeToken);
+            break;
         default:
             return false;
     }
@@ -184,6 +195,7 @@ bool funcDefMid(token *activeToken){
                 return false;
             }
             getNextToken(activeToken);
+            break;
         case T_ARROW:
             // 13) <funcDefMid> -> -> <type> {<statements>}
             getNextToken(activeToken);
@@ -202,6 +214,7 @@ bool funcDefMid(token *activeToken){
                 return false;
             }
             getNextToken(activeToken);
+            break;
         default:
             return false;
     }
@@ -216,10 +229,12 @@ bool functionParams(token *activeToken){
         case KW_UNDERSCORE:
             // 15) <functionParams> -> <functionParam> <functionParamsN>
             functionParamsStatus = functionParam(activeToken) && functionParamsN(activeToken);
+            break;
         case T_RIGHT_BRACKET:
             // 14) <functionParams> -> EPS
             getNextToken(activeToken);
             functionParamsStatus = true;
+            break;
         default:
             return false;
     }
@@ -234,10 +249,12 @@ bool functionParamsN(token *activeToken){
             // 17) <functionParamsN> -> EPS
             getNextToken(activeToken);
             functionParamsNStatus = true;
+            break;
         case T_COMMA:
             // 16) <functionParamsN> -> , <functionParam> <functionParamsN>
             getNextToken(activeToken);
             functionParamsNStatus = functionParam(activeToken) && functionParamsN(activeToken);
+            break;
         default:
             return false;
     }
@@ -265,6 +282,7 @@ bool functionParam(token *activeToken){
 
             getNextToken(activeToken);
             functionParamStatus = type(activeToken);
+            break;
         case KW_UNDERSCORE:
             // 18) <functionParam> -> _ ID : <type>
             
@@ -282,6 +300,7 @@ bool functionParam(token *activeToken){
 
             getNextToken(activeToken);
             functionParamStatus = type(activeToken);
+            break;
         default:
             return false;
     }
@@ -300,10 +319,12 @@ bool statements(token *activeToken){
         case KW_VAR:
             // 20) <statements> -> <statement> <eol> <statements>
             statementsStatus = statement(activeToken) && eol(activeToken) && statements(activeToken);
+            break;
         case T_RIGHT_CURLY_BRACKET:
             // 21) <statements> -> EPS
             getNextToken(activeToken);
             statementsStatus = true;
+            break;
         default:
             return false;
     }
@@ -318,10 +339,12 @@ bool statement(token *activeToken){
             // 26) <statement> -> ID <callOrAssign>
             getNextToken(activeToken);
             statementStatus = callOrAssign(activeToken);
+            break;
         case KW_RETURN:
             // 25) <statement> -> return <returnExpression>
             getNextToken(activeToken);
             statementStatus = returnExpression(activeToken);
+            break;
         case KW_IF:
             // 23) <statement> -> if <expression> {<statements>} else {<statements>}
             getNextToken(activeToken);
@@ -360,6 +383,7 @@ bool statement(token *activeToken){
                 return false;
             }
             getNextToken(activeToken);
+            break;
         case KW_WHILE:
             // 24) <statement> -> while <expression> {<statements>}
             getNextToken(activeToken);
@@ -378,10 +402,12 @@ bool statement(token *activeToken){
                 return false;
             }
             getNextToken(activeToken);
+            break;
         case KW_LET:
         case KW_VAR:
             // 22) <statement> -> <varDec>
             statementStatus = varDec(activeToken);
+            break;
         default:
             return false;  
     }
@@ -402,10 +428,12 @@ bool callOrAssign(token *activeToken){
                 return false;
             }
             getNextToken(activeToken);
+            break;
         case T_ASSIGNMENT:
             // 27) <callOrAssign> -> = <expression>
             getNextToken(activeToken);
             callOrAssignStatus = expression(activeToken);
+            break;
         default:
             return false;
     }
@@ -427,6 +455,7 @@ bool varDec(token *activeToken){
 
             getNextToken(activeToken);
             varDecStatus = varDecMid(activeToken);
+            break;
         case KW_VAR:
             // 30) <varDec> -> var ID <varDecMid>
             
@@ -438,6 +467,7 @@ bool varDec(token *activeToken){
 
             getNextToken(activeToken);
             varDecStatus = varDecMid(activeToken);
+            break;
         default:
             return false;
     }
@@ -452,10 +482,12 @@ bool varDecMid(token *activeToken){
             // 32) <varDecMid> -> = <expression>
             getNextToken(activeToken);
             varDecMidStatus = expression(activeToken);
+            break;
         case T_COLON:
             // 31) <varDecMid> -> : <type> <varDef>
             getNextToken(activeToken);
             varDecMidStatus = type(activeToken) && varDef(activeToken);
+            break;
         default:
             return false;
     }
@@ -479,10 +511,12 @@ bool varDef(token *activeToken){
             // 33) <varDef> -> EPS
             getNextToken(activeToken);
             varDefStatus = true;
+            break;
         case T_ASSIGNMENT:
             // 34) <varDef> -> = <expression>
             getNextToken(activeToken);
             varDefStatus = expression(activeToken);
+            break;
         default:
             return false; 
     }
@@ -506,9 +540,11 @@ bool returnExpression(token *activeToken){
             // 36) <returnExpression> -> EPS
             getNextToken(activeToken);
             returnExpressionStatus = true;
+            break;
         /*case <expression>:  //TO DO co s tím
             // 35) <returnExpression> -> <expression>
             returnExpressionStatus = expression(activeToken);
+            break;
         */
         default:
             return false;
@@ -526,10 +562,12 @@ bool arguments(token *activeToken){
         case T_STRING:
             // 38) <arguments> -> <argument> <argumentsN>
             argumentsStatus = argument(activeToken) && argumentsN(activeToken);
+            break;
         case T_RIGHT_BRACKET:
             // 37) <arguments> -> EPS
             getNextToken(activeToken);
             argumentsStatus = true;
+            break;
         default:
             return false;
     }
@@ -544,10 +582,12 @@ bool argumentsN(token *activeToken){
             // 40) <argumentsN> -> EPS
             getNextToken(activeToken);
             argumentsNStatus = true;
+            break;
         case T_COMMA:
             // 39) <argumentsN> -> , <argument> <argumentsN>
             getNextToken(activeToken);
             argumentsNStatus = argument(activeToken) && argumentsN(activeToken);
+            break;
         default:
             return false;
     }
@@ -562,16 +602,19 @@ bool argument(token *activeToken){
             // 42) <argument> -> ID <argWithName>
             getNextToken(activeToken);
             argumentStatus = argWithName(activeToken);
+            break;
         case T_INT:
         case T_DOUBLE:
         case T_STRING:
             // 41) <argument> -> <dataType>
             argumentStatus = dataType(activeToken);
+            break;
         case T_RIGHT_BRACKET:
         case T_COMMA:
             // 43) <argument> -> EPS
             getNextToken(activeToken);
             argumentStatus = true;
+            break;
         default:
             return false;
     }
@@ -587,10 +630,12 @@ bool argWithName(token *activeToken){
             // 45) <argWithName> -> EPS
             getNextToken(activeToken);
             argWithNameStatus = true;
+            break;
         case T_COLON:
             // 44) <argWithName> -> : <argumentType>
             getNextToken(activeToken);
             argWithNameStatus = argumentType(activeToken);
+            break;
         default:
             return false;
     }
@@ -605,11 +650,13 @@ bool argumentType(token *activeToken){
             // 46) <argumentType> -> ID
             getNextToken(activeToken);
             argumentTypeStatus = true;
+            break;
         case T_INT:
         case T_DOUBLE:
         case T_STRING:
             // 47) <argumentType> -> <dataType>
             argumentTypeStatus = dataType(activeToken);
+            break;
         default:
             return false;
     }
@@ -624,14 +671,17 @@ bool dataType(token *activeToken){
             // 48) <dataType> -> IntData
             getNextToken(activeToken);
             dataTypeStatus = true;
+            break;
         case T_DOUBLE:
             // 50) <dataType> -> DoubleData
             getNextToken(activeToken);
             dataTypeStatus = true;
+            break;
         case T_STRING:
             // 49) <dataType> -> StringData
             getNextToken(activeToken);
             dataTypeStatus = true;
+            break;
         default:
             return false;
     }
