@@ -3,6 +3,8 @@ TARGET_EXEC ?= IFJ_compiler.out
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
 
+CC := gcc
+
 SRCS := $(shell find $(SRC_DIRS) -name *.c)
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 
