@@ -16,13 +16,17 @@ struct list
 };
 
 list_t list_init(size_t size){
-    list_t list = malloc(sizeof(struct list));
+    list_t list = (list_t)(malloc(sizeof(struct list)));
     if(list == NULL) return NULL;
 
     list->head = NULL;
     list->tail = NULL;
     list->size = size;
     return list;
+}
+
+size_t list_length(list_t list){
+    return list->size;
 }
 
 void list_clear(list_t list){
@@ -39,7 +43,7 @@ void list_free(list_t list){
 }
 
 bool list_push(list_t list, void *data){
-    list_node_t new_node = malloc(sizeof(struct list_node));
+    list_node_t new_node = (list_node_t)(malloc(sizeof(struct list_node)));
     if(new_node == NULL) return false;
 
     if(list->head == NULL){
@@ -81,6 +85,7 @@ void* list_get_item(list_t list, int index){
     }
     return NULL;
 }
+
 /*
 void main(){
     list_t my_list = list_init(0);

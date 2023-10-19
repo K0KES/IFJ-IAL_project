@@ -1,3 +1,6 @@
+
+#include "custom_data_types/list.h"
+
 /**
  * @file sym_table.h
  * @author Vít Slavíček
@@ -23,3 +26,5 @@ typedef enum {
     DATA_TYPE_FLOAT,
     DATA_TYPE_STRING
 } data_type_t;
+
+typedef struct symtable *symtable_t;

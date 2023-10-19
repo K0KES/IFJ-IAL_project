@@ -1,2 +1,2 @@
-typedef struct hmap *hmap_t;
-typedef struct hmap_item *hmap_item_t;
+typedef struct hashmap *hashmap_t;
+typedef struct hashmap_item *hashmap_item_t;
