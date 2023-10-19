@@ -11,7 +11,7 @@
   * examples:
     * variable =>
 
-        ```c
+        ```bash
         $firstVariable = 0;
         ```
 
@@ -82,7 +82,7 @@
   * Should be written before the wanted line of code, NOT on the same level
   * example =>
 
-     ```c
+     ```bash
      // creation od db object
      $newGeographyPlace = GeographyPlace::create($dbConnectionId);
      ```
