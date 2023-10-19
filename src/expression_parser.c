@@ -3,6 +3,9 @@
 int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceRulesList *outputPrecedenceRulesList)
 {
     // Check if tokenArr is not empty
+    outputPrecedenceRulesList->precedenceRuleList = NULL;
+    outputPrecedenceRulesList->precedenceRuleListLen = 0;
+
     if (tokenArrLength == 0)
     {
         return 1;
@@ -30,7 +33,7 @@ int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceR
 
     // Stack of tokens initalized with EP_$ token
     struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
-    tokenStackPush(tokenStack, EP_$);
+    tokenStackPush(tokenStack, T_END);
 
     unsigned tokenArrIndex = 0;
     while (tokenArrLength > tokenArrIndex)
@@ -101,7 +104,7 @@ unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
         return 7;
         break;
 
-    case EP_$:
+    case T_END:
         return 8;
         break;
 

@@ -54,6 +54,7 @@ enum tokenType {
     T_COMMA, // ,
     T_ARROW, // ->
     T_END, // $
+    T_E, // E in expression parser
 
     //KEYWORDS
     KW_DOUBLE, // Double
