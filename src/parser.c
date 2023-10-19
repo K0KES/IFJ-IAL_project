@@ -1,8 +1,36 @@
 #include "parser.h"
-//#include "scanner.c"
+#include "scanner.h"
 
+FILE *f;
+
+int main(int argc, char const *argv[]){
+    token *activeToken = (token*)malloc(sizeof(token));
+    strInit(activeToken->value);
+    activeToken->position = (positionInfo*)malloc(sizeof(positionInfo));
+    activeToken->position->charNumber = 0;
+    activeToken->position->lineNumber = 1;
+
+    if (argc == 1) {
+        printf("Neni zadan vstupni soubor\n");
+        return 0;
+    }
+    if ((f = fopen(argv[1], "r")) == NULL) {
+        printf("Soubor se nepodarilo otevrit\n");
+        return 1;
+    } 
+
+    getNextToken(activeToken);
+    //printf(activeToken->value);
+    if(start(activeToken)){
+        printf("Success");
+    }
+    else{
+        printf("Error");
+    }
+}
 int getNextToken(token *activeToken){
-    //activeToken = getToken()
+    int getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber, f);
+    return getTokenErr;
 }
 
 bool start(token *activeToken){
@@ -445,9 +473,10 @@ bool returnExpression(token *activeToken){
             // 36) <returnExpression> -> EPS
             getNextToken(activeToken);
             returnExpressionStatus = true;
-        case <expression>:  //TO DO co s tím
+        /*case <expression>:  //TO DO co s tím
             // 35) <returnExpression> -> <expression>
             returnExpressionStatus = expression(activeToken);
+        */
     }
     return returnExpressionStatus;
 }
