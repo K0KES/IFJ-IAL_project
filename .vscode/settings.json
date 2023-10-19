@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "*.html": "html",
-        "P83": "python",
-        "scanner.h": "c",
-        "str.h": "c",
-        "malloc.h": "c"
-    }
-}
