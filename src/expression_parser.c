@@ -1,5 +1,12 @@
 #include "expression_parser.h"
 
+int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList)
+{
+    struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
+    tokenStackPush(tokenStack, T_END);
+    return 0;
+}
+
 int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceRulesList *outputPrecedenceRulesList)
 {
     // Check if tokenArr is not empty
@@ -53,6 +60,7 @@ int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceR
     tokenStackClear(tokenStack);
     return 0;
 }
+
 
 char getPrecedence(token topOfStack, token currentToken, char *precedenceTable)
 {

@@ -211,12 +211,7 @@ void tokenStackClear(struct tokenStack *stack)
 }
 
 
-/// @brief Function parse expression and returns precedence rules list
-/// @param tokenArr array of tokens
-/// @param tokenArrLength length of array of tokens
-/// @param outputPrecedenceRulesList output list of precedence rules that are necessary for parsing expression
-/// @return returns 0 if everything went well, otherwise returns error code
-int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceRulesList *outputPrecedenceRulesList);
+int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList);
 
 /// @brief Function returns precedence of two tokens
 /// @param topOfStack token on the top of the stack
