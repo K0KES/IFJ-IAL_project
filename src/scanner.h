@@ -2,6 +2,9 @@
 #include "stdio.h"
 #pragma once
 
+#define LEX_ERROR 1
+#define LEX_OK 0
+
 typedef struct {
     int lineNumber;
     int charNumber;
@@ -84,6 +87,7 @@ enum tokenType {
 
 enum state {
     S_START,
+    S_NEW_LINE,
     S_IDENTIFIER_KW,
     S_INT,
     S_EXPONENT_INT,
@@ -119,6 +123,6 @@ typedef struct {
 } token;
 
 void tokenClear (token* token);
-int getToken(token *token, int charNumber, int lineNumber, FILE *source);
+int getToken(token *token, int charNumber, int lineNumber);
 
 
