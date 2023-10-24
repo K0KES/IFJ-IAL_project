@@ -125,4 +125,4 @@ typedef struct {
 void tokenClear (token* token);
 int getToken(token *token, int charNumber, int lineNumber);
 
-
+const char* getTokenName(enum tokenType tokenType);

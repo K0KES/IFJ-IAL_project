@@ -13,11 +13,11 @@ void tokenClear (token* token) {
 int getToken(token *token, int charNumber, int lineNumber) {
     char c;
     enum state state = S_START;
-    printf("'");
+    //printf("'");
     char lastChar = '\0';
     while (c != EOF) {
         c = getc(stdin);
-        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { printf("%c", c); }
+        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { printf("%c\n", c); }
         switch (state) {
             /////////////////////////  
             //first starting STATE
@@ -155,7 +155,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
-                        return LEX_ERROR;
+                        //return LEX_ERROR;
+                        return LEX_OK;
                         break;
                     /////////////////////////  
                     //ID || KW || INT || DOUBLE
@@ -710,7 +711,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 default:
                     strAddChar(token->value, lastChar);
                     token->tokenType = T_DIVISION;
-                    printf("%c", lastChar);
+                    //printf("%c", lastChar);
                     ungetc(c, stdin);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
@@ -907,4 +908,67 @@ int getToken(token *token, int charNumber, int lineNumber) {
         }
     }
     return LEX_ERROR;
+}
+
+const char* getTokenName(enum tokenType tokenType) {
+   switch (tokenType) {
+        case T_NO_TOKEN: return "T_NO_TOKEN";
+        case T_WHITESPACE: return "T_WHITESPACE";
+        case T_EOF: return "T_EOF";
+        case T_EOL: return "T_EOL";
+        case T_IDENTIFIER: return "T_IDENTIFIER";
+        case T_LEFT_BRACKET: return "T_LEFT_BRACKET";
+        case T_RIGHT_BRACKET: return "T_RIGHT_BRACKET";
+        case T_LEFT_CURLY_BRACKET: return "T_LEFT_CURLY_BRACKET";
+        case T_RIGHT_CURLY_BRACKET: return "T_RIGHT_CURLY_BRACKET";
+        case T_PLUS: return "T_PLUS";
+        case T_MINUS: return "T_MINUS";
+        case T_MULTIPLICATION: return "T_MULTIPLICATION";
+        case T_DIVISION: return "T_DIVISION";
+        case T_LESS: return "T_LESS";
+        case T_LESS_EQUAL: return "T_LESS_EQUAL";
+        case T_GREATER: return "T_GREATER";
+        case T_GREATER_EQUAL: return "T_GREATER_EQUAL";
+        case T_EQUAL: return "T_EQUAL";
+        case T_NOT_EQUAL: return "T_NOT_EQUAL";
+        case T_NIL_OP: return "T_NIL_OP";
+        case T_ASSIGNMENT: return "T_ASSIGNMENT";
+        case T_INCREMENT: return "T_INCREMENT";  
+        case T_DECREMENT: return "T_DECREMENT";  
+        case T_NOT: return "T_NOT";
+        case T_INT: return "T_INT";
+        case T_DOUBLE: return "T_DOUBLE";
+        case T_STRING: return "T_STRING";
+        case T_MULTILINE_STRING: return "T_MULTILINE_STRING";
+        case T_NULLABLE: return "T_NULLABLE";
+        case T_SEMICOLON: return "T_SEMICOLON";
+        case T_COLON: return "T_COLON";
+        case T_COMMA: return "T_COMMA";
+        case T_ARROW: return "T_ARROW";
+        case T_END: return "T_END";
+        case T_E: return "T_E";
+        case KW_DOUBLE: return "KW_DOUBLE";
+        case KW_FUNC: return "KW_FUNC";
+        case KW_RETURN: return "KW_RETURN";
+        case KW_INT: return "KW_INT";
+        case KW_STRING: return "KW_STRING";
+        case KW_NIL: return "KW_NIL";
+        case KW_ELSE: return "KW_ELSE";
+        case KW_IF: return "KW_IF";
+        case KW_WHILE: return "KW_WHILE";
+        case KW_VAR: return "KW_VAR";
+        case KW_LET: return "KW_LET";
+        case KW_UNDERSCORE: return "KW_UNDERSCORE";
+        case KW_READSTRING: return "KW_READSTRING";
+        case KW_READINT: return "KW_READINT";
+        case KW_READDOUBLE: return "KW_READDOUBLE";
+        case KW_WRITE: return "KW_WRITE";
+        case KW_INT_TO_DOUBLE: return "KW_INT_TO_DOUBLE";
+        case KW_DOUBLE_TO_INT: return "KW_DOUBLE_TO_INT";
+        case KW_LENGTH: return "KW_LENGTH";
+        case KW_SUBSTRING: return "KW_SUBSTRING";
+        case KW_ORD: return "KW_ORD";
+        case KW_CHR: return "KW_CHR";
+   }
+   return "";
 }
