@@ -51,7 +51,15 @@ bool statements(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
+bool statementsBlock(token *activeToken);
+
+/// @brief Function 
+/// @return returns true if is okok
 bool statement(token *activeToken);
+
+/// @brief Function 
+/// @return returns true if is okok
+bool statementOnLine(token *activeToken);
 
 /// @brief Function 
 /// @return returns true if is okok
