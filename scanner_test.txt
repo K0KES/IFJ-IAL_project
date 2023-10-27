@@ -4,3 +4,4 @@ promenna
    
     
     medved + 48
+pica
