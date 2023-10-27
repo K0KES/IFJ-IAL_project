@@ -1,77 +1,188 @@
 #include "expression_parser.h"
 
-int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList)
+
+int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList, programState *PROGRAM_STATE)
 {
     struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
-    tokenStackPush(tokenStack, T_END);
-    return 0;
-}
-
-int parseExpression(token *tokenArr, unsigned tokenArrLength, struct precedenceRulesList *outputPrecedenceRulesList)
-{
-    // Check if tokenArr is not empty
-    outputPrecedenceRulesList->precedenceRuleList = NULL;
-    outputPrecedenceRulesList->precedenceRuleListLen = 0;
-
-    if (tokenArrLength == 0)
+    token *firstToken = (token *)malloc(sizeof(token));
+    if (firstToken == NULL || tokenStack == NULL)
     {
-        return 1;
+        return 99;
+    }
+    tokenStackPush(tokenStack, firstToken);
+    
+    if (PROGRAM_STATE->isLastReadTokenValid == true){
+        tokenStackPush(tokenStack, PROGRAM_STATE->lastReadToken);
+        PROGRAM_STATE->isLastReadTokenValid = false;
+    }
+    
+    token *activeToken = (token *)malloc(sizeof(token));
+    if(activeToken == NULL){
+        return 99;
     }
 
-    // Check if all tokens are supported
-    bool validTokenType;
-    for (unsigned iToken = 0; iToken < tokenArrLength; iToken++)
-    {
-        validTokenType = false;
-        for (unsigned iType = 0; iType < acceptedTokenTypesLength; iType++)
-        {
+    activeToken->value = (string*)malloc(sizeof(string));
+    if(activeToken->value == NULL){
+        return 99;
+    }
+    strInit(activeToken->value);
 
-            if (tokenArr[iToken].tokenType == acceptedTokenTypes[iType])
+    activeToken->position = (positionInfo*)malloc(sizeof(positionInfo));
+    if(activeToken->position == NULL){
+        return 99;
+    }
+    bool amIReading = true;
+
+    getToken(activeToken,1,1);
+    while (amIReading)
+    {
+        //print token type
+        printf ("Token type that has been read: %d\n",activeToken->tokenType);
+        amIReading = false;
+
+        // check if am I accepting this type of token
+        for (size_t i = 0; i < acceptedTokenTypesLength; i++)
+        {
+            if (acceptedTokenTypes[i] == activeToken->tokenType)
             {
-                validTokenType = true;
+                amIReading = true;
                 break;
             }
         }
-        if (!validTokenType)
+
+        if (amIReading)
         {
-            return 1;
+            if (activeToken->tokenType == T_EOL)
+            {
+                getToken(activeToken,1,1);
+                continue;
+            }
+            printf("Top of stack: %d\n",whichTypeIsOnTheStack(tokenStack));
+            
+            switch (getPrecedence(whichTypeIsOnTheStack(tokenStack),activeToken->tokenType,*precedenceTable))
+            {
+            case '<':
+                printf("Push to stack\n");
+                tokenStackPush(tokenStack, activeToken);
+                getToken(activeToken,1,1);
+                break;
+            
+            case '>':
+            case '=':
+                printf("Do reduction\n");
+                switch (whichTypeIsOnTheStack(tokenStack))
+                {
+                case T_RIGHT_BRACKET:
+                    printf("E -> ( E )\n");
+                    break;
+
+
+                case T_IDENTIFIER:
+                case T_INT:
+                case T_DOUBLE:
+                case T_STRING:
+                    printf("E -> i\n");
+                    // int a = 5 / 0;
+                    break;
+
+                case T_PLUS:
+                    printf("E -> E + E\n");
+                    break;
+
+                case T_MINUS:
+                    printf("E -> E - E\n");
+                    break;
+                
+                case T_MULTIPLICATION:
+                    printf("E -> E * E\n");
+                    break;
+
+                case T_DIVISION:
+                    printf("E -> E / E\n");
+                    break;
+
+                case T_LESS:
+                    printf("E -> E < E\n");
+                    break;
+
+                case T_LESS_EQUAL:
+                    printf("E -> E <= E\n");
+                    break;
+
+                case T_GREATER: 
+                    printf("E -> E > E\n");
+                    break;
+                
+                case T_GREATER_EQUAL:
+                    printf("E -> E >= E\n");
+                    break;
+
+                case T_EQUAL:
+                    printf("E -> E == E\n");
+                    break;
+
+                case T_NOT_EQUAL:
+                    printf("E -> E != E\n");
+                    break;
+
+                case T_NIL_OP:
+                    printf("E -> E ?? E\n");
+                    break;
+
+
+                default:
+                    printf("Default state in the second switch: %d\n",whichTypeIsOnTheStack(tokenStack));
+                    break;
+                }
+                break;
+
+            case '1':
+                printf("Error: invalid expression!\n");
+                return 2;
+                break;
+
+            case '0':
+                printf("Parsing is done!");
+                break;
+
+            default:
+                printf("Default state in the first switch: ");
+                break;
+            }
         }
-    }
-
-    // Stack of tokens initalized with EP_$ token
-    struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
-    tokenStackPush(tokenStack, T_END);
-
-    unsigned tokenArrIndex = 0;
-    while (tokenArrLength > tokenArrIndex)
-    {
-        char tokenPrecedence = getPrecedence(*tokenStack->top->tokenOnStack, tokenArr[tokenArrIndex], *precedenceTable);
-
-        switch (tokenPrecedence)
+        else
         {
-        case '<':
-            // tokenStackPush(tokenStack, &tokenArr[tokenArrIndex]);
-            tokenStackPush(tokenStack, tokenArr[tokenArrIndex].tokenType);
-            break;
+            PROGRAM_STATE->isLastReadTokenValid = true;
+            PROGRAM_STATE->lastReadToken = activeToken;
         }
+        sleep (1);
 
-        tokenArrIndex++;
     }
-    tokenStackClear(tokenStack);
+    
+
+
+
+
+
     return 0;
 }
 
 
-char getPrecedence(token topOfStack, token currentToken, char *precedenceTable)
+
+
+
+
+char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTokenType, char *precedenceTable)
 {
-    unsigned int topOfStackIndex = getIndexInPrecedenceTable(topOfStack.tokenType);
-    unsigned int currentTokenIndex = getIndexInPrecedenceTable(currentToken.tokenType);
+    unsigned int topOfStackIndex = getIndexInPrecedenceTable(topOfStackTokenType);
+    unsigned int currentTokenIndex = getIndexInPrecedenceTable(currentTokenType);
 
     return precedenceTable[topOfStackIndex * 9 + currentTokenIndex];
 }
 
 unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
 {
+    // printf ("Token type: %d\n",tokenType);
     switch (tokenType)
     {
     case T_LEFT_BRACKET:
@@ -109,6 +220,9 @@ unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
         break;
 
     case T_IDENTIFIER:
+    case T_INT:
+    case T_DOUBLE:
+    case T_STRING:
         return 7;
         break;
 

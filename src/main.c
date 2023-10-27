@@ -23,5 +23,12 @@ int main(int argc, char const *argv[]){
     activeToken->position->lineNumber = 1;
 
     parse(activeToken);
+    
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = NULL;
+    PROGRAM_STATE.isLastReadTokenValid = false;
+    PROGRAM_STATE.lineNumber = 1;
+    PROGRAM_STATE.charNumber = 0;
+
     return 0;
 }
