@@ -155,7 +155,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
-                        return LEX_ERROR;
+                        // return LEX_ERROR;
                         return LEX_OK;
                         break;
                     /////////////////////////  
