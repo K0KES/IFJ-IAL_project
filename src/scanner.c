@@ -155,7 +155,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
-                        //return LEX_ERROR;
+                        // return LEX_ERROR;
                         return LEX_OK;
                         break;
                     /////////////////////////  
@@ -183,8 +183,16 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\n':
                 case '\r':
                     lineNumber++;
-                    charNumber = 1;
+                    charNumber = 0;
                     printf("\nEOL\n"); 
+                    break;
+                case ' ':
+                    charNumber++;
+                    break;
+                case '\t':
+                    charNumber++;
+                    charNumber++;
+                    charNumber++;
                     break;
                 default:
                     token->tokenType = T_EOL;
