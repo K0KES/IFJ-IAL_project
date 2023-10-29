@@ -1,10 +1,77 @@
 #include "expression_parser.h"
 
+void copy_Token(token *t1, token *t2)
+{
+    t2->lastChar = t1->lastChar;
+    t2->position = t1->position;
+    t2->tokenType = t1->tokenType;
+    t2->value = t2->value;
+}
+
+enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack)
+{
+    if (stack == NULL ||stack->top == NULL || stack->top->tokenOnStack == NULL)
+        printf("SEgfault in whichTypeIsOnTheStack\n");
+
+    if (stack->top->tokenOnStack->tokenType != T_E)
+        return stack->top->tokenOnStack->tokenType;
+    else
+        return stack->top->next->tokenOnStack->tokenType;
+}
+
+
+void tokenStackClear(struct tokenStack *stack)
+{
+    struct tokenStackElement *currentElement = stack->top;
+    while (currentElement != NULL)
+    {
+        struct tokenStackElement *nextElement = currentElement->next;
+        free (currentElement->tokenOnStack);
+        free(currentElement);
+        currentElement = nextElement;
+    }
+    free(stack);
+}
+
+int tokenStackPush(struct tokenStack *stack, token *tokenIn)
+{
+    struct tokenStackElement *newElement = (struct tokenStackElement *) malloc(sizeof(struct tokenStackElement));
+    token *newToken = (token *) malloc(sizeof(token));
+    newElement->tokenOnStack = newToken;
+    if (newElement == NULL || newElement->tokenOnStack == NULL)
+    {
+        printf("Malloc failed in tokenStackPush\n");
+        return 99;
+    }
+    copy_Token(tokenIn,newElement->tokenOnStack);
+    newElement->next = stack->top;
+    stack->top = newElement;
+
+    return 0;
+}
+
+int addPrecedenceRuleToList(struct precedenceRulesList *precedenceRulesList,struct precedenceRule *precedenceRule)
+{
+    if (precedenceRulesList->precedenceRuleListLen == precedenceRulesList->precedenceRuleListAllocatedLen)
+    {
+        precedenceRulesList->precedenceRuleListAllocatedLen *= 2;
+        precedenceRulesList->precedenceRuleList = (struct precedenceRule **)realloc(precedenceRulesList->precedenceRuleList,precedenceRulesList->precedenceRuleListAllocatedLen * sizeof(struct precedenceRule *));
+        if (precedenceRulesList->precedenceRuleList == NULL)
+        {
+            return 99;
+        }
+    }
+    precedenceRulesList->precedenceRuleList[precedenceRulesList->precedenceRuleListLen] = precedenceRule;
+    precedenceRulesList->precedenceRuleListLen++;
+    return 0;   
+}
+
 
 int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList, programState *PROGRAM_STATE)
 {
     struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
     token *firstToken = (token *)malloc(sizeof(token));
+    firstToken->tokenType = T_END;
     if (firstToken == NULL || tokenStack == NULL)
     {
         return 99;
@@ -81,10 +148,18 @@ int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList,
                 case T_INT:
                 case T_DOUBLE:
                 case T_STRING:
+                {
                     printf("E -> i\n");
+                    struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                    newRule->description = "E -> i";
+                    newRule->leftSide.tokenType = T_E;
+                    newRule->rightSideLen = 1;
+                    newRule->rightSide = (token *)malloc(sizeof(token));
+                    copy_Token(tokenStack->top->tokenOnStack,newRule->rightSide);
                     // int a = 5 / 0;
+                    // (outputPrecedenceRulesList->precedenceRuleList[outputPrecedenceRulesList->precedenceRuleListLen]) = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
                     break;
-
+                }
                 case T_PLUS:
                     printf("E -> E + E\n");
                     break;
@@ -156,20 +231,9 @@ int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList,
             PROGRAM_STATE->lastReadToken = activeToken;
         }
         sleep (1);
-
     }
-    
-
-
-
-
-
     return 0;
 }
-
-
-
-
 
 
 char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTokenType, char *precedenceTable)
