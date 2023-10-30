@@ -8,6 +8,24 @@ void copy_Token(token *t1, token *t2)
     t2->value = t2->value;
 }
 
+token* tokenStackGet(struct tokenStack *stack, unsigned location)
+{
+    struct tokenStackElement tSE = *stack->top;
+    for (unsigned i = 0; i < location; i++)
+    {
+        if (tSE.next != NULL)
+        {
+            tSE = *tSE.next;
+        }
+        else
+        {
+            printf("Error: stack is too small!\n");
+            return (NULL);
+        }
+    }
+    return (tSE.tokenOnStack);
+}
+
 enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack)
 {
     if (stack == NULL ||stack->top == NULL || stack->top->tokenOnStack == NULL)
@@ -50,24 +68,109 @@ int tokenStackPush(struct tokenStack *stack, token *tokenIn)
     return 0;
 }
 
-int addPrecedenceRuleToList(struct precedenceRulesList *precedenceRulesList,struct precedenceRule *precedenceRule)
+int tokenStackPop(struct tokenStack *stack, unsigned numberOfPops)
 {
-    if (precedenceRulesList->precedenceRuleListLen == precedenceRulesList->precedenceRuleListAllocatedLen)
+    for (unsigned i = 0; i < numberOfPops; i++){
+        if (stack->top != NULL)
+        {
+            struct tokenStackElement *nextElement = stack->top->next;
+            free(stack->top->tokenOnStack);
+            free(stack->top);
+            stack->top = nextElement;
+        }
+        else
+        {
+            printf("Error: stack is empty!\n");
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int addPrecedenceRuleToList(struct precedenceRuleList *precedenceRuleList,struct precedenceRule *precedenceRule)
+{
+    if (precedenceRuleList->precedenceRuleListLen == precedenceRuleList->precedenceRuleListAllocatedLen)
     {
-        precedenceRulesList->precedenceRuleListAllocatedLen *= 2;
-        precedenceRulesList->precedenceRuleList = (struct precedenceRule **)realloc(precedenceRulesList->precedenceRuleList,precedenceRulesList->precedenceRuleListAllocatedLen * sizeof(struct precedenceRule *));
-        if (precedenceRulesList->precedenceRuleList == NULL)
+        precedenceRuleList->precedenceRuleListAllocatedLen *= 2;
+        precedenceRuleList->precedenceRuleList = (struct precedenceRule **)realloc(precedenceRuleList->precedenceRuleList,precedenceRuleList->precedenceRuleListAllocatedLen * sizeof(struct precedenceRule *));
+        if (precedenceRuleList->precedenceRuleList == NULL)
         {
             return 99;
         }
     }
-    precedenceRulesList->precedenceRuleList[precedenceRulesList->precedenceRuleListLen] = precedenceRule;
-    precedenceRulesList->precedenceRuleListLen++;
+    precedenceRuleList->precedenceRuleList[precedenceRuleList->precedenceRuleListLen] = precedenceRule;
+    precedenceRuleList->precedenceRuleListLen++;
     return 0;   
 }
 
 
-int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList, programState *PROGRAM_STATE)
+char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTokenType, char *precedenceTable)
+{
+    unsigned int topOfStackIndex = getIndexInPrecedenceTable(topOfStackTokenType);
+    unsigned int currentTokenIndex = getIndexInPrecedenceTable(currentTokenType);
+
+    return precedenceTable[topOfStackIndex * 9 + currentTokenIndex];
+}
+
+unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
+{
+    // printf ("Token type: %d\n",tokenType);
+    switch (tokenType)
+    {
+    case T_LEFT_BRACKET:
+        return 0;
+        break;
+
+    case T_RIGHT_BRACKET:
+        return 1;
+        break;
+
+    case T_MULTIPLICATION:
+    case T_DIVISION:
+        return 2;
+        break;
+
+    case T_PLUS:
+    case T_MINUS:
+        return 3;
+        break;
+
+    case T_LESS:
+    case T_LESS_EQUAL:
+    case T_GREATER:
+    case T_GREATER_EQUAL:
+        return 4;
+        break;
+
+    case T_EQUAL:
+    case T_NOT_EQUAL:
+        return 5;
+        break;
+
+    case T_NIL_OP:
+        return 6;
+        break;
+
+    case T_IDENTIFIER:
+    case T_INT:
+    case T_DOUBLE:
+    case T_STRING:
+        return 7;
+        break;
+
+    case T_END:
+        return 8;
+        break;
+
+    default:
+        fprintf(stderr, "%s", "Error: invalid token type in expression_parser.c in getIndexInPrecedenceTable()!\n");
+        return -1;
+        break;
+    }
+}
+
+
+int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, programState *PROGRAM_STATE)
 {
     struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
     token *firstToken = (token *)malloc(sizeof(token));
@@ -156,8 +259,10 @@ int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList,
                     newRule->rightSideLen = 1;
                     newRule->rightSide = (token *)malloc(sizeof(token));
                     copy_Token(tokenStack->top->tokenOnStack,newRule->rightSide);
+                    addPrecedenceRuleToList(outputPrecedenceRuleList,newRule);
+
                     // int a = 5 / 0;
-                    // (outputPrecedenceRulesList->precedenceRuleList[outputPrecedenceRulesList->precedenceRuleListLen]) = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                    // (outputPrecedenceRuleList->precedenceRuleList[outputPrecedenceRuleList->precedenceRuleListLen]) = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
                     break;
                 }
                 case T_PLUS:
@@ -235,68 +340,3 @@ int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList,
     return 0;
 }
 
-
-char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTokenType, char *precedenceTable)
-{
-    unsigned int topOfStackIndex = getIndexInPrecedenceTable(topOfStackTokenType);
-    unsigned int currentTokenIndex = getIndexInPrecedenceTable(currentTokenType);
-
-    return precedenceTable[topOfStackIndex * 9 + currentTokenIndex];
-}
-
-unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
-{
-    // printf ("Token type: %d\n",tokenType);
-    switch (tokenType)
-    {
-    case T_LEFT_BRACKET:
-        return 0;
-        break;
-
-    case T_RIGHT_BRACKET:
-        return 1;
-        break;
-
-    case T_MULTIPLICATION:
-    case T_DIVISION:
-        return 2;
-        break;
-
-    case T_PLUS:
-    case T_MINUS:
-        return 3;
-        break;
-
-    case T_LESS:
-    case T_LESS_EQUAL:
-    case T_GREATER:
-    case T_GREATER_EQUAL:
-        return 4;
-        break;
-
-    case T_EQUAL:
-    case T_NOT_EQUAL:
-        return 5;
-        break;
-
-    case T_NIL_OP:
-        return 6;
-        break;
-
-    case T_IDENTIFIER:
-    case T_INT:
-    case T_DOUBLE:
-    case T_STRING:
-        return 7;
-        break;
-
-    case T_END:
-        return 8;
-        break;
-
-    default:
-        fprintf(stderr, "%s", "Error: invalid token type in expression_parser.c in getIndexInPrecedenceTable()!\n");
-        return -1;
-        break;
-    }
-}

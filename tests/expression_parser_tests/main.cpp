@@ -12,6 +12,30 @@
 #include "../../src/str.c"
 #include "../../src/parser.c"
 
+TEST(tokenStackPushPopGet, Test1){
+    struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
+    token *firstToken = (token *)malloc(sizeof(token));
+    firstToken->tokenType = T_END;
+    token *secondToken = (token *)malloc(sizeof(token));
+    secondToken->tokenType = T_E;
+    token *thirdToken = (token *)malloc(sizeof(token));
+    thirdToken->tokenType = T_PLUS;
+    token *fourthToken = (token *)malloc(sizeof(token));
+    fourthToken->tokenType = T_E;
+    tokenStackPush(tokenStack, firstToken);
+    tokenStackPush(tokenStack, secondToken);
+    tokenStackPush(tokenStack, thirdToken);
+    tokenStackPush(tokenStack, fourthToken);
+    EXPECT_EQ(tokenStackGet(tokenStack,0)->tokenType,T_E);
+    EXPECT_EQ(tokenStackGet(tokenStack,1)->tokenType,T_PLUS);
+    EXPECT_EQ(tokenStackGet(tokenStack,2)->tokenType,T_E);
+    EXPECT_EQ(tokenStackGet(tokenStack,3)->tokenType,T_END);
+    EXPECT_EQ(tokenStackGet(tokenStack,4),nullptr);
+    EXPECT_EQ(tokenStackPop(tokenStack,3),0);
+    EXPECT_EQ(tokenStackPop(tokenStack,2),1);
+}
+
+
 
 
 TEST(getFromStackTop,Test1){
@@ -41,10 +65,10 @@ TEST(getFromStackTop,Test1){
 }
 
 TEST (addPrecedenceRuleToList, Test1){
-    struct precedenceRulesList *precedenceRulesList = (struct precedenceRulesList *)malloc(sizeof(struct precedenceRulesList));
-    precedenceRulesList->precedenceRuleListLen = 0;
-    precedenceRulesList->precedenceRuleListAllocatedLen = 1;
-    precedenceRulesList->precedenceRuleList = (struct precedenceRule **)malloc(sizeof(struct precedenceRule *));
+    struct precedenceRuleList *precedenceRuleList = (struct precedenceRuleList *)malloc(sizeof(struct precedenceRuleList));
+    precedenceRuleList->precedenceRuleListLen = 0;
+    precedenceRuleList->precedenceRuleListAllocatedLen = 1;
+    precedenceRuleList->precedenceRuleList = (struct precedenceRule **)malloc(sizeof(struct precedenceRule *));
     
 
     struct precedenceRule *precedenceRule1 = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
@@ -53,12 +77,12 @@ TEST (addPrecedenceRuleToList, Test1){
     precedenceRule1->rightSide = (token *)malloc(sizeof(token));
     precedenceRule1->rightSide[0].tokenType = T_IDENTIFIER;
 
-    addPrecedenceRuleToList(precedenceRulesList, precedenceRule1);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleListLen, 1);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleListAllocatedLen, 1);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[0]->leftSide.tokenType, T_E);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[0]->rightSideLen, 1);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[0]->rightSide[0].tokenType, T_IDENTIFIER);
+    addPrecedenceRuleToList(precedenceRuleList, precedenceRule1);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleListLen, 1);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleListAllocatedLen, 1);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[0]->leftSide.tokenType, T_E);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[0]->rightSideLen, 1);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[0]->rightSide[0].tokenType, T_IDENTIFIER);
 
     struct precedenceRule *precedenceRule2 = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
     precedenceRule2->leftSide.tokenType = T_E;
@@ -68,14 +92,14 @@ TEST (addPrecedenceRuleToList, Test1){
     precedenceRule2->rightSide[1].tokenType = T_PLUS;
     precedenceRule2->rightSide[2].tokenType = T_E;
 
-    addPrecedenceRuleToList(precedenceRulesList, precedenceRule2);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleListLen, 2);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleListAllocatedLen, 2);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[1]->leftSide.tokenType, T_E);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[1]->rightSideLen, 3);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[1]->rightSide[0].tokenType, T_E);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[1]->rightSide[1].tokenType, T_PLUS);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[1]->rightSide[2].tokenType, T_E);
+    addPrecedenceRuleToList(precedenceRuleList, precedenceRule2);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleListLen, 2);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleListAllocatedLen, 2);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[1]->leftSide.tokenType, T_E);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[1]->rightSideLen, 3);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[1]->rightSide[0].tokenType, T_E);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[1]->rightSide[1].tokenType, T_PLUS);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[1]->rightSide[2].tokenType, T_E);
 
     struct precedenceRule *precedenceRule3 = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
     precedenceRule3->leftSide.tokenType = T_E;
@@ -85,14 +109,14 @@ TEST (addPrecedenceRuleToList, Test1){
     precedenceRule3->rightSide[1].tokenType = T_MINUS;
     precedenceRule3->rightSide[2].tokenType = T_E;
 
-    addPrecedenceRuleToList(precedenceRulesList, precedenceRule3);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleListLen, 3);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleListAllocatedLen, 4);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[2]->leftSide.tokenType, T_E);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[2]->rightSideLen, 3);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[2]->rightSide[0].tokenType, T_E);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[2]->rightSide[1].tokenType, T_MINUS);
-    EXPECT_EQ(precedenceRulesList->precedenceRuleList[2]->rightSide[2].tokenType, T_E);
+    addPrecedenceRuleToList(precedenceRuleList, precedenceRule3);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleListLen, 3);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleListAllocatedLen, 4);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[2]->leftSide.tokenType, T_E);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[2]->rightSideLen, 3);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[2]->rightSide[0].tokenType, T_E);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[2]->rightSide[1].tokenType, T_MINUS);
+    EXPECT_EQ(precedenceRuleList->precedenceRuleList[2]->rightSide[2].tokenType, T_E);
     
 }
 
@@ -163,7 +187,14 @@ TEST(expressionParser, Test1) {
     PROGRAM_STATE.isLastReadTokenValid = true;
     PROGRAM_STATE.lastReadToken->tokenType = T_END;
 
-    expressionParserStart (nullptr,&PROGRAM_STATE);
+    struct precedenceRuleList pRL1;
+    pRL1.precedenceRuleListLen = 0;
+    pRL1.precedenceRuleListAllocatedLen = 1;
+    pRL1.precedenceRuleList = (struct precedenceRule**) malloc(sizeof(struct precedenceRule*));
+
+
+    expressionParserStart (&pRL1,&PROGRAM_STATE);
+    free (PROGRAM_STATE.lastReadToken);
 }
 
 

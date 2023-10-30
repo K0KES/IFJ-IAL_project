@@ -58,7 +58,7 @@ struct precedenceRule
 };
 
 /// @brief Structure that stores all precedence rules
-struct precedenceRulesList
+struct precedenceRuleList
 {
     // Length of precedence rule list
     unsigned precedenceRuleListLen;
@@ -86,7 +86,7 @@ struct tokenStack
 /// @param outputPrecedenceRulesList output list of precedence rules
 /// @param PROGRAM_STATE struct with program state
 /// @return error code
-int expressionParserStart(struct precedenceRulesList *outputPrecedenceRulesList, programState *PROGRAM_STATE);
+int expressionParserStart(struct precedenceRuleList *outputPrecedenceRulesList, programState *PROGRAM_STATE);
 
 /// @brief Function returns precedence of two tokens
 /// @param topOfStack token on the top of the stack
@@ -114,6 +114,12 @@ void copyToken(token *t1, token *t2);
 /// @param stack stack of tokens
 void tokenStackClear(struct tokenStack *stack);
 
+/// @brief Function removes token from the top of the stack 
+/// @param stack Pointer to stack of tokens
+/// @param numberOfPops Nu,ber of tokens that should be removed from the stack
+
+token* tokenStackGet(struct tokenStack *stack, unsigned location);
+
 /// @brief Function returns type of token on the top of the stack and ignores T_E tokens
 /// @param stack stack of tokens
 /// @return type of token on the top of the stack
@@ -121,6 +127,6 @@ enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack);
 
 
 /// @brief Function adds precedence rule to the list    
-/// @param precedenceRulesList list of precedence rules
+/// @param precedenceRuleList list of precedence rules
 /// @param precedenceRule precedence rule to be added  
-int addPrecedenceRuleToList(struct precedenceRulesList *precedenceRulesList, struct precedenceRule *precedenceRule);
+int addPrecedenceRuleToList(struct precedenceRuleList *precedenceRuleList, struct precedenceRule *precedenceRule);
