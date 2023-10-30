@@ -194,7 +194,8 @@ TEST(expressionParser, Test1) {
     
     freopen("tests/expression_parser_tests/test1.txt","r",stdin);
 
-    expressionParserStart (&pRL1,&PROGRAM_STATE);
+    
+    EXPECT_EQ (expressionParserStart (&pRL1,&PROGRAM_STATE),0);
     free (PROGRAM_STATE.lastReadToken);
 }
 

@@ -103,6 +103,17 @@ int addPrecedenceRuleToList(struct precedenceRuleList *precedenceRuleList,struct
     return 0;   
 }
 
+bool isTokenTypeAccepted(token* activeToken)
+{
+    for (size_t i = 0; i < acceptedTokenTypesLength; i++)
+        {
+        if (acceptedTokenTypes[i] == activeToken->tokenType)
+        {
+            return true;
+        }
+        }   
+    return false;
+}
 
 char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTokenType, char *precedenceTable)
 {
@@ -169,23 +180,85 @@ unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
     }
 }
 
+int addLastToQueue(struct tokenQueue *tQ, token *tokenIn)
+{
+    struct tokenQueueElement* tQE = (struct tokenQueueElement*)malloc (sizeof(struct tokenQueueElement));
+    tQE->tokenInQueue = tokenIn;
+    if (tQ->first == NULL && tQ->last == NULL){
+        tQ->first = tQE;
+        tQ->last = tQE;
+    }
+    else{
+        tQ->last->next = tQE;
+        tQ->last = tQE;
+    }
+    return 0;
+}
+
+token *getFirstFromQueue(struct tokenQueue *tQ)
+{
+    return tQ->first->tokenInQueue;
+}
+
+int popFirstFromQueue(struct tokenQueue *tQ)
+{
+    struct tokenQueueElement *tQE = tQ->first;
+    tQ->first = tQ->first->next;
+    free(tQE);
+    return 0;
+}
 
 int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, programState *PROGRAM_STATE)
 {
     struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(tokenStack));
     token *firstToken = (token *)malloc(sizeof(token));
-    firstToken->tokenType = T_END;
-    if (firstToken == NULL || tokenStack == NULL)
+    struct tokenQueue *tokenQueue = (struct tokenQueue *)malloc(sizeof(tokenQueue));
+
+    if (firstToken == NULL || tokenStack == NULL || tokenQueue == NULL)
     {
         return 99;
     }
+
+    firstToken->tokenType = T_END;
+    tokenQueue->first = NULL;
+    tokenQueue->last = NULL;
+    
     tokenStackPush(tokenStack, firstToken);
     
     if (PROGRAM_STATE->isLastReadTokenValid == true){
-        tokenStackPush(tokenStack, PROGRAM_STATE->lastReadToken);
+        if (!isTokenAccepted(PROGRAM_STATE->lastReadToken->tokenType))
+        {
+            printf("Error: invalid token type in PROGRAM_STATE! Expression scanner did nothing\n");
+            return 0;
+        }
+        addLastToQueue(tokenQueue,PROGRAM_STATE->lastReadToken);
         PROGRAM_STATE->isLastReadTokenValid = false;
     }
     
+    bool reading = true;
+    while (reading)
+    {
+        /* code */
+    }
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /// activate token for scanner //////////////////////////
     token *activeToken = (token *)malloc(sizeof(token));
     if(activeToken == NULL){
         return 99;
@@ -201,26 +274,19 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
     if(activeToken->position == NULL){
         return 99;
     }
-    bool amIReading = true;
+    ////////////////////////////////////////////////////////
+
+    bool reading = true;
+    bool running = true;
 
     getToken(activeToken,1,1);
-    while (amIReading)
+    while (running)
     {
         //print token type
-        printf ("Token type that has been read: %d\n",activeToken->tokenType);
-        amIReading = false;
+        printf ("Token type that is on the top of the stack: %d\n",activeToken->tokenType);
+        
 
-        // check if am I accepting this type of token
-        for (size_t i = 0; i < acceptedTokenTypesLength; i++)
-        {
-            if (acceptedTokenTypes[i] == activeToken->tokenType)
-            {
-                amIReading = true;
-                break;
-            }
-        }
-
-        if (amIReading)
+        if (reading)
         {
             if (activeToken->tokenType == T_EOL)
             {
@@ -332,12 +398,16 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
                 break;
             }
         }
-        else
+        else if (activeToken->tokenType != T_END)
         {
             PROGRAM_STATE->isLastReadTokenValid = true;
             PROGRAM_STATE->lastReadToken = activeToken;
+            activeToken = (token *)malloc(sizeof(token));
+            activeToken->tokenType = T_END;
+
         }
-        sleep (1);
+
+        sleep (1.1);
     }
     return 0;
 }

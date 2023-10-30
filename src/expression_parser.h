@@ -80,7 +80,34 @@ struct tokenStack
     struct tokenStackElement *top;
 };
 
+struct tokenQueueElement
+{
+    token *tokenInQueue;
+    struct tokenQueueElement* next;
+};
 
+struct tokenQueue
+{
+    struct tokenQueueElement* first;
+    struct tokenQueueElement* last;
+
+};
+
+/// @brief Add token to the end of the queue
+/// @param tQ Pointer to queue
+/// @param tokenIn Pointer to token, that should be added
+/// @return error code
+int addLastToQueue(struct tokenQueue* tQ, token* tokenIn);
+
+/// @brief Returns first token from queue
+/// @param tQ Pointer to queue
+/// @return Pointer to token, that is first in queue
+token* getFirstFromQueue(struct tokenQueue* tQ);
+
+/// @brief Remove first token from queue
+/// @param tQ Pointer to queue
+/// @return Error code
+int popFirstFromQueue(struct tokenQueue* tQ);
 
 /// @brief Function starts parsing of expression
 /// @param outputPrecedenceRulesList output list of precedence rules
@@ -118,6 +145,10 @@ void tokenStackClear(struct tokenStack *stack);
 /// @param stack Pointer to stack of tokens
 /// @param numberOfPops Nu,ber of tokens that should be removed from the stack
 
+/// @brief Get you token onf certain location form stack
+/// @param stack Pointer to stack
+/// @param location Location (first index is 0)
+/// @return REturns pointer on token, that is on the location, in case of failure returns NULL
 token* tokenStackGet(struct tokenStack *stack, unsigned location);
 
 /// @brief Function returns type of token on the top of the stack and ignores T_E tokens
@@ -125,8 +156,13 @@ token* tokenStackGet(struct tokenStack *stack, unsigned location);
 /// @return type of token on the top of the stack
 enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack);
 
-
 /// @brief Function adds precedence rule to the list    
 /// @param precedenceRuleList list of precedence rules
 /// @param precedenceRule precedence rule to be added  
 int addPrecedenceRuleToList(struct precedenceRuleList *precedenceRuleList, struct precedenceRule *precedenceRule);
+
+/// @brief Decides if expression parser can parse this token
+/// @param activeToken Token to decide
+/// @return True if token is accepted
+bool isTokenTypeAccepted (token *activeToken);
+
