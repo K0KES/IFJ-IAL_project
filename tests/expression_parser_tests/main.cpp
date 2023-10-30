@@ -191,7 +191,8 @@ TEST(expressionParser, Test1) {
     pRL1.precedenceRuleListLen = 0;
     pRL1.precedenceRuleListAllocatedLen = 1;
     pRL1.precedenceRuleList = (struct precedenceRule**) malloc(sizeof(struct precedenceRule*));
-
+    
+    freopen("tests/expression_parser_tests/test1.txt","r",stdin);
 
     expressionParserStart (&pRL1,&PROGRAM_STATE);
     free (PROGRAM_STATE.lastReadToken);

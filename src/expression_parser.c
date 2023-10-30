@@ -29,7 +29,7 @@ token* tokenStackGet(struct tokenStack *stack, unsigned location)
 enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack)
 {
     if (stack == NULL ||stack->top == NULL || stack->top->tokenOnStack == NULL)
-        printf("SEgfault in whichTypeIsOnTheStack\n");
+        printf("Segfault in whichTypeIsOnTheStack\n");
 
     if (stack->top->tokenOnStack->tokenType != T_E)
         return stack->top->tokenOnStack->tokenType;
@@ -260,6 +260,8 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
                     newRule->rightSide = (token *)malloc(sizeof(token));
                     copy_Token(tokenStack->top->tokenOnStack,newRule->rightSide);
                     addPrecedenceRuleToList(outputPrecedenceRuleList,newRule);
+                    copy_Token(&(newRule->leftSide),tokenStackGet(tokenStack,0));
+                    
 
                     // int a = 5 / 0;
                     // (outputPrecedenceRuleList->precedenceRuleList[outputPrecedenceRuleList->precedenceRuleListLen]) = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
