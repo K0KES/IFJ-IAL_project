@@ -166,3 +166,7 @@ int addPrecedenceRuleToList(struct precedenceRuleList *precedenceRuleList, struc
 /// @return True if token is accepted
 bool isTokenTypeAccepted (token *activeToken);
 
+/// @brief Just adds information to token that are necessary for token scanner
+/// @param T Token to set up
+/// @return Returns 0 if everything is ok, 1 if there is an error
+int setUpActiveToken(token* T);

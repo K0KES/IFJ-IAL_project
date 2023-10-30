@@ -10,12 +10,12 @@ void copy_Token(token *t1, token *t2)
 
 token* tokenStackGet(struct tokenStack *stack, unsigned location)
 {
-    struct tokenStackElement tSE = *stack->top;
+    struct tokenStackElement *tSE = stack->top;
     for (unsigned i = 0; i < location; i++)
     {
-        if (tSE.next != NULL)
-        {
-            tSE = *tSE.next;
+        if (tSE != NULL && tSE->next != NULL)
+        {   
+            tSE = tSE->next;
         }
         else
         {
@@ -23,7 +23,7 @@ token* tokenStackGet(struct tokenStack *stack, unsigned location)
             return (NULL);
         }
     }
-    return (tSE.tokenOnStack);
+    return (tSE->tokenOnStack);
 }
 
 enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack)
@@ -115,6 +115,25 @@ bool isTokenTypeAccepted(token* activeToken)
     return false;
 }
 
+int setUpActiveToken(token* T)
+{
+    if(T == NULL){
+        return 99;
+    }
+
+    T->value = (string*)malloc(sizeof(string));
+    if(T->value == NULL){
+        return 99;
+    }
+    strInit(T->value);
+
+    T->position = (positionInfo*)malloc(sizeof(positionInfo));
+    if(T->position == NULL){
+        return 99;
+    }
+    return 0;
+}
+
 char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTokenType, char *precedenceTable)
 {
     unsigned int topOfStackIndex = getIndexInPrecedenceTable(topOfStackTokenType);
@@ -184,6 +203,7 @@ int addLastToQueue(struct tokenQueue *tQ, token *tokenIn)
 {
     struct tokenQueueElement* tQE = (struct tokenQueueElement*)malloc (sizeof(struct tokenQueueElement));
     tQE->tokenInQueue = tokenIn;
+    tQE->next = NULL;
     if (tQ->first == NULL && tQ->last == NULL){
         tQ->first = tQE;
         tQ->last = tQE;
@@ -226,83 +246,82 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
     tokenStackPush(tokenStack, firstToken);
     
     if (PROGRAM_STATE->isLastReadTokenValid == true){
-        if (!isTokenAccepted(PROGRAM_STATE->lastReadToken->tokenType))
+        if (!isTokenTypeAccepted(PROGRAM_STATE->lastReadToken))
         {
             printf("Error: invalid token type in PROGRAM_STATE! Expression scanner did nothing\n");
-            return 0;
+            return 42;
         }
         addLastToQueue(tokenQueue,PROGRAM_STATE->lastReadToken);
         PROGRAM_STATE->isLastReadTokenValid = false;
     }
-    
+
+    /// activate token for scanner ///
+    token *activeToken = (token *)malloc(sizeof(token));
+    if (activeToken == NULL || setUpActiveToken(activeToken) != 0)
+    {
+        return 99;
+    }
+
+    /// READING LOOP ///
     bool reading = true;
     while (reading)
     {
-        /* code */
-    }
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /// activate token for scanner //////////////////////////
-    token *activeToken = (token *)malloc(sizeof(token));
-    if(activeToken == NULL){
-        return 99;
-    }
-
-    activeToken->value = (string*)malloc(sizeof(string));
-    if(activeToken->value == NULL){
-        return 99;
-    }
-    strInit(activeToken->value);
-
-    activeToken->position = (positionInfo*)malloc(sizeof(positionInfo));
-    if(activeToken->position == NULL){
-        return 99;
-    }
-    ////////////////////////////////////////////////////////
-
-    bool reading = true;
-    bool running = true;
-
-    getToken(activeToken,1,1);
-    while (running)
-    {
-        //print token type
-        printf ("Token type that is on the top of the stack: %d\n",activeToken->tokenType);
-        
-
-        if (reading)
+        getToken(activeToken,1,1);
+        if (isTokenTypeAccepted(activeToken))
         {
             if (activeToken->tokenType == T_EOL)
             {
-                getToken(activeToken,1,1);
                 continue;
             }
-            printf("Top of stack: %d\n",whichTypeIsOnTheStack(tokenStack));
-            
-            switch (getPrecedence(whichTypeIsOnTheStack(tokenStack),activeToken->tokenType,*precedenceTable))
+            addLastToQueue(tokenQueue,activeToken);
+            activeToken = (token *)malloc(sizeof(token));
+            if (activeToken == NULL || setUpActiveToken(activeToken) != 0)
             {
+                return 99;
+            }
+        }
+        else
+        {
+            reading = false;
+            PROGRAM_STATE->isLastReadTokenValid = true;
+            PROGRAM_STATE->lastReadToken = activeToken;
+            activeToken = (token *)malloc(sizeof(token));
+            if (activeToken == NULL || setUpActiveToken(activeToken) != 0)
+            {
+                return 99;
+            }
+            activeToken->tokenType = T_END;
+            addLastToQueue(tokenQueue,activeToken);
+
+        }
+    }
+    
+
+    /// print all token types in queue
+    struct tokenQueueElement *tQE = tokenQueue->first;
+    while (tQE != NULL)
+    {
+        printf("Token type in queue: %d\n",tQE->tokenInQueue->tokenType);
+        tQE = tQE->next;
+    }
+
+
+    bool running = true;
+
+    while (running)
+        {
+        //print token type
+        printf("Top of stack: %d, top of queue %d\n",whichTypeIsOnTheStack(tokenStack),getFirstFromQueue(tokenQueue)->tokenType);
+        /// print tokens precedence
+
+        switch (getPrecedence(whichTypeIsOnTheStack(tokenStack),getFirstFromQueue(tokenQueue)->tokenType,*precedenceTable))
+        {
             case '<':
                 printf("Push to stack\n");
-                tokenStackPush(tokenStack, activeToken);
-                getToken(activeToken,1,1);
+                tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
+                popFirstFromQueue(tokenQueue);
                 break;
-            
+
             case '>':
             case '=':
                 printf("Do reduction\n");
@@ -319,6 +338,7 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
                 case T_STRING:
                 {
                     printf("E -> i\n");
+
                     struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
                     newRule->description = "E -> i";
                     newRule->leftSide.tokenType = T_E;
@@ -327,10 +347,7 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
                     copy_Token(tokenStack->top->tokenOnStack,newRule->rightSide);
                     addPrecedenceRuleToList(outputPrecedenceRuleList,newRule);
                     copy_Token(&(newRule->leftSide),tokenStackGet(tokenStack,0));
-                    
 
-                    // int a = 5 / 0;
-                    // (outputPrecedenceRuleList->precedenceRuleList[outputPrecedenceRuleList->precedenceRuleListLen]) = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
                     break;
                 }
                 case T_PLUS:
@@ -340,7 +357,7 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
                 case T_MINUS:
                     printf("E -> E - E\n");
                     break;
-                
+
                 case T_MULTIPLICATION:
                     printf("E -> E * E\n");
                     break;
@@ -360,7 +377,7 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
                 case T_GREATER: 
                     printf("E -> E > E\n");
                     break;
-                
+
                 case T_GREATER_EQUAL:
                     printf("E -> E >= E\n");
                     break;
@@ -391,20 +408,12 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
 
             case '0':
                 printf("Parsing is done!");
+                return 0;
                 break;
 
             default:
                 printf("Default state in the first switch: ");
                 break;
-            }
-        }
-        else if (activeToken->tokenType != T_END)
-        {
-            PROGRAM_STATE->isLastReadTokenValid = true;
-            PROGRAM_STATE->lastReadToken = activeToken;
-            activeToken = (token *)malloc(sizeof(token));
-            activeToken->tokenType = T_END;
-
         }
 
         sleep (1.1);
