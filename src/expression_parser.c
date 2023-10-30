@@ -311,7 +311,7 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
     while (running)
         {
         //print token type
-        printf("Top of stack: %d, top of queue %d\n",whichTypeIsOnTheStack(tokenStack),getFirstFromQueue(tokenQueue)->tokenType);
+        printf("\nTop of stack: %d, top of queue %d\n",whichTypeIsOnTheStack(tokenStack),getFirstFromQueue(tokenQueue)->tokenType);
         /// print tokens precedence
 
         switch (getPrecedence(whichTypeIsOnTheStack(tokenStack),getFirstFromQueue(tokenQueue)->tokenType,*precedenceTable))
@@ -327,77 +327,113 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
                 printf("Do reduction\n");
                 switch (whichTypeIsOnTheStack(tokenStack))
                 {
-                case T_RIGHT_BRACKET:
-                    printf("E -> ( E )\n");
-                    break;
+                    case T_RIGHT_BRACKET:
+                    {
+                        printf("E -> ( E )\n");
+                        break;
+                    }
 
 
-                case T_IDENTIFIER:
-                case T_INT:
-                case T_DOUBLE:
-                case T_STRING:
-                {
-                    printf("E -> i\n");
+                    case T_IDENTIFIER:
+                    case T_INT:
+                    case T_DOUBLE:
+                    case T_STRING:
+                    {
+                        printf("E -> i\n");
 
-                    struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                    newRule->description = "E -> i";
-                    newRule->leftSide.tokenType = T_E;
-                    newRule->rightSideLen = 1;
-                    newRule->rightSide = (token *)malloc(sizeof(token));
-                    copy_Token(tokenStack->top->tokenOnStack,newRule->rightSide);
-                    addPrecedenceRuleToList(outputPrecedenceRuleList,newRule);
-                    copy_Token(&(newRule->leftSide),tokenStackGet(tokenStack,0));
+                        struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                        newRule->description = "E -> i";
+                        newRule->leftSide.tokenType = T_E;
+                        newRule->rightSideLen = 1;
+                        newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                        copy_Token(tokenStackGet(tokenStack,0),newRule->rightSide);
+                        addPrecedenceRuleToList(outputPrecedenceRuleList,newRule);
+                        copy_Token(&(newRule->leftSide),tokenStackGet(tokenStack,0));
 
-                    break;
-                }
-                case T_PLUS:
-                    printf("E -> E + E\n");
-                    break;
+                        break;
+                    }
+                    case T_PLUS:
+                    {
+                        printf("E -> E + E\n");
 
-                case T_MINUS:
-                    printf("E -> E - E\n");
-                    break;
+                        struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                        newRule->description = "E -> i";
+                        newRule->leftSide.tokenType = T_E;
+                        newRule->rightSideLen = 3;
+                        newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                        copy_Token(tokenStackGet(tokenStack,2),&(newRule->rightSide[0]));
+                        copy_Token(tokenStackGet(tokenStack,1),&(newRule->rightSide[1]));
+                        copy_Token(tokenStackGet(tokenStack,0),&(newRule->rightSide[2]));
+                        addPrecedenceRuleToList(outputPrecedenceRuleList,newRule);
+                        tokenStackPop(tokenStack,2);
+                        copy_Token(&(newRule->leftSide),tokenStackGet(tokenStack,0));
+                        break;
+                    }
 
-                case T_MULTIPLICATION:
-                    printf("E -> E * E\n");
-                    break;
+                    case T_MINUS:
+                    {
+                        printf("E -> E - E\n");
+                        break;
+                    }
 
-                case T_DIVISION:
-                    printf("E -> E / E\n");
-                    break;
+                    case T_MULTIPLICATION:
+                    {
+                        printf("E -> E * E\n");
+                        break;
+                    }
 
-                case T_LESS:
-                    printf("E -> E < E\n");
-                    break;
+                    case T_DIVISION:
+                    {
+                        printf("E -> E / E\n");
+                        break;
+                    }
 
-                case T_LESS_EQUAL:
-                    printf("E -> E <= E\n");
-                    break;
+                    case T_LESS:
+                    {
+                        printf("E -> E < E\n");
+                        break;
+                    }
 
-                case T_GREATER: 
-                    printf("E -> E > E\n");
-                    break;
+                    case T_LESS_EQUAL:
+                    {
+                        printf("E -> E <= E\n");
+                        break;
+                    }
 
-                case T_GREATER_EQUAL:
-                    printf("E -> E >= E\n");
-                    break;
+                    case T_GREATER: 
+                    {
+                        printf("E -> E > E\n");
+                        break;
+                    }
 
-                case T_EQUAL:
-                    printf("E -> E == E\n");
-                    break;
+                    case T_GREATER_EQUAL:
+                    {
+                        printf("E -> E >= E\n");
+                        break;
+                    }
 
-                case T_NOT_EQUAL:
-                    printf("E -> E != E\n");
-                    break;
+                    case T_EQUAL:
+                    {
+                        printf("E -> E == E\n");
+                        break;
+                    }
 
-                case T_NIL_OP:
-                    printf("E -> E ?? E\n");
-                    break;
+                    case T_NOT_EQUAL:
+                    {
+                        printf("E -> E != E\n");
+                        break;
+                    }
+
+                    case T_NIL_OP:
+                    {
+                        printf("E -> E ?? E\n");
+                        break;
+                    }
 
 
-                default:
-                    printf("Default state in the second switch: %d\n",whichTypeIsOnTheStack(tokenStack));
-                    break;
+                    default:
+                        printf("Default state in the second switch: %d\n",whichTypeIsOnTheStack(tokenStack));
+                        break;
                 }
                 break;
 
@@ -416,7 +452,7 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
                 break;
         }
 
-        sleep (1.1);
+        sleep (0.5);
     }
     return 0;
 }

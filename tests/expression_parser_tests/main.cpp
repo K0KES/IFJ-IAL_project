@@ -223,7 +223,11 @@ TEST(expressionParser2, Test1){
     EXPECT_EQ (expressionParserStart (&pRL1,&PROGRAM_STATE),0);
     EXPECT_EQ (PROGRAM_STATE.lastReadToken->tokenType,T_COMMA); 
 
-
+    EXPECT_EQ(pRL1.precedenceRuleList[0]->rightSide[0].tokenType,T_IDENTIFIER);
+    EXPECT_EQ(pRL1.precedenceRuleList[1]->rightSide[0].tokenType,T_IDENTIFIER);
+    EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[0].tokenType,T_E);
+    EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[1].tokenType,T_PLUS);
+    EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[2].tokenType,T_E);
     free (PROGRAM_STATE.lastReadToken);
     free (pRL1.precedenceRuleList);
 }
