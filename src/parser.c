@@ -44,10 +44,10 @@ bool start(token *activeToken){
             startStatus = true;
             break;
         default:  
-            printf("Leaving function start()...\n");
+            printf("Leaving function start() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function start()...\n");
+    printf("Leaving function start() with %d ...\n",startStatus);
     return startStatus;
 }
 
@@ -63,13 +63,13 @@ bool code(token *activeToken){
 
             // verification of: EOF
             if (activeToken->tokenType == T_EOF){ 
-                printf("Leaving function code()...\n");
+                printf("Leaving function code() with %d ...\n",codeStatus);
                 return codeStatus;
             }
 
             // verification of: EOL
             if (activeToken->tokenType != T_EOL){ 
-                printf("Leaving function code()...\n");
+                printf("Leaving function code() with %d ...\n",false);
                 return false;
             }
 
@@ -87,13 +87,13 @@ bool code(token *activeToken){
 
             // verification of: EOF
             if (activeToken->tokenType == T_EOF){ 
-                printf("Leaving function code()...\n");
+                printf("Leaving function code() with %d ...\n",codeStatus);
                 return codeStatus;
             }
 
             // verification of: EOL
             if (activeToken->tokenType != T_EOL){ 
-                printf("Leaving function code()...\n");
+                printf("Leaving function code() with %d ...\n",false);
                 return false;
             }
 
@@ -105,11 +105,11 @@ bool code(token *activeToken){
             codeStatus = true;
             break;
         default:
-            printf("Leaving function code()...\n");
+            printf("Leaving function code() with %d ...\n",false);
             return false;
         
     }
-    printf("Leaving function code()...\n");
+    printf("Leaving function code() with %d ...\n",codeStatus);
     return codeStatus;
 }
 
@@ -153,10 +153,10 @@ bool eol(token *activeToken){
             eolStatus = true;
             break;
         default:
-            printf("Leaving function eol()...\n");
+            printf("Leaving function eol() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function eol()...\n");
+    printf("Leaving function eol() with %d ...\n",eolStatus);
     return eolStatus;
 }
 
@@ -183,10 +183,10 @@ bool type(token *activeToken){
             typeStatus = true;
             break;
         default: 
-            printf("Leaving function type()...\n");
+            printf("Leaving function type() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function type()...\n");
+    printf("Leaving function type() with %d ...\n",typeStatus);
     return typeStatus;
 }
 
@@ -205,7 +205,7 @@ bool definition(token *activeToken){
 
             // verification of: func <eol> ID 
             if (activeToken->tokenType != T_IDENTIFIER){ 
-                printf("Leaving function definition()...\n");
+                printf("Leaving function definition() with %d ...\n",false);
                 return false;
             }
 
@@ -215,7 +215,7 @@ bool definition(token *activeToken){
 
             // verification of: func <eol> ID <eol> (
             if (activeToken->tokenType != T_LEFT_BRACKET){ 
-                printf("Leaving function definition()...\n");
+                printf("Leaving function definition() with %d ...\n",false);
                 return false;
             }
 
@@ -230,10 +230,10 @@ bool definition(token *activeToken){
             definitionStatus = definitionStatus && funcDefMid(activeToken);
             break;
         default:
-            printf("Leaving function definition()...\n");
+            printf("Leaving function definition() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function definition()...\n");
+    printf("Leaving function definition() with %d ...\n",definitionStatus);
     return definitionStatus;
 }
 
@@ -257,7 +257,7 @@ bool funcDefMid(token *activeToken){
 
             // verification of: left curly bracket
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                printf("Leaving function funcDefMid()...\n");
+                printf("Leaving function funcDefMid() with %d ...\n",false);
                 return false;
             }
 
@@ -266,16 +266,16 @@ bool funcDefMid(token *activeToken){
 
             // verification of: right curly bracket
             if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function funcDefMid()...\n");
+                printf("Leaving function funcDefMid() with %d ...\n",false);
                 return false;
             }
             getNextToken(activeToken);
             break;
         default:
-            printf("Leaving function funcDefMid()...\n");
+            printf("Leaving function funcDefMid() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function funcDefMid()...\n");
+    printf("Leaving function funcDefMid() with %d ...\n",funcDefMidStatus);
     return funcDefMidStatus;
 }
 
@@ -301,10 +301,10 @@ bool functionParams(token *activeToken){
             functionParamsStatus = functionParam(activeToken) && functionParamsN(activeToken) && eol(activeToken);
             break;
         default:
-            printf("Leaving function functionParams()...\n");
+            printf("Leaving function functionParams() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function functionParams()...\n");
+    printf("Leaving function functionParams() with %d ...\n",functionParamsStatus);
     return functionParamsStatus;
 }
 
@@ -326,10 +326,10 @@ bool functionParamsN(token *activeToken){
             functionParamsNStatus = true;
             break;
         default:
-            printf("Leaving function functionParamsN()...\n");
+            printf("Leaving function functionParamsN() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function functionParamsN()...\n");
+    printf("Leaving function functionParamsN() with %d ...\n",functionParamsNStatus);
     return functionParamsNStatus;
 }
 
@@ -348,7 +348,7 @@ bool functionParam(token *activeToken){
 
             // verification of: _ <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
-                printf("Leaving function functionParam()...\n");
+                printf("Leaving function functionParam() with %d ...\n",false);
                 return false;
             }
 
@@ -359,7 +359,7 @@ bool functionParam(token *activeToken){
             // verification of: _ <eol> ID <eol> :
             getNextToken(activeToken);
             if (activeToken->tokenType != T_COLON){
-                printf("Leaving function functionParam()...\n");
+                printf("Leaving function functionParam() with %d ...\n",false);
                 return false;
             }
 
@@ -376,7 +376,7 @@ bool functionParam(token *activeToken){
 
             // verification of: ID <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
-                printf("Leaving function functionParam()...\n");
+                printf("Leaving function functionParam() with %d ...\n",false);
                 return false;
             }
 
@@ -387,7 +387,7 @@ bool functionParam(token *activeToken){
             // verification of: ID <eol> ID <eol> :
             getNextToken(activeToken);
             if (activeToken->tokenType != T_COLON){
-                printf("Leaving function functionParam()...\n");
+                printf("Leaving function functionParam() with %d ...\n",false);
                 return false;
             }
             // verification of: ID <eol> ID <eol> : <eol> <type> <eol>
@@ -395,10 +395,10 @@ bool functionParam(token *activeToken){
             functionParamStatus = eol(activeToken) && type(activeToken) && eol(activeToken);
             break;
         default:
-            printf("Leaving function functionParam()...\n");
+            printf("Leaving function functionParam() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function functionParam()...\n");
+    printf("Leaving function functionParam() with %d ...\n",functionParamStatus);
     return functionParamStatus;
 }
 
@@ -428,10 +428,10 @@ bool statements(token *activeToken){
             statementsStatus = true;
             break;
         default:
-            printf("Leaving function statements()...\n");
+            printf("Leaving function statements() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function statements()...\n");
+    printf("Leaving function statements() with %d ...\n",statementsStatus);
     return statementsStatus;
 }
 
@@ -452,7 +452,7 @@ bool statementsBlock(token *activeToken){
 
             // verification of: <statement> EOL
             if (activeToken->tokenType != T_EOL){ 
-                printf("Leaving function statementsBlock()...\n");
+                printf("Leaving function statementsBlock() with %d ...\n",false);
                 return false;
             }
 
@@ -466,10 +466,10 @@ bool statementsBlock(token *activeToken){
             statementsBlockStatus = true;
             break;
         default:
-            printf("Leaving function statementsBlock()...\n");
+            printf("Leaving function statementsBlock() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function statementsBlock()...\n");
+    printf("Leaving function statementsBlock() with %d ...\n",statementsBlockStatus);
     return statementsBlockStatus;
 }
 
@@ -491,7 +491,7 @@ bool statement(token *activeToken){
 
             // verification of: if <expression> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                printf("Leaving function statement()...\n");
+                printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
 
@@ -500,7 +500,7 @@ bool statement(token *activeToken){
 
             // verification of: if <expression> <eol> {<statements>} 
             if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function statement()...\n");
+                printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
 
@@ -510,7 +510,7 @@ bool statement(token *activeToken){
 
             // verification of: if <expression> <eol> {<statements>} <eol> else
             if (activeToken->tokenType != KW_ELSE){
-                printf("Leaving function statement()...\n");
+                printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
 
@@ -520,7 +520,7 @@ bool statement(token *activeToken){
 
             // verification of: if <expression> <eol> {<statements>} <eol> else <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                printf("Leaving function statement()...\n");
+                printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
 
@@ -529,7 +529,7 @@ bool statement(token *activeToken){
 
             // verification of: if <expression> <eol> {<statements>} <eol> else <eol> {<statements>}
             if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function statement()...\n");
+                printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
             getNextToken(activeToken);
@@ -541,7 +541,7 @@ bool statement(token *activeToken){
 
             // verification of: while <expression> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                printf("Leaving function statement()...\n");
+                printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
 
@@ -550,7 +550,7 @@ bool statement(token *activeToken){
 
             // verification of: while <expression> <eol> {<statements>}
             if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function statement()...\n");
+                printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
             getNextToken(activeToken);
@@ -566,10 +566,10 @@ bool statement(token *activeToken){
             statementStatus = callOrAssign(activeToken);
             break;
         default:
-            printf("Leaving function statement()...\n");
+            printf("Leaving function statement() with %d ...\n",false);
             return false;  
     }
-    printf("Leaving function statement()...\n");
+    printf("Leaving function statement() with %d ...\n",statementStatus);
     return statementStatus;
 }
 
@@ -591,7 +591,7 @@ bool statementOnLine(token *activeToken){
 
             // verification of: if <expression> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                printf("Leaving function statementOnLine()...\n");
+                printf("Leaving function statementOnLine() with %d ...\n",false);
                 return false;
             }
 
@@ -600,21 +600,21 @@ bool statementOnLine(token *activeToken){
 
             // verification of: if <expression> {<statementOnLine>} 
             if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function statementOnLine()...\n");
+                printf("Leaving function statementOnLine() with %d ...\n",false);
                 return false;
             }
 
             // verification of: if <expression> {<statementOnLine>} else
             getNextToken(activeToken);
             if (activeToken->tokenType != KW_ELSE){
-                printf("Leaving function statementOnLine()...\n");
+                printf("Leaving function statementOnLine() with %d ...\n",false);
                 return false;
             }
 
             // verification of: if <expression> {<statementOnLine>} else {
             getNextToken(activeToken);
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                printf("Leaving function statementOnLine()...\n");
+                printf("Leaving function statementOnLine() with %d ...\n",false);
                 return false;
             }
 
@@ -623,7 +623,7 @@ bool statementOnLine(token *activeToken){
 
             // verification of: if <expression> {<statementOnLine>} else {<statementOnLine>}
             if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function statementOnLine()...\n");
+                printf("Leaving function statementOnLine() with %d ...\n",false);
                 return false;
             }
             getNextToken(activeToken);
@@ -635,7 +635,7 @@ bool statementOnLine(token *activeToken){
 
             // verification of: while <expression> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                printf("Leaving function statementOnLine()...\n");
+                printf("Leaving function statementOnLine() with %d ...\n",false);
                 return false;
             }
 
@@ -644,7 +644,7 @@ bool statementOnLine(token *activeToken){
 
             // verification of: while <expression> {<statements>}
             if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function statementOnLine()...\n");
+                printf("Leaving function statementOnLine() with %d ...\n",false);
                 return false;
             }
             getNextToken(activeToken);
@@ -660,10 +660,10 @@ bool statementOnLine(token *activeToken){
             statementOnLineStatus = callOrAssign(activeToken);
             break;
         default:
-            printf("Leaving function statementOnLine()...\n");
+            printf("Leaving function statementOnLine() with %d ...\n",false);
             return false;  
     }
-    printf("Leaving function statementOnLine()...\n");
+    printf("Leaving function statementOnLine() with %d ...\n",statementOnLineStatus);
     return statementOnLineStatus;
 }
 
@@ -680,7 +680,7 @@ bool callOrAssign(token *activeToken){
 
             // verification of: <eol> = 
             if (activeToken->tokenType != T_ASSIGNMENT){
-                printf("Leaving function callOrAssign()...\n");
+                printf("Leaving function callOrAssign() with %d ...\n",false);
                 return false;
             }
 
@@ -693,10 +693,10 @@ bool callOrAssign(token *activeToken){
             callOrAssignStatus = arguments(activeToken);
             break;
         default:
-            printf("Leaving function callOrAssign()...\n");
+            printf("Leaving function callOrAssign() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function callOrAssign()...\n");
+    printf("Leaving function callOrAssign() with %d ...\n",callOrAssignStatus);
     return callOrAssignStatus;
 }
 
@@ -714,7 +714,7 @@ bool varDec(token *activeToken){
             
             // verification of: let <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
-                printf("Leaving function varDec()...\n");
+                printf("Leaving function varDec() with %d ...\n",false);
                 return false;
             }
 
@@ -729,7 +729,7 @@ bool varDec(token *activeToken){
             
             // verification of: var <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
-                printf("Leaving function varDec()...\n");
+                printf("Leaving function varDec() with %d ...\n",false);
                 return false;
             }
 
@@ -737,10 +737,10 @@ bool varDec(token *activeToken){
             varDecStatus = eol(activeToken) && varDecMid(activeToken);
             break;
         default:
-            printf("Leaving function varDec()...\n");
+            printf("Leaving function varDec() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function varDec()...\n");
+    printf("Leaving function varDec() with %d ...\n",varDecStatus);
     return varDecStatus;
 }
 
@@ -761,10 +761,10 @@ bool varDecMid(token *activeToken){
             varDecMidStatus = expression(activeToken);
             break;
         default:
-            printf("Leaving function varDecMid()...\n");
+            printf("Leaving function varDecMid() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function varDecMid()...\n");
+    printf("Leaving function varDecMid() with %d ...\n",varDecMidStatus);
     return varDecMidStatus;
 }
 
@@ -786,10 +786,10 @@ bool varDef(token *activeToken){
             varDefStatus = expression(activeToken);
             break;
         default:
-            printf("Leaving function varDef()...\n");
+            printf("Leaving function varDef() with %d ...\n",false);
             return false; 
     }
-    printf("Leaving function varDef()...\n");
+    printf("Leaving function varDef() with %d ...\n",varDefStatus);
     return varDefStatus;
 }
 
@@ -811,10 +811,10 @@ bool returnExpression(token *activeToken){
             returnExpressionStatus = true;
             break;
         default:
-            printf("Leaving function returnExpression()...\n");
+            printf("Leaving function returnExpression() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function returnExpression()...\n");
+    printf("Leaving function returnExpression() with %d ...\n",returnExpressionStatus);
     return returnExpressionStatus;
 }
 
@@ -842,10 +842,10 @@ bool arguments(token *activeToken){
             argumentsStatus = argument(activeToken) && argumentsN(activeToken) && eol(activeToken);
             break;
         default:
-            printf("Leaving function arguments()...\n");
+            printf("Leaving function arguments() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function arguments()...\n");
+    printf("Leaving function arguments() with %d ...\n",argumentsStatus);
     return argumentsStatus;
 }
 
@@ -867,10 +867,10 @@ bool argumentsN(token *activeToken){
             argumentsNStatus = true;
             break;
         default:
-            printf("Leaving function argumentsN()...\n");
+            printf("Leaving function argumentsN() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function argumentsN()...\n");
+    printf("Leaving function argumentsN() with %d ...\n",argumentsNStatus);
     return argumentsNStatus;
 }
 
@@ -892,10 +892,10 @@ bool argument(token *activeToken){
             argumentStatus = eol(activeToken) && argWithName(activeToken) && eol(activeToken);
             break;
         default:
-            printf("Leaving function argument()...\n");    
+            printf("Leaving function argument() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function argument()...\n");    
+    printf("Leaving function argument() with %d ...\n",argumentStatus);
     return argumentStatus;
 }
 
@@ -918,10 +918,10 @@ bool argWithName(token *activeToken){
             argWithNameStatus = true;
             break;
         default:
-            printf("Leaving function argWithName()...\n");
+            printf("Leaving function argWithName() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function argWithName()...\n");
+    printf("Leaving function argWithName() with %d ...\n",argWithNameStatus);
     return argWithNameStatus;
 }
 
@@ -943,10 +943,10 @@ bool argumentType(token *activeToken){
             argumentTypeStatus = dataType(activeToken);
             break;
         default:
-            printf("Leaving function argumentType()...\n");
+            printf("Leaving function argumentType() with %d ...\n",false);
             return false;
     }
-    printf("Leaving function argumentType()...\n");
+    printf("Leaving function argumentType() with %d ...\n",argumentTypeStatus);
     return argumentTypeStatus;
 }
 
@@ -974,7 +974,7 @@ bool dataType(token *activeToken){
         default:
             return false;
     }
-    printf("Leaving function dataType()...\n");
+    printf("Leaving function dataType() with %d ...\n",dataTypeStatus);
     return dataTypeStatus;
 }
 
@@ -983,6 +983,6 @@ bool expression(token *activeToken){
     printf("Entering function expression()...\n");
 
     getNextToken(activeToken);
-    printf("Leaving function expression()...\n");
+    printf("Leaving function expression() with %d ...\n",true);
     return true;
 }
