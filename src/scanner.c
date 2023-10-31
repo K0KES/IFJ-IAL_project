@@ -142,7 +142,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         return LEX_OK;
                         break;
                     case ',':
-                        token->tokenType = T_COLON;
+                        token->tokenType = T_COMMA;
                         token->lastChar = lastChar;
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
@@ -370,6 +370,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case ' ':
                 case '\n':
                 case '(':
+                case EOF:
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
                         ungetc(c, stdin);
