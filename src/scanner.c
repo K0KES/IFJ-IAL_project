@@ -371,6 +371,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\n':
                 case '(':
                 case EOF:
+                    printf("\ncurrent token val='");
+                    strPrint(token->value);
+                    printf("'\n");
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
                         ungetc(c, stdin);
