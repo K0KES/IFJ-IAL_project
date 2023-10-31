@@ -67,12 +67,6 @@ bool code(token *activeToken){
                 return codeStatus;
             }
 
-            // verification of: EOL
-            if (activeToken->tokenType != T_EOL){ 
-                printf("Leaving function code() with %d ...\n",false);
-                return false;
-            }
-
             getNextToken(activeToken);
             codeStatus = codeStatus && code(activeToken);
             break;
