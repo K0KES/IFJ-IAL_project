@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "custom_data_types/list.h"
-#include "custom_data_types/hashmap.h"
+#include "custom_data_types/hashtable.h"
 #pragma once
 
 /**
@@ -20,7 +20,7 @@
 typedef enum {
     SYMBOL_TYPE_VARIABLE,
     SYMBOL_TYPE_FUNCTION
-} symbol_type_t;
+} symbolType;
 
 /**
  * @brief enum for data types
@@ -32,4 +32,12 @@ typedef enum {
     DATA_TYPE_STRING
 } data_type_t;
 
-typedef struct symtable *symtable_t;
+typedef struct symtable_s
+{
+	list *tables;
+    list *scopes;
+	ht_table_t *globalTable;
+}symtable;
+
+bool symtableEnterScope(symtable *table,char* scope);
+void symtableInit(symtable *table);
