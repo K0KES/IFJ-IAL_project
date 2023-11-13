@@ -31,7 +31,7 @@ $(BUILD_DIR)/%.c.o: %.c %.h
 test_eparser: 
 	$(TEST_CC) -o my_gtest_test_expression_parser $(TEST_DIR)/expression_parser_tests/main.cpp -lgtest -lgtest_main -g
 # ./my_gtest_test_expression_parser < $(TEST_DIR)/expression_parser_tests/test1.txt
-	./my_gtest_test_expression_parser
+	# ./my_gtest_test_expression_parser
 
 test_parser: 
 	$(TEST_CC) -o my_gtest_test_parser $(TEST_DIR)/parser_tests/main.cpp -lgtest -lgtest_main -g

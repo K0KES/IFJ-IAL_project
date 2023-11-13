@@ -1,4 +1,5 @@
 //hlavickovy soubor pro praci s nekonecne dlouhymi retezci
+#pragma once
 
 typedef struct
 {

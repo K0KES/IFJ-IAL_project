@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h> 
 #pragma once
 
 
@@ -131,6 +132,8 @@ unsigned int getIndexInPrecedenceTable(enum tokenType tokenType);
 /// @param stack stack of tokens
 /// @return token from the top of the stack
 int tokenStackPush(struct tokenStack *stack, token *tokenIn);
+
+struct tokenStack* tokenStackInit();
 
 /// @brief Function copt token from t1 to t2
 /// @param t1 source token

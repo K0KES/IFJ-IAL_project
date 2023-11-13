@@ -1,9 +1,13 @@
 #include "str.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <stdbool.h>
+#include <ctype.h>
+#include <stdlib.h>
 #pragma once
 
 #define LEX_ERROR 1
 #define LEX_OK 0
+
 
 typedef struct {
     int lineNumber;
@@ -121,6 +125,13 @@ typedef struct {
     positionInfo *position;
     char lastChar;
 } token;
+
+typedef struct{
+    token *lastReadToken;
+    bool isLastReadTokenValid;
+    unsigned int lineNumber;
+    unsigned int charNumber;
+} programState;
 
 void tokenClear (token* token);
 int getToken(token *token, int charNumber, int lineNumber);
