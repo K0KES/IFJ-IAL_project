@@ -15,22 +15,21 @@
 */
 
 /**
- * @brief enum for symbol types
-*/
-typedef enum {
-    SYMBOL_TYPE_VARIABLE,
-    SYMBOL_TYPE_FUNCTION
-} symbolType;
-
-/**
  * @brief enum for data types
 */
-typedef enum {
+enum data_type{
     DATA_TYPE_UNDEFINED,
     DATA_TYPE_INTEGER,
     DATA_TYPE_FLOAT,
     DATA_TYPE_STRING
-} data_type_t;
+};
+
+typedef struct{
+    enum data_type type;
+    const char *name;
+    int id;
+    void *functionData;
+} symtableItem;
 
 typedef struct symtable_s
 {
@@ -40,4 +39,4 @@ typedef struct symtable_s
 }symtable;
 
 bool symtableEnterScope(symtable *table,char* scope);
-void symtableInit(symtable *table);
+symtable *symtableInit();

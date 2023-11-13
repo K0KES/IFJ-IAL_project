@@ -4,8 +4,8 @@
 
 typedef struct listNode_s{
     void *data;
-    struct listNode *prev;
-    struct listNode *next;
+    struct listNode_s *prev;
+    struct listNode_s *next;
 } listNode;
 
 typedef struct list_s

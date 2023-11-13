@@ -24,7 +24,7 @@ extern int HT_SIZE;
 // Prvok tabuľky
 typedef struct ht_item {
   char *key;            // kľúč prvku
-  float value;          // hodnota prvku
+  void *data;          // hodnota prvku
   struct ht_item *next; // ukazateľ na ďalšie synonymum
 } ht_item_t;
 
@@ -32,10 +32,10 @@ typedef struct ht_item {
 typedef ht_item_t *ht_table_t[MAX_HT_SIZE];
 
 int get_hash(char *key);
-void ht_init(ht_table_t *table);
+void ht_init(ht_table_t **table);
 ht_item_t *ht_search(ht_table_t *table, char *key);
-void ht_insert(ht_table_t *table, char *key, float data);
-float *ht_get(ht_table_t *table, char *key);
+void ht_insert(ht_table_t *table, char *key, void *data);
+void *ht_get(ht_table_t *table, char *key);
 void ht_delete(ht_table_t *table, char *key);
 void ht_delete_all(ht_table_t *table);
 

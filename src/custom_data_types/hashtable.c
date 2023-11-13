@@ -39,21 +39,21 @@ int get_hash(char *key) {
         h *= 0x5bd1e995;
         h ^= h >> 15;
     }
-    return h;
+    return h % MAX_HT_SIZE;
 }
 
 /*
  * Inicializace tabulky — zavolá sa před prvním použitím tabulky.
  */
-void ht_init(ht_table_t *table) {
+void ht_init(ht_table_t **table) {
   //table = (ht_table_t *)malloc(sizeof(ht_table_t));
   
-  //table = malloc(HT_SIZE * sizeof(struct ht_item));
+  (*table) = (ht_table_t *)malloc(sizeof(ht_table_t));
   //if(table == NULL) return;
 
   for (size_t i = 0; i < HT_SIZE; i++)
   {
-      (*table)[i] = NULL;
+      (**table)[i] = NULL;
   }
 }
 
@@ -67,7 +67,7 @@ ht_item_t *ht_search(ht_table_t *table, char *key) {
   const int hash = get_hash(key);
 
   ht_item_t *currentItem = (*table)[hash];
-
+  
   while(currentItem != NULL){
       if(strcmp(key,currentItem->key) == 0){
           return currentItem;
@@ -86,14 +86,14 @@ ht_item_t *ht_search(ht_table_t *table, char *key) {
  * Při implementaci využijte funkci ht_search. Pri vkládání prvku do seznamu
  * synonym zvolte nejefektivnější možnost a vložte prvek na začátek seznamu.
  */
-void ht_insert(ht_table_t *table, char *key, float value) {
+void ht_insert(ht_table_t *table, char *key, void *data) {
   ht_item_t *currentItem = ht_search(table,key);
   if(currentItem == NULL){
     const int hash = get_hash(key);
 
     ht_item_t *newItem = (ht_item_t *)malloc(sizeof(ht_item_t));
     newItem->key = key;
-    newItem->value = value;
+    newItem->data = data;
     newItem->next = NULL;
 
     if((*table)[hash] != NULL){
@@ -103,7 +103,7 @@ void ht_insert(ht_table_t *table, char *key, float value) {
     (*table)[hash] = newItem;
 
   }else{
-    currentItem->value = value;
+    currentItem->data = data;
   }
 }
 
@@ -115,10 +115,10 @@ void ht_insert(ht_table_t *table, char *key, float value) {
  *
  * Při implementaci využijte funkci ht_search.
  */
-float *ht_get(ht_table_t *table, char *key) {
+void *ht_get(ht_table_t *table, char *key) {
   ht_item_t *currentItem = ht_search(table,key);
   if(currentItem == NULL) return NULL;
-  return &(currentItem->value);
+  return currentItem->data;
 }
 
 /*
