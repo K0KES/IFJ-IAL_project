@@ -152,7 +152,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
-                        //return LEX_ERROR;
+                        // return LEX_ERROR;
                         return LEX_OK;
                         break;
                     /////////////////////////  
@@ -180,12 +180,24 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\n':
                 case '\r':
                     lineNumber++;
-                    charNumber = 1;
+                    charNumber = 0;
                     printf("\nEOL\n"); 
+                    lastChar = '\0';
+                    break;
+                case ' ':
+                    charNumber++;
+                    lastChar = ' ';
+                    break;
+                case '\t':
+                    charNumber++;
+                    charNumber++;
+                    charNumber++;
+                    lastChar = '\t';
                     break;
                 default:
                     token->tokenType = T_EOL;
                     ungetc(c, stdin);
+                    if (lastChar == ' ' || lastChar == '\t') { ungetc(lastChar, stdin); }
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
                     return LEX_OK;
@@ -355,6 +367,10 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case ' ':
                 case '\n':
                 case '(':
+                case EOF:
+                    printf("\ncurrent token val='");
+                    strPrint(token->value);
+                    printf("'\n");
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
                         ungetc(c, stdin);

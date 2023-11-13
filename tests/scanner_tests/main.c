@@ -27,7 +27,7 @@ int main(int argc, char const *argv[])
     };
     //EOF
     if (token_e->tokenType == T_EOF) {
-        printf("'");
+        // printf("'");
         printf("\ntoken type:%d, value:", token_e->tokenType);
         strPrint(token_e->value);
         printf(", lastChar='%c', lineNumber=%d, charNumber=%d", token_e->lastChar, token_e->position->lineNumber, token_e->position->charNumber);
