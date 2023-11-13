@@ -8,7 +8,7 @@ void tokenClear (token* token) {
 }
 
 int getToken(token *token, int charNumber, int lineNumber) {
-    char c;
+    char c = '\0';
     enum state state = S_START;
     //printf("'");
     char lastChar = '\0';
