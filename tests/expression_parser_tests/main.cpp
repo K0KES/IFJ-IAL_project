@@ -221,7 +221,7 @@ TEST(expressionParser, Test1) {
 
 }
 
-TEST(expressionParser1, Test1) {
+TEST(expressionParserToIdTest, Test1) {
     
     programState PROGRAM_STATE;
     PROGRAM_STATE.lastReadToken = (token*)malloc(sizeof(token));
@@ -241,58 +241,83 @@ TEST(expressionParser1, Test1) {
 
 }
 
-// TEST(expressionParser2, Test1){
-//     programState PROGRAM_STATE;
-//     PROGRAM_STATE.lastReadToken = (token*)malloc(sizeof(token));
-//     PROGRAM_STATE.isLastReadTokenValid = true;
-//     PROGRAM_STATE.lastReadToken->tokenType = T_IDENTIFIER;
+TEST(expressionParserPlusTest, Test1){
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token*)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = true;
+    PROGRAM_STATE.lastReadToken->tokenType = T_IDENTIFIER;
 
-//     struct precedenceRuleList pRL1;
-//     pRL1.precedenceRuleListLen = 0;
-//     pRL1.precedenceRuleListAllocatedLen = 1;
-//     pRL1.precedenceRuleList = (struct precedenceRule**) malloc(sizeof(struct precedenceRule*));
+    struct precedenceRuleList pRL1;
+    pRL1.precedenceRuleListLen = 0;
+    pRL1.precedenceRuleListAllocatedLen = 1;
+    pRL1.precedenceRuleList = (struct precedenceRule**) malloc(sizeof(struct precedenceRule*));
 
-//     freopen("tests/expression_parser_tests/test2.txt","r",stdin);
-//     EXPECT_EQ (expressionParserStart (&pRL1,&PROGRAM_STATE),0);
-//     EXPECT_EQ (PROGRAM_STATE.lastReadToken->tokenType,T_COMMA); 
-//     EXPECT_EQ (PROGRAM_STATE.isLastReadTokenValid,true); 
-
-
-//     EXPECT_EQ(pRL1.precedenceRuleList[0]->rightSide[0].tokenType,T_IDENTIFIER);
-//     EXPECT_EQ(pRL1.precedenceRuleList[1]->rightSide[0].tokenType,T_IDENTIFIER);
-//     EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[0].tokenType,T_E);
-//     EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[1].tokenType,T_PLUS);
-//     EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[2].tokenType,T_E);
-//     free (PROGRAM_STATE.lastReadToken);
-//     free (pRL1.precedenceRuleList);
-// }
-
-// TEST(expressionParser3, Test1){
-//     programState PROGRAM_STATE;
-//     PROGRAM_STATE.lastReadToken = (token*)malloc(sizeof(token));
-//     PROGRAM_STATE.isLastReadTokenValid = false;
-//     PROGRAM_STATE.lastReadToken->tokenType = T_IDENTIFIER;
+    freopen("tests/expression_parser_tests/test2.txt","r",stdin);
+    EXPECT_EQ (expressionParserStart (&pRL1,&PROGRAM_STATE),0);
+    EXPECT_EQ (PROGRAM_STATE.lastReadToken->tokenType,T_COMMA); 
+    EXPECT_EQ (PROGRAM_STATE.isLastReadTokenValid,true); 
 
 
+    EXPECT_EQ(pRL1.precedenceRuleList[0]->rightSide[0].tokenType,T_IDENTIFIER);
+    EXPECT_EQ(pRL1.precedenceRuleList[1]->rightSide[0].tokenType,T_IDENTIFIER);
+    EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[0].tokenType,T_E);
+    EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[1].tokenType,T_PLUS);
+    EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[2].tokenType,T_E);
+    free (PROGRAM_STATE.lastReadToken);
+    free (pRL1.precedenceRuleList);
+}
 
-//     struct precedenceRuleList pRL1;
-//     pRL1.precedenceRuleListLen = 0;
-//     pRL1.precedenceRuleListAllocatedLen = 1;
-//     pRL1.precedenceRuleList = (struct precedenceRule**) malloc(sizeof(struct precedenceRule*));
+TEST(expressionParserBracketTest, Test1){
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token*)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = false;
+    PROGRAM_STATE.lastReadToken->tokenType = T_IDENTIFIER;
 
-//     freopen("tests/expression_parser_tests/test3.txt","r",stdin);
-//     EXPECT_EQ (expressionParserStart (&pRL1,&PROGRAM_STATE),0);
-//     EXPECT_EQ (PROGRAM_STATE.lastReadToken->tokenType,T_COMMA); 
-//     EXPECT_EQ (PROGRAM_STATE.isLastReadTokenValid,true); 
+    struct precedenceRuleList pRL1;
+    pRL1.precedenceRuleListLen = 0;
+    pRL1.precedenceRuleListAllocatedLen = 1;
+    pRL1.precedenceRuleList = (struct precedenceRule**) malloc(sizeof(struct precedenceRule*));
+
+    freopen("tests/expression_parser_tests/test3.txt","r",stdin);
+    EXPECT_EQ (expressionParserStart (&pRL1,&PROGRAM_STATE),0);
+    // EXPECT_EQ (PROGRAM_STATE.lastReadToken->tokenType,T_COMMA); 
+    EXPECT_EQ (PROGRAM_STATE.isLastReadTokenValid,true); 
 
 
-//     EXPECT_EQ(pRL1.precedenceRuleList[0]->rightSide[0].tokenType,T_IDENTIFIER);
-//     EXPECT_EQ(pRL1.precedenceRuleList[1]->rightSide[0].tokenType,T_LEFT_BRACKET);
-//     EXPECT_EQ(pRL1.precedenceRuleList[1]->rightSide[1].tokenType,T_E);
-//     EXPECT_EQ(pRL1.precedenceRuleList[1]->rightSide[2].tokenType,T_RIGHT_BRACKET);
-//     free (PROGRAM_STATE.lastReadToken);
-//     free (pRL1.precedenceRuleList);
-// }
+    EXPECT_EQ(pRL1.precedenceRuleList[0]->rightSide[0].tokenType,T_IDENTIFIER);
+    EXPECT_EQ(pRL1.precedenceRuleList[1]->rightSide[0].tokenType,T_LEFT_BRACKET);
+    EXPECT_EQ(pRL1.precedenceRuleList[1]->rightSide[1].tokenType,T_E);
+    EXPECT_EQ(pRL1.precedenceRuleList[1]->rightSide[2].tokenType,T_RIGHT_BRACKET);
+    free (PROGRAM_STATE.lastReadToken);
+    free (pRL1.precedenceRuleList);
+}
+
+TEST(expressionParserMinusTest, Test1){
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token*)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = false;
+
+    struct precedenceRuleList pRL1;
+    pRL1.precedenceRuleListLen = 0;
+    pRL1.precedenceRuleListAllocatedLen = 1;
+    pRL1.precedenceRuleList = (struct precedenceRule**) malloc(sizeof(struct precedenceRule*));
+
+    freopen("tests/expression_parser_tests/test4.txt","r",stdin);
+    EXPECT_EQ (expressionParserStart (&pRL1,&PROGRAM_STATE),0);
+    printf("%d\n",PROGRAM_STATE.lastReadToken->tokenType);
+    EXPECT_EQ (PROGRAM_STATE.isLastReadTokenValid,true);
+    EXPECT_EQ (PROGRAM_STATE.lastReadToken->tokenType,T_EOF); 
+
+
+    EXPECT_EQ(pRL1.precedenceRuleList[0]->rightSide[0].tokenType,T_IDENTIFIER);
+    EXPECT_EQ(pRL1.precedenceRuleList[1]->rightSide[0].tokenType,T_IDENTIFIER);
+    EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[0].tokenType,T_E);
+    EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[1].tokenType,T_MINUS);
+    EXPECT_EQ(pRL1.precedenceRuleList[2]->rightSide[2].tokenType,T_E);
+    free (PROGRAM_STATE.lastReadToken);
+    free (pRL1.precedenceRuleList);
+}
+
 
 
 int main(int argc, char **argv) {
