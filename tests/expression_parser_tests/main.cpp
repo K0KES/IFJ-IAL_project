@@ -472,8 +472,7 @@ TEST(expressionParserNotEqualTest, Test1)
     PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
     PROGRAM_STATE.isLastReadTokenValid = false;
 
-    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
-
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
 
     freopen("tests/expression_parser_tests/test12.txt", "r", stdin);
     EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 0);
@@ -496,8 +495,7 @@ TEST(expressionParserNilTest, Test1)
     PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
     PROGRAM_STATE.isLastReadTokenValid = false;
 
-    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
-
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
 
     freopen("tests/expression_parser_tests/test13.txt", "r", stdin);
     EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 0);
@@ -519,8 +517,7 @@ TEST(expressionParserMoreComplexEpressions, Test1)
     PROGRAM_STATE.isLastReadTokenValid = true;
     PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
 
-    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
-
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
 
     freopen("tests/expression_parser_tests/test14.txt", "r", stdin);
     EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 0);
@@ -545,8 +542,7 @@ TEST(expressionParserMoreComplexEpressions, Test2)
     PROGRAM_STATE.isLastReadTokenValid = false;
     PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
 
-    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
-
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
 
     freopen("tests/expression_parser_tests/test15.txt", "r", stdin);
     EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 0);
@@ -572,8 +568,7 @@ TEST(expressionParserMoreComplexEpressions, Test3)
     PROGRAM_STATE.isLastReadTokenValid = false;
     PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
 
-    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
-
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
 
     freopen("tests/expression_parser_tests/test16.txt", "r", stdin);
     EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 0);
@@ -605,70 +600,6 @@ TEST(expressionParserMoreComplexEpressions, Test3)
     precedenceRuleListClear(pRL1);
 }
 
-TEST(expressionParserSintaxError, Test1)
-{
-    programState PROGRAM_STATE;
-    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
-    PROGRAM_STATE.isLastReadTokenValid = false;
-    PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
-
-    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
-
-
-    freopen("tests/expression_parser_tests/test17.txt", "r", stdin);
-    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 2);
-    free(PROGRAM_STATE.lastReadToken);
-    precedenceRuleListClear(pRL1);
-}
-
-TEST(expressionParserSintaxError, Test2)
-{
-    programState PROGRAM_STATE;
-    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
-    PROGRAM_STATE.isLastReadTokenValid = false;
-    PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
-
-    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
-
-
-    freopen("tests/expression_parser_tests/test18.txt", "r", stdin);
-    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 2);
-    free(PROGRAM_STATE.lastReadToken);
-    precedenceRuleListClear(pRL1);
-}
-
-TEST(expressionParserSintaxError, Test3)
-{
-    programState PROGRAM_STATE;
-    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
-    PROGRAM_STATE.isLastReadTokenValid = false;
-    PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
-
-    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
-
-
-    freopen("tests/expression_parser_tests/test19.txt", "r", stdin);
-    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 2);
-    free(PROGRAM_STATE.lastReadToken);
-    precedenceRuleListClear(pRL1);
-}
-
-TEST(expressionParserSintaxError, Test4)
-{
-    programState PROGRAM_STATE;
-    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
-    PROGRAM_STATE.isLastReadTokenValid = false;
-    PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
-
-    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
-
-
-    freopen("tests/expression_parser_tests/test20.txt", "r", stdin);
-    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 0);
-    free(PROGRAM_STATE.lastReadToken);
-    precedenceRuleListClear(pRL1);
-}
-
 TEST(expressionParserMoreComplexEpressions, Test4)
 {
     programState PROGRAM_STATE;
@@ -676,8 +607,7 @@ TEST(expressionParserMoreComplexEpressions, Test4)
     PROGRAM_STATE.isLastReadTokenValid = false;
     PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
 
-    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
-
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
 
     freopen("tests/expression_parser_tests/test21.txt", "r", stdin);
     EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 0);
@@ -713,6 +643,125 @@ TEST(expressionParserMoreComplexEpressions, Test4)
     precedenceRuleListClear(pRL1);
 }
 
+TEST(expressionParserSintaxError, Test1)
+{
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = false;
+    PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
+
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
+
+    freopen("tests/expression_parser_tests/test17.txt", "r", stdin);
+    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 2);
+    free(PROGRAM_STATE.lastReadToken);
+    precedenceRuleListClear(pRL1);
+}
+
+TEST(expressionParserSintaxError, Test2)
+{
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = false;
+    PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
+
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
+
+    freopen("tests/expression_parser_tests/test18.txt", "r", stdin);
+    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 2);
+    free(PROGRAM_STATE.lastReadToken);
+    precedenceRuleListClear(pRL1);
+}
+
+TEST(expressionParserSintaxError, Test3)
+{
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = false;
+    PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
+
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
+
+    freopen("tests/expression_parser_tests/test19.txt", "r", stdin);
+    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 2);
+    free(PROGRAM_STATE.lastReadToken);
+    precedenceRuleListClear(pRL1);
+}
+
+TEST(expressionParserSintaxError, Test4)
+{
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = false;
+    PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
+
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
+
+    freopen("tests/expression_parser_tests/test20.txt", "r", stdin);
+    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 0);
+    free(PROGRAM_STATE.lastReadToken);
+    precedenceRuleListClear(pRL1);
+}
+
+TEST(expressionParserSintaxError, Test5)
+{
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = true;
+    PROGRAM_STATE.lastReadToken->tokenType = T_RIGHT_BRACKET;
+
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
+
+    freopen("tests/expression_parser_tests/test22.txt", "r", stdin);
+    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 2);
+    free(PROGRAM_STATE.lastReadToken);
+    precedenceRuleListClear(pRL1);
+}
+
+TEST(expressionParserSintaxError, Test6)
+{
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = false;
+    PROGRAM_STATE.lastReadToken->tokenType = T_RIGHT_BRACKET;
+
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
+
+    freopen("tests/expression_parser_tests/test22.txt", "r", stdin);
+    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 2);
+    free(PROGRAM_STATE.lastReadToken);
+    precedenceRuleListClear(pRL1);
+}
+
+TEST(expressionParserSintaxError, Test7)
+{
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = false;
+    PROGRAM_STATE.lastReadToken->tokenType = T_RIGHT_BRACKET;
+
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
+
+    freopen("tests/expression_parser_tests/test23.txt", "r", stdin);
+    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 0);
+    free(PROGRAM_STATE.lastReadToken);
+    precedenceRuleListClear(pRL1);
+}
+
+TEST(expressionParserSintaxError, Test8)
+{
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = false;
+    PROGRAM_STATE.lastReadToken->tokenType = T_RIGHT_BRACKET;
+
+    struct precedenceRuleList *pRL1 = precedenceRuleListInit();
+
+    freopen("tests/expression_parser_tests/test24.txt", "r", stdin);
+    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 2);
+    free(PROGRAM_STATE.lastReadToken);
+    precedenceRuleListClear(pRL1);
+}
 
 int main(int argc, char **argv)
 {
