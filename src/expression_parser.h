@@ -175,3 +175,19 @@ bool isTokenTypeAccepted (token *activeToken);
 /// @param T Token to set up
 /// @return Returns 0 if everything is ok, 1 if there is an error
 int setUpActiveToken(token* T);
+
+/// @brief Inicialize precedence rule list
+struct precedenceRuleList* precedenceRuleListInit();
+
+/// @brief Free all memmory used by precednce rule list and it's rules
+/// @param precedenceRuleList Pointer to precedence rule list
+void precedenceRuleListClear(struct precedenceRuleList* precedenceRuleList);
+
+/// @brief Free all memmory used by token stack
+/// @param stack Pointer to token stack
+void tokenStackClear(struct tokenStack* stack);
+
+/// @brief Check is the tokens on the top of the stack are valid
+/// @param stack
+/// @return Returns error code
+int checkTokensOnTopOfTheStack (struct tokenStack *stack);
