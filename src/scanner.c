@@ -13,11 +13,11 @@ void tokenClear (token* token) {
 int getToken(token *token, int charNumber, int lineNumber) {
     char c;
     enum state state = S_START;
-    //printf("'");
+    printf("\n");
     char lastChar = '\0';
     while (c != EOF) {
         c = getc(stdin);
-        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { printf("%c\n", c); }
+        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { /*printf("%c\n", c);*/ }
         switch (state) {
             /////////////////////////  
             //first starting STATE
@@ -37,7 +37,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lineNumber++;
                         charNumber = 0;
                         strAddChar(token->value, c);
-                        printf("\nEOL\n");
+                        //printf("\nEOL\n");
                         state = S_NEW_LINE;
                         break;
                     /////////////////////////  
@@ -184,7 +184,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\r':
                     lineNumber++;
                     charNumber = 0;
-                    printf("\nEOL\n"); 
+                    //printf("\nEOL\n"); 
                     lastChar = '\0';
                     break;
                 case ' ':
@@ -370,10 +370,11 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case ' ':
                 case '\n':
                 case '(':
+                case ')':
                 case EOF:
-                    printf("\ncurrent token val='");
+                    //printf("\ncurrent token val='");
                     strPrint(token->value);
-                    printf("'\n");
+                    printf("\n");
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
                         ungetc(c, stdin);
