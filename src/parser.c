@@ -13,6 +13,7 @@ int parse(token *activeToken){
 }
 
 int getNextToken(token *activeToken){
+    tokenClear(activeToken);
     int getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
 
     printf("Got next token: %s\n",getTokenName(activeToken->tokenType));
@@ -67,7 +68,7 @@ bool code(token *activeToken){
                 return codeStatus;
             }
 
-            getNextToken(activeToken);
+            //getNextToken(activeToken);
             codeStatus = codeStatus && code(activeToken);
             break;
         case T_IDENTIFIER:
@@ -242,7 +243,7 @@ bool funcDefMid(token *activeToken){
             getNextToken(activeToken);
             funcDefMidStatus = statements(activeToken);
 
-            getNextToken(activeToken);
+            //getNextToken(activeToken);
             break;
         case T_ARROW:
             // 13) <funcDefMid> -> -> <eol> <type> <eol> {<statements>}
@@ -257,13 +258,6 @@ bool funcDefMid(token *activeToken){
 
             getNextToken(activeToken);
             funcDefMidStatus = funcDefMidStatus && statements(activeToken);
-
-            // verification of: right curly bracket
-            if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function funcDefMid() with %d ...\n",false);
-                return false;
-            }
-            getNextToken(activeToken);
             break;
         default:
             printf("Leaving function funcDefMid() with %d ...\n",false);
@@ -351,9 +345,8 @@ bool functionParam(token *activeToken){
             functionParamStatus = functionParamStatus && eol(activeToken);
 
             // verification of: _ <eol> ID <eol> :
-            getNextToken(activeToken);
             if (activeToken->tokenType != T_COLON){
-                printf("Leaving function functionParam() with %d ...\n",false);
+                printf("Leaving function functionParam() with %d no colon...\n",false);
                 return false;
             }
 
