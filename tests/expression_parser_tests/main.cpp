@@ -669,6 +669,51 @@ TEST(expressionParserSintaxError, Test4)
     precedenceRuleListClear(pRL1);
 }
 
+TEST(expressionParserMoreComplexEpressions, Test4)
+{
+    programState PROGRAM_STATE;
+    PROGRAM_STATE.lastReadToken = (token *)malloc(sizeof(token));
+    PROGRAM_STATE.isLastReadTokenValid = false;
+    PROGRAM_STATE.lastReadToken->tokenType = T_LEFT_BRACKET;
+
+    struct precedenceRuleList* pRL1 = precedenceRuleListInit();
+
+
+    freopen("tests/expression_parser_tests/test21.txt", "r", stdin);
+    EXPECT_EQ(expressionParserStart(pRL1, &PROGRAM_STATE), 0);
+    EXPECT_EQ(PROGRAM_STATE.isLastReadTokenValid, true);
+    EXPECT_EQ(PROGRAM_STATE.lastReadToken->tokenType, T_EOF);
+    EXPECT_EQ(pRL1->precedenceRuleList[0]->rightSide[0].tokenType, T_IDENTIFIER);
+    EXPECT_EQ(pRL1->precedenceRuleList[1]->rightSide[0].tokenType, T_IDENTIFIER);
+    EXPECT_EQ(pRL1->precedenceRuleList[2]->rightSide[0].tokenType, T_INT);
+
+    EXPECT_EQ(pRL1->precedenceRuleList[3]->rightSide[0].tokenType, T_E);
+    EXPECT_EQ(pRL1->precedenceRuleList[3]->rightSide[1].tokenType, T_MINUS);
+    EXPECT_EQ(pRL1->precedenceRuleList[3]->rightSide[2].tokenType, T_E);
+
+    EXPECT_EQ(pRL1->precedenceRuleList[4]->rightSide[0].tokenType, T_LEFT_BRACKET);
+    EXPECT_EQ(pRL1->precedenceRuleList[4]->rightSide[1].tokenType, T_E);
+    EXPECT_EQ(pRL1->precedenceRuleList[4]->rightSide[2].tokenType, T_RIGHT_BRACKET);
+
+    EXPECT_EQ(pRL1->precedenceRuleList[5]->rightSide[0].tokenType, T_E);
+    EXPECT_EQ(pRL1->precedenceRuleList[5]->rightSide[1].tokenType, T_PLUS);
+    EXPECT_EQ(pRL1->precedenceRuleList[5]->rightSide[2].tokenType, T_E);
+
+    EXPECT_EQ(pRL1->precedenceRuleList[6]->rightSide[0].tokenType, T_LEFT_BRACKET);
+    EXPECT_EQ(pRL1->precedenceRuleList[6]->rightSide[1].tokenType, T_E);
+    EXPECT_EQ(pRL1->precedenceRuleList[6]->rightSide[2].tokenType, T_RIGHT_BRACKET);
+
+    EXPECT_EQ(pRL1->precedenceRuleList[7]->rightSide[0].tokenType, T_IDENTIFIER);
+
+    EXPECT_EQ(pRL1->precedenceRuleList[8]->rightSide[0].tokenType, T_E);
+    EXPECT_EQ(pRL1->precedenceRuleList[8]->rightSide[1].tokenType, T_NIL_OP);
+    EXPECT_EQ(pRL1->precedenceRuleList[8]->rightSide[2].tokenType, T_E);
+
+    free(PROGRAM_STATE.lastReadToken);
+    precedenceRuleListClear(pRL1);
+}
+
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
