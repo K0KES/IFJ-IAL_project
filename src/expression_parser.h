@@ -147,6 +147,8 @@ void tokenStackClear(struct tokenStack *stack);
 /// @brief Function removes token from the top of the stack 
 /// @param stack Pointer to stack of tokens
 /// @param numberOfPops Nu,ber of tokens that should be removed from the stack
+int tokenStackPop(struct tokenStack *stack, unsigned numberOfPops);
+
 
 /// @brief Get you token onf certain location form stack
 /// @param stack Pointer to stack
