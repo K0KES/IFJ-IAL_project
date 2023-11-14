@@ -371,6 +371,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\n':
                 case '(':
                 case ')':
+                case ',':
+                case '{':
                 case EOF:
                     //printf("\ncurrent token val='");
                     strPrint(token->value);
