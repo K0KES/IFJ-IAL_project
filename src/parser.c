@@ -1,6 +1,7 @@
 #include "parser.h"
 
 enum tokenType typeOfLastToken;
+symtable *symTable;
 
 void tokenFree(token *token){
     if (token == NULL) return;
@@ -18,7 +19,8 @@ void tokenFree(token *token){
     token = NULL;
 }
 
-int parse(token *activeToken){
+int parse(token *activeToken, symtable *symTablePtr){
+    symTable = symTablePtr;
     getNextToken(activeToken);
     if(start(activeToken)){
         printf("Success\n");
@@ -87,7 +89,15 @@ bool code(token *activeToken){
                 return codeStatus;
             }
 
-            //getNextToken(activeToken);
+            // verification of: EOL
+            if (typeOfLastToken != T_EOL){ 
+                if (activeToken->tokenType != T_EOL){ 
+                    printf("Leaving function code() with %d ...\n",false);
+                    return false;
+                }
+                getNextToken(activeToken);
+            }
+
             codeStatus = codeStatus && code(activeToken);
             break;
         case T_IDENTIFIER:
@@ -218,12 +228,16 @@ bool definition(token *activeToken){
             // verification of: func <eol>
             getNextToken(activeToken);
             definitionStatus = eol(activeToken);
-
+            
             // verification of: func <eol> ID 
             if (activeToken->tokenType != T_IDENTIFIER){ 
                 printf("Leaving function definition() with %d ...\n",false);
                 return false;
             }
+
+            //Add function to symtable
+            symtableInsert(symTable,activeToken->value->str,true);
+            symtableEnterScope(symTable,activeToken->value->str);
 
             // verification of: func <eol> ID <eol>
             getNextToken(activeToken);
@@ -244,6 +258,8 @@ bool definition(token *activeToken){
 
             // verification of: func <eol> ID <eol> (<functionParams>) <eol> <funcDefMid>
             definitionStatus = definitionStatus && funcDefMid(activeToken);
+            //symtablePrintVariables(symTable);
+            symtableExitScope(symTable);
             break;
         default:
             printf("Leaving function definition() with %d ...\n",false);
@@ -458,7 +474,7 @@ bool statementsBlock(token *activeToken){
             statementsBlockStatus = statement(activeToken);
 
             // verification of: <statement> EOL
-            if (typeOfLastToken != T_EOL){ 
+            if (typeOfLastToken != T_EOL && activeToken->tokenType != T_RIGHT_CURLY_BRACKET){ 
                 if (activeToken->tokenType != T_EOL){ 
                     printf("Leaving function statementsBlock() with %d ...\n",false);
                     return false;
@@ -570,6 +586,11 @@ bool statementOnLine(token *activeToken){
         case KW_VAR:
             // 31) <statementOnLine> -> <varDec>
             statementOnLineStatus = varDec(activeToken);
+            if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
+                printf("Leaving function statementOnLine() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
             break;
         case KW_IF:
             // 32) <statementOnLine> -> if <expression> {<statementOnLine>} <eol> else <eol> {<statementOnLine>}
@@ -640,11 +661,22 @@ bool statementOnLine(token *activeToken){
             // 34) <statementOnLine> -> return <returnExpression>
             getNextToken(activeToken);
             statementOnLineStatus = returnExpression(activeToken);
+            // verification of: return <returnExpression> }
+            if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
+                printf("Leaving function statementOnLine() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
             break;
         case T_IDENTIFIER:
             // 35) <statementOnLine> -> ID <callOrAssign>
             getNextToken(activeToken);
             statementOnLineStatus = callOrAssign(activeToken);
+            if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
+                printf("Leaving function statementOnLine() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
             break;
         default:
             printf("Leaving function statementOnLine() with %d ...\n",false);
@@ -699,6 +731,8 @@ bool varDec(token *activeToken){
             getNextToken(activeToken);
             varDecStatus = eol(activeToken);
             
+            symtableInsert(symTable,activeToken->value->str,false);
+
             // verification of: let <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
                 printf("Leaving function varDec() with %d ...\n",false);
@@ -713,6 +747,8 @@ bool varDec(token *activeToken){
 
             getNextToken(activeToken);
             varDecStatus = eol(activeToken);
+
+            symtableInsert(symTable,activeToken->value->str,false);
             
             // verification of: var <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
@@ -773,6 +809,11 @@ bool varDef(token *activeToken){
             varDefStatus = expression(activeToken);
             break;
         default:
+            // verification of: EOL
+            if (typeOfLastToken == T_EOL){ 
+                varDefStatus = true;
+                break;
+            }
             printf("Leaving function varDef() with %d ...\n",false);
             return false; 
     }
