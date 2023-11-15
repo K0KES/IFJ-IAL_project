@@ -1,0 +1,23 @@
+func x() {
+    a() 
+    return (func = Int _ ) // _) nefunguje jako dva tokeny 
+}
+
+
+func x(_ x : Int, a b : String ) -> Double {
+    a() 
+    a = (a + B)
+    while 1 {
+        a()
+    }
+    return
+}
+
+func x(_ x : Int, a b : String ) -> Double {
+    a() 
+    a = (a + B)
+    while (a + b == 3) {
+        a()
+    }
+    return
+}

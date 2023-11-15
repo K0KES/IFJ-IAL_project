@@ -1,45 +1,25 @@
-func greet(_ x : Int, a c : String,_ a : Double) -> Double {
-    a() 
-    v()
+func test(_ x : Int, o c : String,y a : Double) -> Double {
+    return (1.2)
 }
 
-a()
-
-a = 3
-
-if 1 {
-    c()
-    x=a
-}
-else {
-    x()
-}
-
-x( v : c) 
-
-func x() -> Int {
-    a() 
-}
-
-while 1 {
-    a()
-}
-
-c()
-x=a
-
-func x() {
-    a() 
-    return (func = Int _ ) // _) nefunguje jako dva tokeny 
-}
-
-
-func x(_ x : Int, a b : String ) -> Double {
-    a() 
-    a = (a + B)
-    while 1 {
-        a()
-    }
+func function(_ x : Int, o c : String,y a : Double) {
     return
 }
 
+func functionn(o x : Int, _ c : String,y a : Double) {
+    return}
+
+func functionnn(_ x : Int, o c : String,y a : Double) {return}
+
+func test
+(_ 
+x 
+    :             Int
+,        o                   c 
+    : String
+,       y a :              Double
+) ->        Double          
+{return (1.2)
+}
+
+function(3, o : "String", y : x) 

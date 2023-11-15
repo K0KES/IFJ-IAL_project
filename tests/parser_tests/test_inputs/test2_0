@@ -1,0 +1,9 @@
+
+let y : Int
+let z : Double = 1.2
+
+var b : String
+var c : Int = 42
+
+y = 3
+x = 23
