@@ -2,107 +2,131 @@
 
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 
-struct list_node{
-    void *data;
-    list_node_t next;
-};
+list *listInit(){
+    list *l = (list *)(malloc(sizeof(list)));
+    if(l == NULL) return NULL;
 
-struct list
-{
-    list_node_t head;
-    list_node_t tail;
-    size_t size;
-};
-
-list_t list_init(size_t size){
-    list_t list = (list_t)(malloc(sizeof(struct list)));
-    if(list == NULL) return NULL;
-
-    list->head = NULL;
-    list->tail = NULL;
-    list->size = size;
-    return list;
+    l->first = NULL;
+    l->last = NULL;
+    l->size = 0;
+    return l;
 }
 
-size_t list_length(list_t list){
+int listLength(list *list){
     return list->size;
 }
 
-void list_clear(list_t list){
-    for (size_t i = 0; i < list->size; i++)
-    {
-        list_pop(list);
-    }
-    
+listNode *listInitNode(void *data){
+    listNode *node = (listNode *)malloc(sizeof(listNode));
+    node->data = data;
+    node->next = NULL;
+    node->prev = NULL;
+    return node;
 }
 
-void list_free(list_t list){
-    list_clear(list);
+void listClear(list *list){
+    listNode *currentNode = list->first;
+    listNode *nextNode;
+
+    while(currentNode != NULL){
+        nextNode = currentNode->next;
+        free(currentNode);
+        currentNode = nextNode;
+    }
+
+    list->first = NULL;
+    list->last = NULL;
+    list->size = 0;
+}
+
+void listDestroy(list *list){
+    listNode *currentNode = list->first;
+    listNode *nextNode;
+
+    while(currentNode != NULL){
+        nextNode = currentNode->next;
+        free(currentNode);
+        currentNode = nextNode;
+    }
+
     free(list);
 }
 
-bool list_push(list_t list, void *data){
-    list_node_t new_node = (list_node_t)(malloc(sizeof(struct list_node)));
-    if(new_node == NULL) return false;
+bool listPushFirst(list *list, void *data){
+    listNode *newNode = listInitNode(data);
 
-    if(list->head == NULL){
-        list->head = new_node;
-        list->tail = new_node;
+    if(list->size == 0){
+        list->last = newNode;
     }else{
-        list->tail->next = new_node;
-        list->tail = new_node;
+        list->first->prev = newNode;
+        newNode->next = list->first;
     }
 
-    new_node->data = data;
-    list->size ++;
+    list->first = newNode;
+    list->size++;
 
     return true;
 }
 
-bool list_pop(list_t list){
-    if(list->size == 0) return false;
+void* listPopFirst(list *list){
+    if(!list) return NULL;
 
-    list_node_t current_node = list->head;
-    while(current_node != list->tail){
-        current_node = current_node->next;
-    }
-    current_node->next = NULL;
-    free(list->tail);
+    listNode *node = list->first;
+    if(node == NULL) return NULL;
+
+    void *data = node->data;
+
+    list->first = node->next;
+
     list->size--;
-    return true;
+
+    free(node);
+
+    return data;
 }
 
-void* list_get_item(list_t list, int index){
-    int i = 0;
-    list_node_t current_node = list->head;
-    while(current_node != NULL){
-        if(i == index){
-            return current_node->data;
-        }
-        current_node = current_node->next;
-        i++;
-    }
-    return NULL;
+void* listGetFirst(list *list) {
+    if(list->size == 0) return NULL;
+    return list->first->data;
+}
+
+void* listGetLast(list *list) {
+    if(list->size == 0) return NULL;
+    return list->last->data;
 }
 
 /*
 void main(){
-    list_t my_list = list_init(0);
+    list *my_list = listInit();
 
     int x = 5;
     int y = 27;
 
-    list_push(my_list,(void *)&x);
-    list_push(my_list,(void *)&y);
     
-    list_pop(my_list);
+    listPushFirst(&my_list,(void *)&x);
+    listPushFirst(&my_list,(void *)&y);
+    
+    listPushFirst(&my_list,(void *)&y);
+    
+    listPush(my_list,(void *)&x);
+    listPush(my_list,(void *)&y);
+    listPush(my_list,(void *)&x);
+    listPush(my_list,(void *)&y);
+    listPush(my_list,(void *)&x);
+    listPush(my_list,(void *)&y);
+    
+    
+    listPop(my_list);
 
-    for (size_t i = 0; i < my_list->size; i++)
+    while(my_list->size != 0)
     {
-        int* int_ptr = (int *)list_get_item(my_list,i);
+        int* int_ptr = (int *)listPopFirst(&my_list);
         printf("%d\n",*int_ptr);
     }
+
+    listDestroy(my_list);
     
-    return 0;
+    return;
 }*/
