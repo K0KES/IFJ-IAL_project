@@ -94,11 +94,15 @@ void symtableFree(symtable *table){
 
 void symtableInsert(symtable *table, char *varName, bool isFunction){
     ht_table_t *currentTable = (ht_table_t *)listGetFirst(table->tables);
+
+    int stringLength = strlen(varName) + 1;
+    char *string = (char *)malloc(stringLength);
+    memcpy(string,varName,stringLength);
     
     symtableItem *newSymtableItem = (symtableItem *)malloc(sizeof(symtableItem));
-    newSymtableItem->name = varName;
+    newSymtableItem->name = string;
 
-    ht_insert(currentTable,varName,newSymtableItem);
+    ht_insert(currentTable,string,newSymtableItem);
 }
 
 /*
@@ -119,6 +123,10 @@ void symtablePrintVariables(symtable *table){
         ht_item_t *currentItem = (*currentTable)[i];
         while(currentItem != NULL){
             symtableItem *item = (symtableItem *)(currentItem->data);
+            /*for(int i=0;item->name[i] != '\0';i++){
+                printf("%d ",item->name[i]);
+            }
+            printf("\n");*/
             printf("- %s \n",item->name);
             currentItem = currentItem->next;
         }
