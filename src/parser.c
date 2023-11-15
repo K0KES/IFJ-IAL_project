@@ -1,5 +1,23 @@
 #include "parser.h"
 
+enum tokenType typeOfLastToken;
+
+void tokenFree(token *token){
+    if (token == NULL) return;
+
+    if(token->position != NULL){
+        free(token->position);
+        token->position = NULL;
+    }
+
+    if(token->value != NULL){
+        free(token->value);
+        token->value = NULL;
+    }
+    free(token);
+    token = NULL;
+}
+
 int parse(token *activeToken){
     getNextToken(activeToken);
     if(start(activeToken)){
@@ -8,11 +26,12 @@ int parse(token *activeToken){
     }
     else{
         printf("Error\n");
-        return 1;
+        return 2;
     }
 }
 
 int getNextToken(token *activeToken){
+    typeOfLastToken = activeToken->tokenType;
     tokenClear(activeToken);
     int getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
 
@@ -87,12 +106,14 @@ bool code(token *activeToken){
             }
 
             // verification of: EOL
-            if (activeToken->tokenType != T_EOL){ 
-                printf("Leaving function code() with %d ...\n",false);
-                return false;
+            if (typeOfLastToken != T_EOL){ 
+                if (activeToken->tokenType != T_EOL){ 
+                    printf("Leaving function code() with %d ...\n",false);
+                    return false;
+                }
+                getNextToken(activeToken);
             }
-
-            getNextToken(activeToken);
+            
             codeStatus = codeStatus && code(activeToken);
             break;
         case T_EOF:
@@ -372,7 +393,6 @@ bool functionParam(token *activeToken){
             functionParamStatus = functionParamStatus && eol(activeToken);
 
             // verification of: ID <eol> ID <eol> :
-            getNextToken(activeToken);
             if (activeToken->tokenType != T_COLON){
                 printf("Leaving function functionParam() with %d ...\n",false);
                 return false;
@@ -438,12 +458,14 @@ bool statementsBlock(token *activeToken){
             statementsBlockStatus = statement(activeToken);
 
             // verification of: <statement> EOL
-            if (activeToken->tokenType != T_EOL){ 
-                printf("Leaving function statementsBlock() with %d ...\n",false);
-                return false;
+            if (typeOfLastToken != T_EOL){ 
+                if (activeToken->tokenType != T_EOL){ 
+                    printf("Leaving function statementsBlock() with %d ...\n",false);
+                    return false;
+                }
+                getNextToken(activeToken);
             }
 
-            getNextToken(activeToken);
             statementsBlockStatus = statementsBlockStatus && statementsBlock(activeToken);
             break;
         case T_RIGHT_CURLY_BRACKET:
@@ -482,18 +504,9 @@ bool statement(token *activeToken){
                 return false;
             }
 
-            getNextToken(activeToken);
-            statementStatus = statementStatus && statements(activeToken);
-
-            // verification of: if <expression> <eol> {<statements>} 
-            if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-
             // verification of: if <expression> <eol> {<statements>} <eol> 
             getNextToken(activeToken);
-            statementStatus = statementStatus && eol(activeToken);
+            statementStatus = statementStatus && statements(activeToken) && eol(activeToken);
 
             // verification of: if <expression> <eol> {<statements>} <eol> else
             if (activeToken->tokenType != KW_ELSE){
@@ -513,13 +526,6 @@ bool statement(token *activeToken){
 
             getNextToken(activeToken);
             statementStatus = statementStatus && statements(activeToken);
-
-            // verification of: if <expression> <eol> {<statements>} <eol> else <eol> {<statements>}
-            if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken(activeToken);
             break;
         case KW_WHILE:
             // 28) <statement> -> while <expression> <eol> {<statements>}
@@ -535,12 +541,6 @@ bool statement(token *activeToken){
             getNextToken(activeToken);
             statementStatus = statementStatus && statements(activeToken);
 
-            // verification of: while <expression> <eol> {<statements>}
-            if (activeToken->tokenType != T_RIGHT_CURLY_BRACKET){
-                printf("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken(activeToken);
             break;
         case KW_RETURN:
             // 29) <statement> -> return <returnExpression>
@@ -787,6 +787,7 @@ bool returnExpression(token *activeToken){
 
     switch(activeToken->tokenType) {
         /*case <expression>:  //TO DO co s tím
+        Možná do default case dat volání expression praseru který bud vyhodnotí, nebo vrátí false
             // 44) <returnExpression> -> <expression>
             returnExpressionStatus = expression(activeToken);
             break;
@@ -794,12 +795,12 @@ bool returnExpression(token *activeToken){
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
             // 45) <returnExpression> -> EPS
-            getNextToken(activeToken);
             returnExpressionStatus = true;
             break;
         default:
-            printf("Leaving function returnExpression() with %d ...\n",false);
-            return false;
+            returnExpressionStatus = expression(activeToken);
+            //printf("Leaving function returnExpression() with %d ...\n",false);
+            //return false;
     }
     printf("Leaving function returnExpression() with %d ...\n",returnExpressionStatus);
     return returnExpressionStatus;
@@ -826,7 +827,7 @@ bool arguments(token *activeToken){
         case T_DOUBLE:
         case T_STRING:
             // 48) <arguments> -> <argument> <argumentsN> <eol>
-            argumentsStatus = argument(activeToken) && argumentsN(activeToken) && eol(activeToken);
+            argumentsStatus = argument(activeToken) && argumentsN(activeToken); //&& eol(activeToken)
             break;
         default:
             printf("Leaving function arguments() with %d ...\n",false);
@@ -901,7 +902,7 @@ bool argWithName(token *activeToken){
         case T_COMMA:
         case T_EOL:
             // 54) <argWithName> -> EPS
-            getNextToken(activeToken);
+            //getNextToken(activeToken);
             argWithNameStatus = true;
             break;
         default:
@@ -968,7 +969,13 @@ bool dataType(token *activeToken){
 bool expression(token *activeToken){
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function expression()...\n");
-
+    if (activeToken->tokenType == T_LEFT_BRACKET){
+        while (activeToken->tokenType != T_RIGHT_BRACKET){
+            printf("getting next\n");
+            getNextToken(activeToken);
+        }
+    }
+    
     getNextToken(activeToken);
     printf("Leaving function expression() with %d ...\n",true);
     return true;

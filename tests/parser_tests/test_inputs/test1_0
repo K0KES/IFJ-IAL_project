@@ -1,0 +1,45 @@
+func greet(_ x : Int, a c : String,_ a : Double) -> Double {
+    a() 
+    v()
+}
+
+a()
+
+a = 3
+
+if 1 {
+    c()
+    x=a
+}
+else {
+    x()
+}
+
+x( v : c) 
+
+func x() -> Int {
+    a() 
+}
+
+while 1 {
+    a()
+}
+
+c()
+x=a
+
+func x() {
+    a() 
+    return (func = Int _ ) // _) nefunguje jako dva tokeny 
+}
+
+
+func x(_ x : Int, a b : String ) -> Double {
+    a() 
+    a = (a + B)
+    while 1 {
+        a()
+    }
+    return
+}
+

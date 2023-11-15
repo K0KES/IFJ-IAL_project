@@ -23,5 +23,7 @@ int main(int argc, char const *argv[]){
     activeToken->position->lineNumber = 1;
 
     parse(activeToken);
+
+    tokenFree(activeToken);
     return 0;
 }

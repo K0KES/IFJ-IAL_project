@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #pragma once
 
+void tokenFree(token *token);
+
 /// @brief Function gets next token and saves it in global var
 /// @param activeToken global var
 /// @return returns 0 if everything went well, otherwise returns error code
