@@ -12,14 +12,15 @@
 #include "../../src/str.c"
 #include "../../src/parser.c"
 
-TEST(Parser, Test1)
-{
+TEST(Parser, Test1){
     token *activeToken = (token *)malloc(sizeof(token));
     activeToken->value = (string*)malloc(sizeof(string));
     strInit(activeToken->value);
     activeToken->position = (positionInfo*)malloc(sizeof(positionInfo));
     activeToken->position->charNumber = 0;
     activeToken->position->lineNumber = 1;
+
+    symtable *symTable = symtableInit();
 
     freopen("tests/parser_tests/test_inputs/test1_0", "r", stdin);
 
