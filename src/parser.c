@@ -197,7 +197,6 @@ bool eol(token *activeToken){
         case T_COMMA:
         case T_EOF:
             // 7) <eol> -> EPS
-            //getNextToken(activeToken);  //TO DO maybe verify if non token is after EOF
             eolStatus = true;
             break;
         default:
@@ -213,7 +212,7 @@ bool type(token *activeToken){
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function type()...\n");
 
-    //TO DO nevím jestli jsou to ty správné tokeny na typy
+    //TO DO Set type of active item in symtable
     switch(activeToken->tokenType) {
         case KW_INT:
             // 8) <type> -> int
@@ -307,6 +306,7 @@ bool funcDefMid(token *activeToken){
         case T_ARROW:
             // 13) <funcDefMid> -> -> <eol> <type> <eol> {<statements>}
             getNextToken(activeToken);
+            //TO DO symtable set active item so it can get function return value
             funcDefMidStatus = eol(activeToken) && type(activeToken) && eol(activeToken);
 
             // verification of: left curly bracket
@@ -393,6 +393,8 @@ bool functionParam(token *activeToken){
             getNextToken(activeToken);
             functionParamStatus = eol(activeToken);
 
+            //TO DO symtable add argument to function
+
             // verification of: _ <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
                 printf("Leaving function functionParam() with %d ...\n",false);
@@ -411,6 +413,7 @@ bool functionParam(token *activeToken){
 
             // verification of: _ <eol> ID <eol> : <eol> <type> <eol>
             getNextToken(activeToken);
+            //TO DO symtable set argument active so it can get its type
             functionParamStatus = functionParamStatus && eol(activeToken) && type(activeToken) && eol(activeToken);
             break;
         case T_IDENTIFIER:
@@ -419,6 +422,8 @@ bool functionParam(token *activeToken){
             // verification of: ID <eol>
             getNextToken(activeToken);
             functionParamStatus = eol(activeToken);
+
+            //TO DO symtable add argument to function
 
             // verification of: ID <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
@@ -437,6 +442,7 @@ bool functionParam(token *activeToken){
             }
             // verification of: ID <eol> ID <eol> : <eol> <type> <eol>
             getNextToken(activeToken);
+            //TO DO symtable set argument active so it can get its type
             functionParamStatus = eol(activeToken) && type(activeToken) && eol(activeToken);
             break;
         default:
@@ -579,10 +585,12 @@ bool statement(token *activeToken){
         case KW_RETURN:
             // 29) <statement> -> return <returnExpression>
             getNextToken(activeToken);
+            //TO DO expression parser has to check if returnExpression is same type as return type of function
             statementStatus = returnExpression(activeToken);
             break;
         case T_IDENTIFIER:
             // 30) <statement> -> ID <callOrAssign>
+            //TO DO Maybe call expression parser here so he can catch things like += etc.
             getNextToken(activeToken);
             statementStatus = callOrAssign(activeToken);
             break;
@@ -640,6 +648,7 @@ bool varDec(token *activeToken){
             varDecStatus = eol(activeToken);
             
             symtableInsert(symTable,activeToken->value->str,false);
+            //TO DO symtable set this item as active, so it can get its type
 
             // verification of: let <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
@@ -657,6 +666,7 @@ bool varDec(token *activeToken){
             varDecStatus = eol(activeToken);
 
             symtableInsert(symTable,activeToken->value->str,false);
+            //TO DO symtable set this item as active, so it can get its type
             
             // verification of: var <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
@@ -684,12 +694,14 @@ bool varDecMid(token *activeToken){
         case T_COLON:
             // 40) <varDecMid> -> : <eol> <type> <eol> <varDef>
             getNextToken(activeToken);
+            //TO DO symtable set type of active item - it is done in type()
             varDecMidStatus = eol(activeToken) && type(activeToken) && eol(activeToken) && varDef(activeToken);
             break;
         case T_ASSIGNMENT:
             // 41) <varDecMid> -> = <expression>
             getNextToken(activeToken);
             varDecMidStatus = expression(activeToken);
+            //TO DO symtable get type of expression and set it as type of active item 
             break;
         default:
             printf("Leaving function varDecMid() with %d ...\n",false);
@@ -714,6 +726,7 @@ bool varDef(token *activeToken){
         case T_ASSIGNMENT:
             // 43) <varDef> -> = <expression>
             getNextToken(activeToken);
+            //TO DO symtable check if expression has same type as variable
             varDefStatus = expression(activeToken);
             break;
         default:
@@ -742,6 +755,7 @@ bool returnExpression(token *activeToken){
             break;
         default:
             // 44) <returnExpression> -> <expression>
+            //TO DO symtable check if function has same return type as is type of expression
             returnExpressionStatus = expression(activeToken);
             break;
     }
@@ -810,6 +824,7 @@ bool argument(token *activeToken){
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function argument()...\n");
 
+    //TO DO symtable check if parametrs if function are same type as arguments
     switch(activeToken->tokenType) {
         case T_INT:
         case T_DOUBLE:
