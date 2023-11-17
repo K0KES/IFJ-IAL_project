@@ -483,14 +483,14 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         token->position->lineNumber = lineNumber;
                         return LEX_OK;
                     }
-                    else if (strCmpConstStr(token->value, "Int1Double") == 0) {
+                    else if (strCmpConstStr(token->value, "Int2Double") == 0) {
                         token->tokenType = KW_INT_TO_DOUBLE;
                         ungetc(c, stdin);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         return LEX_OK;
                     }
-                    else if (strCmpConstStr(token->value, "Double1Int") == 0) {
+                    else if (strCmpConstStr(token->value, "Double2Int") == 0) {
                         token->tokenType = KW_DOUBLE_TO_INT;
                         ungetc(c, stdin);
                         token->position->charNumber = charNumber;
