@@ -1,6 +1,7 @@
 #include "symtable.h"
 #include "scanner.h"
 #include <stdio.h>
+#pragma once
 
 /*
 Initializes symtable - MUST BE CALLED BEFORE ANY OTHER FUNCTION!

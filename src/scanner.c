@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include "scanner.h"
-
+#pragma once
 
 void tokenClear (token* token) {
     strClear(token->value);
