@@ -41,8 +41,9 @@ int tokenFree(token *activeToken){
     return 0;
 }
 
-int parse(token *activeToken, symtable *symTablePtr){
-    symTable = symTablePtr;
+//int parse(token *activeToken, symtable *symTablePtr){
+int parse(token *activeToken){
+    //symTable = symTablePtr;
     getNextToken(activeToken);
     if(start(activeToken)){
         printf("Success\n");
@@ -287,8 +288,8 @@ bool definition(token *activeToken){
             }
 
             //Add function to symtable
-            symtableInsert(symTable,activeToken->value->str,true);
-            symtableEnterScope(symTable,activeToken->value->str);
+            //symtableInsert(symTable,activeToken->value->str,true);
+            //symtableEnterScope(symTable,activeToken->value->str);
 
             // verification of: func <eol> ID <eol>
             getNextToken(activeToken);
@@ -310,7 +311,7 @@ bool definition(token *activeToken){
             // verification of: func <eol> ID <eol> (<functionParams>) <eol> <funcDefMid>
             definitionStatus = definitionStatus && funcDefMid(activeToken);
             //symtablePrintVariables(symTable);
-            symtableExitScope(symTable);
+            //symtableExitScope(symTable);
             break;
         default:
             printf("Leaving function definition() with %d ...\n",false);
@@ -890,7 +891,7 @@ bool varDec(token *activeToken){
             getNextToken(activeToken);
             varDecStatus = eol(activeToken);
             
-            symtableInsert(symTable,activeToken->value->str,false);
+            //symtableInsert(symTable,activeToken->value->str,false);
             //TO DO symtable set this item as active, so it can get its type
 
             // verification of: let <eol> ID
@@ -908,7 +909,7 @@ bool varDec(token *activeToken){
             getNextToken(activeToken);
             varDecStatus = eol(activeToken);
 
-            symtableInsert(symTable,activeToken->value->str,false);
+            //symtableInsert(symTable,activeToken->value->str,false);
             //TO DO symtable set this item as active, so it can get its type
             
             // verification of: var <eol> ID
