@@ -102,6 +102,11 @@ bool callOrAssign(token *activeToken);
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
+bool assign(token *activeToken);
+
+/// @brief Function of LL grammer
+/// @param activeToken pointer to token
+/// @return returns true if it was syntactically correct, otherwise returns false
 bool varDec(token *activeToken);
 
 /// @brief Function of LL grammer
