@@ -5,12 +5,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../src/expression_parser.c"
-#include "../../src/expression_parser.h"
+//#include "../../src/expression_parser.c"
+//#include "../../src/expression_parser.h"
 #include "../../src/scanner.c"
-// #include "../../src/symtable.c"
-#include "../../src/str.c"
+#include "../../src/scanner.h"
+#include "../../src/symtable.c"
+//#include "../../src/str.c"
 #include "../../src/parser.c"
+#include "../../src/parser.h"
 
 TEST(Parser, Test1){
     token *activeToken = (token *)malloc(sizeof(token));
@@ -24,5 +26,5 @@ TEST(Parser, Test1){
 
     freopen("tests/parser_tests/test_inputs/test1_0", "r", stdin);
 
-    EXPECT_EQ(parse(activeToken),0);
+    EXPECT_EQ(parse(activeToken,symTable),0);
 }

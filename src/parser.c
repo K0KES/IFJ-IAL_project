@@ -4,7 +4,7 @@ enum tokenType typeOfLastToken;
 symtable *symTable;
 
 int tokenInit(token *activeToken){
-    activeToken = malloc(sizeof(token));
+    activeToken = (token*)malloc(sizeof(token));
     if(activeToken == NULL){
         return 99;
     }
