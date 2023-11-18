@@ -248,16 +248,28 @@ bool type(token *activeToken){
         case KW_INT:
             // 8) <type> -> int
             getNextToken(activeToken);
+            if (activeToken->tokenType == T_NULLABLE){
+                //TO DO symtable set variable as nullable
+                getNextToken(activeToken);
+            }
             typeStatus = true;
             break;
         case KW_DOUBLE:
             // 9) <type> -> double
             getNextToken(activeToken);
+            if (activeToken->tokenType == T_NULLABLE){
+                //TO DO symtable set variable as nullable
+                getNextToken(activeToken);
+            }
             typeStatus = true;
             break;
         case KW_STRING:
             // 10) <type> -> string
             getNextToken(activeToken);
+            if (activeToken->tokenType == T_NULLABLE){
+                //TO DO symtable set variable as nullable
+                getNextToken(activeToken);
+            }
             typeStatus = true;
             break;
         default: 
