@@ -212,6 +212,10 @@ bool eol(token *activeToken){
         case T_LEFT_CURLY_BRACKET:
         case T_RIGHT_CURLY_BRACKET:
         case T_ASSIGNMENT:
+        case T_INCREMENT:
+        case T_DECREMENT:
+        case T_VAR_MUL_VAR:
+        case T_VAR_DIV_VAR:
         case T_ARROW:
         case T_COLON:
         case KW_UNDERSCORE:
@@ -835,6 +839,10 @@ bool callOrAssign(token *activeToken){
 
     switch(activeToken->tokenType) {
         case T_ASSIGNMENT:
+        case T_INCREMENT:
+        case T_DECREMENT:
+        case T_VAR_MUL_VAR:
+        case T_VAR_DIV_VAR:
         case T_EOL:
             // 36) <callOrAssign> -> <eol> <assign>>
             callOrAssignStatus = eol(activeToken) && assign(activeToken);
@@ -863,26 +871,26 @@ bool assign(token *activeToken){
             getNextToken(activeToken);
             assignStatus = expression(activeToken);
             break;
-        /*case T_ASSIGNMENT:
+        case T_INCREMENT:
             // 62) <assign> -> += <expression>
             getNextToken(activeToken);
             assignStatus = expression(activeToken);
             break;
-        case T_ASSIGNMENT:
+        case T_DECREMENT:
             // 63) <assign> -> -= <expression>
             getNextToken(activeToken);
             assignStatus = expression(activeToken);
             break;
-        case T_ASSIGNMENT:
+        case T_VAR_MUL_VAR:
             // 64) <assign> -> *= <expression>
             getNextToken(activeToken);
             assignStatus = expression(activeToken);
             break;
-        case T_ASSIGNMENT:
+        case T_VAR_DIV_VAR:
             // 65) <assign> -> /= <expression>
             getNextToken(activeToken);
             assignStatus = expression(activeToken);
-            break;*/
+            break;
         default:
             printf("Leaving function assign() with %d ...\n",false);
             return false;
