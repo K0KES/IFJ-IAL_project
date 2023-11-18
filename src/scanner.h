@@ -38,10 +38,10 @@ enum tokenType {
 
     //VARIABLES
     T_ASSIGNMENT, // =
-    T_INCREMENT, //++ TO DO: remove it is not supported bu swift
-    T_DECREMENT, //-- TO DO: remove it is not supported bu swift
-    // T_VAR_MUL_VAR, //
-    // T_VAR_DIV_VAR, //
+    T_INCREMENT, // +=
+    T_DECREMENT, // -=
+    T_VAR_MUL_VAR, // *=
+    T_VAR_DIV_VAR, // /=
     T_NOT, // !
 
     //DATA TYPES
@@ -107,8 +107,8 @@ enum state {
     S_NOT_EQUAL,
     S_INCREMENT,
     S_DECREMENT,
-    // S_VAR_MUL_VAR,
-    // S_VAR_DIV_VAR,
+    S_VAR_MUL_VAR,
+    S_VAR_DIV_VAR,
     S_NIL_OP,
     S_BLOCK_LINE_COMMENT,
     S_LINE_COMMENT,

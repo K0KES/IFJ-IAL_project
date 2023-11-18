@@ -63,6 +63,10 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         strAddChar(token->value, c);
                         state = S_EQUAL;
                         break;
+                    case '*':
+                        strAddChar(token->value, c);
+                        state = S_VAR_MUL_VAR;
+                        break;
                     case '?':
                         strAddChar(token->value, c);
                         state = S_NIL_OP;
@@ -85,14 +89,6 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     /////////////////////////    
                     //EASY chars
                     /////////////////////////  
-                    case '*':
-                        token->tokenType = T_MULTIPLICATION;
-                        strAddChar(token->value, c);
-                        token->lastChar = lastChar;
-                        token->position->charNumber = charNumber;
-                        token->position->lineNumber = lineNumber;
-                        return LEX_OK;
-                        break;
                     case '(':
                         token->tokenType = T_LEFT_BRACKET;
                         strAddChar(token->value, c);
@@ -225,6 +221,23 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 }
                 break;
 
+            case S_VAR_MUL_VAR:
+                if (c == '=') { 
+                    token->tokenType = T_VAR_MUL_VAR;
+                    charNumber++;
+                    strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return LEX_OK;
+                }
+                else {
+                    token->tokenType = T_MULTIPLICATION;
+                    ungetc(c, stdin);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return LEX_OK;
+                }
+                break;
             case S_DECREMENT:
                 if (c == '=') { 
                     token->tokenType = T_DECREMENT;
@@ -728,6 +741,15 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '*':
                     state = S_BLOCK_COMMENT;
                     break;
+                case '=':
+                    token->tokenType = T_VAR_DIV_VAR;
+                    charNumber++;
+                    strAddChar(token->value, lastChar);
+                    strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return LEX_OK;
+                    break;
                 default:
                     strAddChar(token->value, lastChar);
                     token->tokenType = T_DIVISION;
@@ -740,7 +762,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 }
                 break;
             case S_LINE_COMMENT:
-                if (c == '\n') { lineNumber++; lastChar = c; charNumber = 0; state = S_START; }
+                if (c == '\n') { ungetc(c, stdin); state = S_START; }
                 break;
             case S_BLOCK_COMMENT:
                 if (c == '\n' || c == '\r') { lineNumber++; }
