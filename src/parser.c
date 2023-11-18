@@ -41,8 +41,7 @@ int tokenFree(token *activeToken){
     return 0;
 }
 
-//int parse(token *activeToken, symtable *symTablePtr){
-int parse(token *activeToken){
+int parse(token *activeToken, symtable *symTablePtr){
     //symTable = symTablePtr;
     getNextToken(activeToken);
     if(start(activeToken)){
