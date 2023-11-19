@@ -175,6 +175,14 @@ int getToken(token *token, int charNumber, int lineNumber) {
             //STATES continues
             /////////////////////////  
             case S_NEW_LINE:
+                if (lastChar == '/' && c != '/') { 
+                    token->tokenType = T_EOL;
+                    ungetc(c, stdin);
+                    ungetc(lastChar, stdin);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return LEX_OK;
+                 }
                 switch (c) {
                 case '\n':
                 case '\r':
@@ -192,6 +200,29 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     charNumber++;
                     charNumber++;
                     lastChar = '\t';
+                    break;
+                case '/':
+                    if (lastChar == '/') { 
+                        ungetc (c, stdin); 
+                        ungetc('/', stdin);
+                        state = S_START; 
+                        }
+                    lastChar = '/';
+                    break;
+                default:
+                    token->tokenType = T_EOL;
+                    ungetc(c, stdin);
+                    if (lastChar == ' ' || lastChar == '\t') { ungetc(lastChar, stdin); }
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return LEX_OK;
+                    break;
+                }
+                break;
+            case S_TRANSITION_TO_COMMENT:
+                switch (c) {
+                case '\\':
+                    state = S_LINE_COMMENT;
                     break;
                 default:
                     token->tokenType = T_EOL;
@@ -387,6 +418,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case ',':
                 case '{':
                 case '}':
+                case '?':
                 case EOF:
                     //printf("\ncurrent token val='");
                     strPrint(token->value);

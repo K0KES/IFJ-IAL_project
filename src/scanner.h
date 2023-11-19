@@ -113,6 +113,8 @@ enum state {
     S_BLOCK_LINE_COMMENT,
     S_LINE_COMMENT,
     S_BLOCK_COMMENT,
+    S_TRANSITION_TO_COMMENT,
+    S_TRANSITION_TO_NEWLINE,
 };
 
 typedef struct {
