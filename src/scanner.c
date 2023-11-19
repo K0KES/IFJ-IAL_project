@@ -175,7 +175,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
             //STATES continues
             /////////////////////////  
             case S_NEW_LINE:
-                if (lastChar == '/' && c != '/') { 
+                if (lastChar == '/' && (c != '/' && c != '*')) { 
                     token->tokenType = T_EOL;
                     ungetc(c, stdin);
                     ungetc(lastChar, stdin);
@@ -208,6 +208,21 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         state = S_START; 
                         }
                     lastChar = '/';
+                    break;
+                case '*':
+                    if (lastChar == '/') { 
+                        ungetc (c, stdin); 
+                        ungetc('/', stdin);
+                        state = S_START; 
+                        }
+                    else {
+                        token->tokenType = T_EOL;
+                        ungetc(c, stdin);
+                        ungetc(lastChar, stdin);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return LEX_OK;
+                    }
                     break;
                 default:
                     token->tokenType = T_EOL;
