@@ -94,11 +94,15 @@ void symtableFree(symtable *table){
 
 void symtableInsert(symtable *table, char *varName, bool isFunction){
     ht_table_t *currentTable = (ht_table_t *)listGetFirst(table->tables);
+
+    int stringLength = strlen(varName) + 1;
+    char *string = (char *)malloc(stringLength);
+    memcpy(string,varName,stringLength);
     
     symtableItem *newSymtableItem = (symtableItem *)malloc(sizeof(symtableItem));
-    newSymtableItem->name = varName;
+    newSymtableItem->name = string;
 
-    ht_insert(currentTable,varName,newSymtableItem);
+    ht_insert(currentTable,string,newSymtableItem);
 }
 
 /*
@@ -153,3 +157,20 @@ bool symtableContainsVariable(symtable *table, char* name){
     symtableItem* item = (symtableItem *)ht_get(currentTable,name);
     return item != NULL;
 }   
+
+
+
+/*
+symtableSetActiveToken(symtable *table, token token, bool isFunction) -> EDIT Insert
+symtableSetVariableType()
+symtaleSetFunctionParams()
+symtableSetFunctionReturnType()
+symtableUpdate(symtable *table, value)
+
+symtableFunctionCallInitiated(symtable *table, ...)
+symtableFunctionCallNextArgument(symtable *table, ...)
+symtableFunctionCallExterminate(symtable *table, ...)
+
+symtableCompareFunctionReturnType
+
+*/
