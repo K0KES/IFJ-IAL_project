@@ -18,7 +18,7 @@
  * @brief enum for data types
 */
 enum data_type{
-    DATA_TYPE_UNDEFINED,
+    DATA_TYPE_NOTSET,
     DATA_TYPE_INTEGER,
     DATA_TYPE_FLOAT,
     DATA_TYPE_STRING
@@ -36,6 +36,7 @@ typedef struct{
 
 typedef struct{
     enum data_type type;
+    bool nullable;
     const char *name;
     void* data;
     int id;
