@@ -22,6 +22,7 @@ void* listGetLast(list *list);
 void* listGetFirst(list *list);
 
 bool listPushFirst(list *list, void *data);
+bool listPushBack(list *list, void *data);
 void* listPopFirst(list *list);
 
 void listClear(list *list);

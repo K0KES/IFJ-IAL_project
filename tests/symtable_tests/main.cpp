@@ -22,3 +22,28 @@ TEST(SymtableTest, Test1) {
 
     symtableFree(table);
 }
+
+TEST(SymtableTest, Test2){
+    symtable *table = symtableInit();
+
+    float test = 27.27f;
+
+    symtableInsert(table,"test",false);
+    symtableSetVariableType(table,DATA_TYPE_FLOAT);
+    symtableSetVariableValue(table,&test);
+
+    symtableInsert(table,"funkce27",true);
+    symtableSetFunctionReturnType(table,DATA_TYPE_FLOAT);
+
+    symtableAddFunctionNextArgument(table);
+    symtableSetFunctionArgumentType(table,DATA_TYPE_FLOAT);
+    symtableSetFunctionArgumentName(table,"lorem");
+
+    symtableAddFunctionNextArgument(table);
+    symtableSetFunctionArgumentType(table,DATA_TYPE_FLOAT);
+    symtableSetFunctionArgumentName(table,"ipsum");
+
+    symtablePrintVariables(table);
+
+    symtableFree(table);
+}
