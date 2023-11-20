@@ -70,6 +70,22 @@ bool listPushFirst(list *list, void *data){
     return true;
 }
 
+bool listPushBack(list *list, void *data) 
+{
+  listNode *newNode = listInitNode(data);
+
+  if(list->size == 0) {
+    list->first = newNode;
+  } else {
+    list->last->next = newNode;
+    newNode->prev = list->last;
+  }
+  list->last = newNode;
+  list->size++;
+  
+  return true;
+}
+
 void* listPopFirst(list *list){
     if(!list) return NULL;
 
