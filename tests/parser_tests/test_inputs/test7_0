@@ -1,0 +1,24 @@
+//milujeme kimentare ///////////////ú
+// Declare a function
+        /* sadsaas
+     
+     dsada /*  
+     
+     hihi
+     
+     */
+             dasdasdasdasdas*/
+func sayHelloWorld() {
+    write("Hello World")
+}
+// Call function
+    sayHelloWorld()
+//je to strasna prdel
+
+func bar(with param : String) -> String {
+let r : String = "kybar" //haha
+return r
+}
+let vysledek = bar(with:"chapes, kyblar je jako kybar, bar je nazev promenne")
+write(vysledek)
+

@@ -1,0 +1,13 @@
+func finc(_ x : Int, a : Int ,b : Int ) -> Int {
+    var result = a+b
+    return result
+}
+
+let kybl = finc(0,a:1,b:2) 
+write(kybl)
+
+var x = 7 - 3
++ 4 
+var y = 11 
+let vy = x-y
+write(vy)
