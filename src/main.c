@@ -4,13 +4,7 @@
 #include "scanner.h"
 #include "symtable.h"
 
-//#define printf(...) fprintf(fptr, __VA_ARGS__)
-
 int main(int argc, char const *argv[]){
-
-    //FILE *fptr;
-    //fptr = fopen("output","w");
-
     //Parser init
     token *activeToken;
     //tokenInit(activeToken);
@@ -32,6 +26,15 @@ int main(int argc, char const *argv[]){
     activeToken->position->charNumber = 0;
     activeToken->position->lineNumber = 1;
 
-    parse(activeToken);
+    //Symtable init
+    symtable *symTable = symtableInit();
+
+    //Call parser
+    parse(activeToken,symTable);
+
+    //symtablePrintVariables(symTable);
+    symtableFree(symTable);
+    tokenFree(activeToken);
+
     return 0;
 }
