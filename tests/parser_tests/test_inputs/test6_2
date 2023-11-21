@@ -1,0 +1,30 @@
+var a = 5e3
+var a = 10.0E4
+var a = 11.0358e-888
+var a = 0.01e+385
+
+var b = ""
+var b = "    "
+var b = "    string haha \""
+var b = "    string haha \n"
+var b = "    string haha \r"
+var b = "    string haha \t"
+var b = "    string haha \\"
+var b = "    string haha \""
+
+
+var c = 
+
+      """
+curak
+cique
+"""
+
+var c = """
+\"\n\r \t\\\"
+"""
+
+var c = """   
+tady je chyba, pac za prvni trojici uvozovek nesmi byt whitespace xddd
+"""
+

@@ -1,0 +1,16 @@
+
+let y : Int?
+let z : Double = 1.2
+
+var b : String?
+var c : Int = 42
+var r : Double?
+var x = 4
+
+y = 3
+x = 23
+
+x += 3
+x -= 3
+x *= 3
+x /= 3

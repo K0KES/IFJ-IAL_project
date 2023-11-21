@@ -1,0 +1,14 @@
+readString()
+readInt()
+readDouble()
+
+write("ass","adfff")
+
+Int2Double(2)
+Double2Int(1.2)
+
+lenght(x)
+substring("ahoj",0,3)
+
+ord("sss")
+chr(3)

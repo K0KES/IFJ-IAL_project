@@ -1,0 +1,37 @@
+if 1 {x=a}else {x()}
+
+if
+ 1 {let x=a
+}
+else 
+{ x()}
+
+if (a>b) {
+    x=a
+    if (b == c) {
+        b = a
+    }
+    else {
+        x()
+    }
+}else{
+    x()
+}
+
+while (d == l) {
+    a(c:4)
+    f = "Test"
+    if 1 {
+        let x=a
+    }
+    else {
+        x()
+    }
+}
+
+
+while 
+(3 != 2 ) {
+    x=4
+}
+
