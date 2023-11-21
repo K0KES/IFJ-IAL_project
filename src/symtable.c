@@ -3,9 +3,7 @@
 #include <stdio.h>
 #pragma once
 
-/*
-Initializes symtable - MUST BE CALLED BEFORE ANY OTHER FUNCTION!
-*/
+
 symtable* symtableInit(){
     symtable *table = (symtable *)(malloc(sizeof(symtable))); 
     if(table == NULL) return NULL;
@@ -22,9 +20,6 @@ symtable* symtableInit(){
     return table;
 }
 
-/*
-Enters scope with name and allocates memory
-*/
 bool symtableEnterScope(symtable *table,char* scope){
     printf("Entering scope - %s \n",scope == NULL ? "GLOBAL" : scope);
     ht_table_t *hashmap;
@@ -45,9 +40,6 @@ bool symtableEnterScope(symtable *table,char* scope){
     
 }
 
-/*
-Exits current scope and free ups scope memory
-*/
 void symtableExitScope(symtable *table){
     
     ht_table_t *hashmap;
@@ -79,9 +71,6 @@ void symtableExitScope(symtable *table){
 
 }
 
-/*
-Free up all memory that was alocated by symtable
-*/
 void symtableFree(symtable *table){
     
     while(listLength(table->tables) != 0){
@@ -102,13 +91,20 @@ void symtableInsert(symtable *table, char *varName, bool isFunction){
     
     symtableItem *newSymtableItem = (symtableItem *)malloc(sizeof(symtableItem));
     newSymtableItem->name = string;
+    newSymtableItem->funcData = NULL;
+    newSymtableItem->data = NULL;
+
+    if(isFunction){
+        newSymtableItem->funcData = (functionData *)malloc(sizeof(functionData));
+        newSymtableItem->funcData->returnType = DATA_TYPE_UNDEFINED;
+        newSymtableItem->funcData->arguments = listInit();
+    }
 
     ht_insert(currentTable,string,newSymtableItem);
+
+    table->activeItem = newSymtableItem;
 }
 
-/*
-Prints all variables on current scope (DEBUG function)
-*/
 void symtablePrintVariables(symtable *table){
     if(listLength(table->scopes) != 0){
         char *currentScope = (char *)listGetFirst(table->scopes);
@@ -124,41 +120,119 @@ void symtablePrintVariables(symtable *table){
         ht_item_t *currentItem = (*currentTable)[i];
         while(currentItem != NULL){
             symtableItem *item = (symtableItem *)(currentItem->data);
-            /*for(int i=0;item->name[i] != '\0';i++){
-                printf("%d ",item->name[i]);
+            
+            if(item->funcData == NULL){
+                printf("- %s (VAR, TYPE: %d) = %d \n",item->name,item->type,item->data);
+            }else{
+                printf("- %s (FUNC, RETURN TYPE: %d) - ",item->name,item->funcData->returnType);
+                bool noArgs = false;
+                functionArgument *argument = (functionArgument *)listPopFirst(item->funcData->arguments);
+                if(argument == NULL){
+                    printf("NO ARGS\n");
+                    noArgs = true;
+                }
+                while(argument != NULL){
+                    printf("%s (TYPE: %d) ",argument->name,argument->type);
+                    argument = (functionArgument *)listPopFirst(item->funcData->arguments);
+                }
+                if(!noArgs){
+                    printf("\n");
+                }
             }
-            printf("\n");*/
-            printf("- %s \n",item->name);
+            
             currentItem = currentItem->next;
         }
     }
 }
 
 /*
-Returns true if current scope contains symbol with corresponding name
-*/
+
+ASI NEBUDOU POTŘEBA => SEMANTICKE CHYBY BUDOU UZ ZDE
+
 bool symtableContainsSymbol(symtable *table, char* name){
     ht_table_t *currentTable = (ht_table_t *)listGetFirst(table->tables);
     symtableItem* item = (symtableItem *)ht_get(currentTable,name);
     if(item == NULL) return false;
-    return (item->functionData == NULL);
+    return (item->funcData == NULL);
 }
 
-/*
 Returns true if current scope contains function with corresponding name
-*/
 bool symtableContainsFunction(symtable *table, char* name){
     ht_table_t *currentTable = (ht_table_t *)listGetFirst(table->tables);
     symtableItem* item = (symtableItem *)ht_get(currentTable,name);
     if(item == NULL) return false;
-    return (item->functionData != NULL);
+    return (item->funcData != NULL);
 }
 
-/*
 Returns true if current scope contains variable with corresponding name
-*/
 bool symtableContainsVariable(symtable *table, char* name){
     ht_table_t *currentTable = (ht_table_t *)listGetFirst(table->tables);
     symtableItem* item = (symtableItem *)ht_get(currentTable,name);
     return item != NULL;
-}   
+}*/  
+
+void symtableSetVariableType(symtable *table, enum data_type type){
+    if(table->activeItem == NULL) return;
+    table->activeItem->type = type;
+}
+
+void symtableSetVariableValue(symtable *table, void* data){
+    if(table->activeItem == NULL) return;
+
+    if(table->activeItem->type == DATA_TYPE_FLOAT){
+        float* floatData = (float *)data;
+        float *newSpace = (float *)malloc(sizeof(float));
+        memcpy(newSpace,floatData,sizeof(float));
+
+        table->activeItem->data = newSpace;
+    }
+}
+
+void symtableAddFunctionNextArgument(symtable *table){
+    if(table->activeItem == NULL) return;
+    if(table->activeItem->funcData == NULL) return;
+
+    functionArgument *argument = (functionArgument *)malloc(sizeof(functionArgument));
+    
+    listPushBack(table->activeItem->funcData->arguments,argument);
+}
+
+void symtableSetFunctionArgumentType(symtable *table, enum data_type type){
+    if(table->activeItem == NULL) return;
+    if(table->activeItem->funcData == NULL) return;
+
+    functionArgument *argument = (functionArgument *)listGetLast(table->activeItem->funcData->arguments);
+    argument->type = type;
+}
+
+void symtableSetFunctionArgumentName(symtable *table, char *name){
+    if(table->activeItem == NULL) return;
+    if(table->activeItem->funcData == NULL) return;
+
+    int stringLength = strlen(name) + 1;
+    char *string = (char *)malloc(stringLength);
+    memcpy(string,name,stringLength);
+
+    functionArgument *argument = (functionArgument *)listGetLast(table->activeItem->funcData->arguments);
+    argument->name = string;
+}
+
+void symtableSetFunctionReturnType(symtable *table, enum data_type type){
+    if(table->activeItem == NULL) return;
+    if(table->activeItem->funcData == NULL) return;
+
+    table->activeItem->funcData->returnType = type;
+}
+
+/*
+symtableSetActiveToken(symtable *table, token token, bool isFunction) -> EDIT Insert
+symtableSetVariableType()
+symtaleSetFunctionParams()
+
+symtableFunctionCallInitiated(symtable *table, ...)
+symtableFunctionCallNextArgument(symtable *table, ...)
+symtableFunctionCallExterminate(symtable *table, ...)
+
+symtableCompareFunctionReturnType
+
+*/
