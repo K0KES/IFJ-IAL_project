@@ -2,6 +2,15 @@
 #include <stdbool.h>
 #include "scanner.h"
 
+deftype tokenQueue {
+    token *token;
+    tokenQueue *next;
+} tokenQueue;
+
+
+
+
+
 struct programState {
     token *lastReadToken;
     bool isLastReadTokenValid;
