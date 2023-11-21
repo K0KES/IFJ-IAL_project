@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "error.h"
 
 enum tokenType typeOfLastToken;
 symtable *symTable;
@@ -50,6 +51,7 @@ int parse(token *activeToken, symtable *symTablePtr){
     }
     else{
         printf("Error\n");
+        raiseError(ERR_SYNTAX);
         return 2;
     }
 }
