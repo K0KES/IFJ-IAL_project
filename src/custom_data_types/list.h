@@ -1,13 +1,29 @@
 #include <stdbool.h>
 #include <stdlib.h>
+#pragma once
 
-typedef struct list *list_t;
-typedef struct list_node *list_node_t;
+typedef struct listNode_s{
+    void *data;
+    struct listNode_s *prev;
+    struct listNode_s *next;
+} listNode;
 
-list_t list_init(size_t size);
-size_t list_length(list_t list);
-void list_clear(list_t list);
-void list_free(list_t list);
-bool list_push(list_t list, void *data);
-bool list_pop(list_t list);
-void* list_get_item(list_t list, int index);
+typedef struct list_s
+{
+    listNode *first;
+    listNode *last;
+    int size;
+} list;
+
+list *listInit();
+int listLength(list *list);
+
+void* listGetLast(list *list);
+void* listGetFirst(list *list);
+
+bool listPushFirst(list *list, void *data);
+bool listPushBack(list *list, void *data);
+void* listPopFirst(list *list);
+
+void listClear(list *list);
+void listDestroy(list *list);

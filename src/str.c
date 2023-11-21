@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "str.h"
 #include <stdio.h>
+#pragma once
 
 #define STR_LEN_INC 8
 // konstanta STR_LEN_INC udava, na kolik bytu provedeme pocatecni alokaci pameti

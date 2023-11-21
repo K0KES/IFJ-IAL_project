@@ -1,0 +1,25 @@
+func test(_ x : Int, o c : String,y a : Double) -> Double {
+    return (1.2)
+}
+
+func function(_ x : Int, o c : String,y a : Double) {
+    return
+}
+
+func functionn(o x : Int, _ c : String,y a : Double) {
+    return}
+
+func functionnn(_ x : Int, o c : String,y a : Double) {return}
+
+func test
+(_ 
+x 
+    :             Int
+,        o                   c 
+    : String
+,       y a :              Double
+) ->        Double          
+{return (1.2)
+}
+
+function(3, o : "String", y : x) 
