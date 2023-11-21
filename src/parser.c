@@ -251,11 +251,11 @@ bool type(token *activeToken){
             // 8) <type> -> int
             getNextToken(activeToken);
             if (activeToken->tokenType == T_NULLABLE){
-                symtableSetVariableType(symTable, DATA_TYPE_INTEGER, true);
+                //edit symtableSetVariableType(symTable, DATA_TYPE_INTEGER, true);
                 getNextToken(activeToken);
             }
             else {
-                symtableSetVariableType(symTable, DATA_TYPE_INTEGER, false);
+                //symtableSetVariableType(symTable, DATA_TYPE_INTEGER, false);
             }
             typeStatus = true;
             break;
@@ -263,11 +263,11 @@ bool type(token *activeToken){
             // 9) <type> -> double
             getNextToken(activeToken);
             if (activeToken->tokenType == T_NULLABLE){
-                symtableSetVariableType(symTable, DATA_TYPE_DOUBLE, true);
+                //symtableSetVariableType(symTable, DATA_TYPE_DOUBLE, true);
                 getNextToken(activeToken);
             }
             else {
-                symtableSetVariableType(symTable, DATA_TYPE_DOUBLE, false);
+                //symtableSetVariableType(symTable, DATA_TYPE_DOUBLE, false);
             }
             typeStatus = true;
             break;
@@ -275,11 +275,11 @@ bool type(token *activeToken){
             // 10) <type> -> string
             getNextToken(activeToken);
             if (activeToken->tokenType == T_NULLABLE){
-                symtableSetVariableType(symTable, DATA_TYPE_STRING, true);
+                //symtableSetVariableType(symTable, DATA_TYPE_STRING, true);
                 getNextToken(activeToken);
             }
             else {
-                symtableSetVariableType(symTable, DATA_TYPE_STRING, false);
+                //symtableSetVariableType(symTable, DATA_TYPE_STRING, false);
             }
             typeStatus = true;
             break;
@@ -458,7 +458,7 @@ bool functionParam(token *activeToken){
                 return false;
             }
 
-            symtableSetFunctionArgumentID(symTable,activeToken->value->str);
+            //edit symtableSetFunctionArgumentID(symTable,activeToken->value->str);
 
             // verification of: _ <eol> ID <eol>
             getNextToken(activeToken);
@@ -489,7 +489,7 @@ bool functionParam(token *activeToken){
                 return false;
             }
 
-            symtableSetFunctionArgumentID(symTable,activeToken->value->str);
+            //edit symtableSetFunctionArgumentID(symTable,activeToken->value->str);
 
             // verification of: ID <eol> ID <eol>
             getNextToken(activeToken);
