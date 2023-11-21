@@ -4,7 +4,12 @@
 #include "scanner.h"
 #include "symtable.h"
 
+//#define printf(...) fprintf(fptr, __VA_ARGS__)
+
 int main(int argc, char const *argv[]){
+
+    //FILE *fptr;
+    //fptr = fopen("output","w");
 
     //Parser init
     token *activeToken;
@@ -36,5 +41,6 @@ int main(int argc, char const *argv[]){
     //symtablePrintVariables(symTable);
     //symtableFree(symTable);
     tokenFree(activeToken);
+    //fclose(fptr);
     return 0;
 }
