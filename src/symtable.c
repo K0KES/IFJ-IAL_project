@@ -1,7 +1,8 @@
+#pragma once
 #include "symtable.h"
 #include "scanner.h"
 #include <stdio.h>
-
+#include "error.h"
 
 symtable* symtableInit(){
     symtable *table = (symtable *)(malloc(sizeof(symtable))); 
@@ -21,6 +22,7 @@ symtable* symtableInit(){
 
 bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctionItem){
     printf("Entering scope - %s \n",scope == NULL ? "GLOBAL" : scope);
+    raiseError(ERR_SYNTAX);
     ht_table_t *hashmap;
     ht_init(&hashmap);
     if(hashmap == NULL) return false;
@@ -286,14 +288,15 @@ enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table){
 }
 
 /*
-symtableSetActiveToken(symtable *table, token token, bool isFunction) -> EDIT Insert
-symtableSetVariableType()
-symtaleSetFunctionParams()
+isVariableDefined(nazev) = je v tom daném scopu
+isVariableInitiated(nazev) = má hodnotu
 
-symtableFunctionCallInitiated(symtable *table, ...)
-symtableFunctionCallNextArgument(symtable *table, ...)
-symtableFunctionCallExterminate(symtable *table, ...)
+getVariableType(nazev) = vrací type proměnné
 
-symtableCompareFunctionReturnType
+functionCallStart(nazev_funkce)
+functionCallNextParameter()
+functionCallSetParameterType() typ se musí rovnat typu
+functionCallSetParameterName() name se musí rovnat name
+functionCallEnd() checkne integritu volání
 
 */

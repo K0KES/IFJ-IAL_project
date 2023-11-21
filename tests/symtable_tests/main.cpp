@@ -6,6 +6,7 @@
 #include "../../src/symtable.c"
 #include "../../src/custom_data_types/list.c"
 #include "../../src/custom_data_types/hashtable.c"
+#include "../../src/error.c"
 
 TEST(SymtableTest, Test1) {
     
@@ -31,33 +32,33 @@ TEST(SymtableTest, Test2){
     char *testString = "ahoj světe";
 
     symtableInsert(table,"test",false);
-    symtableSetDataType(table,DATA_TYPE_DOUBLE);
+    symtableSetDataType(table,DATA_TYPE_DOUBLE,false);
     symtableSetVariableValue(table,&testDouble);
 
     symtableInsert(table,"funkce27",true);
 
     symtableAddFunctionNextArgument(table);
-    symtableSetDataType(table,DATA_TYPE_DOUBLE);
+    symtableSetDataType(table,DATA_TYPE_DOUBLE,false);
     symtableSetFunctionArgumentName(table,"lorem");
 
     symtableAddFunctionNextArgument(table);
-    symtableSetDataType(table,DATA_TYPE_DOUBLE);
+    symtableSetDataType(table,DATA_TYPE_DOUBLE,false);
     symtableSetFunctionArgumentName(table,"ipsum");
 
     symtableFunctionEndOfArguments(table);
 
-    symtableSetDataType(table,DATA_TYPE_DOUBLE);
+    symtableSetDataType(table,DATA_TYPE_DOUBLE,false);
 
     symtableInsert(table,"a",false);
-    symtableSetDataType(table,DATA_TYPE_DOUBLE);
+    symtableSetDataType(table,DATA_TYPE_DOUBLE,false);
     symtableSetVariableValue(table,&testDouble);
 
     symtableInsert(table,"c",false);
-    symtableSetDataType(table,DATA_TYPE_INTEGER);
+    symtableSetDataType(table,DATA_TYPE_INTEGER,false);
     symtableSetVariableValue(table,&testInt);
 
     symtableInsert(table,"b",false);
-    symtableSetDataType(table,DATA_TYPE_STRING);
+    symtableSetDataType(table,DATA_TYPE_STRING,false);
     symtableSetVariableValue(table,&testString);
 
     EXPECT_EQ(symtableGetReturnTypeOfCurrentScope(table),DATA_TYPE_DOUBLE);
