@@ -12,14 +12,14 @@ symtable* symtableInit(){
 
     if(table->tables == NULL){ free(table); return NULL; }
     
-    if(!symtableEnterScope(table,NULL)){
+    if(!symtableEnterScope(table,NULL,NULL)){
         return NULL;
     }
 
     return table;
 }
 
-bool symtableEnterScope(symtable *table,char* scope){
+bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctionItem){
     printf("Entering scope - %s \n",scope == NULL ? "GLOBAL" : scope);
     ht_table_t *hashmap;
     ht_init(&hashmap);
@@ -27,6 +27,10 @@ bool symtableEnterScope(symtable *table,char* scope){
     
 
     listPushFirst(table->tables,hashmap);
+
+    if(currentFunctionItem != NULL){
+        table->currentFunction = currentFunctionItem;
+    }
 
     if(scope != NULL){
         int stringLength = strlen(scope) + 1;
@@ -95,7 +99,7 @@ void symtableInsert(symtable *table, char *varName, bool isFunction){
 
     if(isFunction){
         newSymtableItem->funcData = (functionData *)malloc(sizeof(functionData));
-        newSymtableItem->funcData->returnType = DATA_TYPE_UNDEFINED;
+        newSymtableItem->funcData->returnType = DATA_TYPE_NOTSET;
         newSymtableItem->funcData->arguments = listInit();
     }
 
@@ -121,7 +125,11 @@ void symtablePrintVariables(symtable *table){
             symtableItem *item = (symtableItem *)(currentItem->data);
             
             if(item->funcData == NULL){
-                printf("- %s (VAR, TYPE: %d) = %d \n",item->name,item->type,item->data);
+                printf("- %s (VAR, TYPE: %d) = ",item->name,item->type);
+                if(item->type == DATA_TYPE_NOTSET) printf("NOT SET\n");
+                if(item->type == DATA_TYPE_DOUBLE) printf("%lf\n",*((double *)item->data));
+                if(item->type == DATA_TYPE_INTEGER) printf("%d\n",*((int *)item->data));
+                if(item->type == DATA_TYPE_STRING) printf("%s\n",*((char **)item->data));
             }else{
                 printf("- %s (FUNC, RETURN TYPE: %d) - ",item->name,item->funcData->returnType);
                 bool noArgs = false;
@@ -170,20 +178,49 @@ bool symtableContainsVariable(symtable *table, char* name){
     return item != NULL;
 }*/  
 
-void symtableSetVariableType(symtable *table, enum data_type type){
+void symtableSetDataType(symtable *table, enum data_type type, bool nullable){
     if(table->activeItem == NULL) return;
-    table->activeItem->type = type;
+    if(table->activeItem->funcData == NULL){
+        table->activeItem->type = type;
+        table->activeItem->nullable = nullable;
+    }else{
+        if(table->activeItem->funcData->endOfArguments == false){
+            functionArgument *argument = (functionArgument *)listGetLast(table->activeItem->funcData->arguments);
+            argument->type = type;
+            argument->nullable = nullable;
+        }else{
+            table->activeItem->funcData->returnType = type;
+            table->activeItem->funcData->returnTypeNullable = nullable;
+
+            symtableEnterScope(table,table->activeItem->name,table->activeItem);
+        }
+    }
 }
 
 void symtableSetVariableValue(symtable *table, void* data){
     if(table->activeItem == NULL) return;
+    if(table->activeItem->type == DATA_TYPE_NOTSET || table->activeItem->type == DATA_TYPE_VOID) return;
 
-    if(table->activeItem->type == DATA_TYPE_FLOAT){
-        float* floatData = (float *)data;
-        float *newSpace = (float *)malloc(sizeof(float));
-        memcpy(newSpace,floatData,sizeof(float));
+    if(table->activeItem->type == DATA_TYPE_DOUBLE){
+        double *newSpace = (double *)malloc(sizeof(double));
+        memcpy(newSpace,(double *)data,sizeof(double));
 
         table->activeItem->data = newSpace;
+    }
+
+    if(table->activeItem->type == DATA_TYPE_INTEGER){
+        int *newSpace = (int *)malloc(sizeof(int));
+        memcpy(newSpace,(int *)data,sizeof(int));
+
+        table->activeItem->data = newSpace;
+    }
+
+    if(table->activeItem->type == DATA_TYPE_STRING){
+        int stringLength = strlen((char *)data) + 1;
+        char *string = (char *)malloc(stringLength);
+        memcpy(string,(char *)data,stringLength);
+
+        table->activeItem->data = string;
     }
 }
 
@@ -195,13 +232,25 @@ void symtableAddFunctionNextArgument(symtable *table){
     
     listPushBack(table->activeItem->funcData->arguments,argument);
 }
-
+/*
 void symtableSetFunctionArgumentType(symtable *table, enum data_type type){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
 
     functionArgument *argument = (functionArgument *)listGetLast(table->activeItem->funcData->arguments);
     argument->type = type;
+}*/
+
+void symtableSetFunctionArgumentID(symtable *table, char *id){
+    if(table->activeItem == NULL) return;
+    if(table->activeItem->funcData == NULL) return;
+
+    int stringLength = strlen(id) + 1;
+    char *string = (char *)malloc(stringLength);
+    memcpy(string,id,stringLength);
+
+    functionArgument *argument = (functionArgument *)listGetLast(table->activeItem->funcData->arguments);
+    argument->id = string;
 }
 
 void symtableSetFunctionArgumentName(symtable *table, char *name){
@@ -216,11 +265,24 @@ void symtableSetFunctionArgumentName(symtable *table, char *name){
     argument->name = string;
 }
 
+/*
 void symtableSetFunctionReturnType(symtable *table, enum data_type type){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
 
     table->activeItem->funcData->returnType = type;
+}*/
+
+void symtableFunctionEndOfArguments(symtable *table){
+    if(table->activeItem == NULL) return;
+    if(table->activeItem->funcData == NULL) return;
+
+    table->activeItem->funcData->endOfArguments = true;
+}
+
+enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table){
+    if(table->currentFunction == NULL) return DATA_TYPE_VOID;
+    return table->currentFunction->funcData->returnType;
 }
 
 /*

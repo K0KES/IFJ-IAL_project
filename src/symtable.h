@@ -20,24 +20,29 @@
 enum data_type{
     DATA_TYPE_NOTSET,
     DATA_TYPE_INTEGER,
-    DATA_TYPE_FLOAT,
-    DATA_TYPE_STRING
+    DATA_TYPE_DOUBLE,
+    DATA_TYPE_STRING,
+    DATA_TYPE_VOID
 };
 
 typedef struct{
     enum data_type type;
+    bool nullable;
     char *name;
+    char *id;
 } functionArgument;
 
 typedef struct{
     enum data_type returnType;
+    bool returnTypeNullable;
     list *arguments;
+    bool endOfArguments;
 } functionData;
 
 typedef struct{
     enum data_type type;
     bool nullable;
-    const char *name;
+    char *name;
     void* data;
     int id;
     functionData *funcData;
@@ -49,13 +54,14 @@ typedef struct symtable_s
     list *scopes;
 	ht_table_t *globalTable;
     symtableItem *activeItem;
+    symtableItem *currentFunction;
 }symtable;
 
 ///Initializes symtable - MUST BE CALLED BEFORE ANY OTHER FUNCTION!
 symtable *symtableInit();
 
 ///Enters scope with name
-bool symtableEnterScope(symtable *table,char* scope);
+bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctionItem);
 
 ///Exits current scope
 void symtableExitScope(symtable *table);
@@ -69,8 +75,8 @@ void symtableInsert(symtable *table, char *varName, bool isFunction);
 ///Prints all variables on current scope (DEBUG function)
 void symtablePrintVariables(symtable *table);
 
-///Sets active item variable type
-void symtableSetVariableType(symtable *table, enum data_type type);
+///Sets active item variable type or function argument type or function return type
+void symtableSetDataType(symtable *table, enum data_type type, bool nullable);
 
 ///Sets active item variable value (Must be called after symtableSetVariableType)
 void symtableSetVariableValue(symtable *table, void* data);
@@ -78,11 +84,11 @@ void symtableSetVariableValue(symtable *table, void* data);
 ///Inserts new argument into function arguments list
 void symtableAddFunctionNextArgument(symtable *table);
 
-///Sets data_type for last argument (Must be called after symtableFunctionNextArgument)
-void symtableSetFunctionArgumentType(symtable *table, enum data_type type);
-
 ///Sets name for last argument (Must be called after symtableFunctionNextArgument)
 void symtableSetFunctionArgumentName(symtable *table, char *name);
 
+///Sets data_type for last argument (Must be called after symtableFunctionNextArgument)
+//void symtableSetFunctionArgumentType(symtable *table, enum data_type type);
+
 ///Sets active item function return type
-void symtableSetFunctionReturnType(symtable *table, enum data_type type);
+//void symtableSetFunctionReturnType(symtable *table, enum data_type type);
