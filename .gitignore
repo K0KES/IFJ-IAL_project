@@ -3,3 +3,6 @@ build/*
 .vscode/*
 *.exe
 my_gtest_*
+
+scanner_test.txt
+output

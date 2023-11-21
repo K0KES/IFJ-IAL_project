@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include "scanner.h"
-
+#pragma once
 
 void tokenClear (token* token) {
     strClear(token->value);
@@ -11,13 +11,13 @@ void tokenClear (token* token) {
 }
 
 int getToken(token *token, int charNumber, int lineNumber) {
-    char c;
+    char c = '\0';
     enum state state = S_START;
-    //printf("'");
+    printf("\n");
     char lastChar = '\0';
     while (c != EOF) {
         c = getc(stdin);
-        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { printf("%c\n", c); }
+        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { /*printf("%c\n", c);*/ }
         switch (state) {
             /////////////////////////  
             //first starting STATE
@@ -37,7 +37,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lineNumber++;
                         charNumber = 0;
                         strAddChar(token->value, c);
-                        printf("\nEOL\n");
+                        //printf("\nEOL\n");
                         state = S_NEW_LINE;
                         break;
                     /////////////////////////  
@@ -63,6 +63,10 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         strAddChar(token->value, c);
                         state = S_EQUAL;
                         break;
+                    case '*':
+                        strAddChar(token->value, c);
+                        state = S_VAR_MUL_VAR;
+                        break;
                     case '?':
                         strAddChar(token->value, c);
                         state = S_NIL_OP;
@@ -85,14 +89,6 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     /////////////////////////    
                     //EASY chars
                     /////////////////////////  
-                    case '*':
-                        token->tokenType = T_MULTIPLICATION;
-                        strAddChar(token->value, c);
-                        token->lastChar = lastChar;
-                        token->position->charNumber = charNumber;
-                        token->position->lineNumber = lineNumber;
-                        return LEX_OK;
-                        break;
                     case '(':
                         token->tokenType = T_LEFT_BRACKET;
                         strAddChar(token->value, c);
@@ -142,7 +138,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         return LEX_OK;
                         break;
                     case ',':
-                        token->tokenType = T_COLON;
+                        token->tokenType = T_COMMA;
                         token->lastChar = lastChar;
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
@@ -179,12 +175,20 @@ int getToken(token *token, int charNumber, int lineNumber) {
             //STATES continues
             /////////////////////////  
             case S_NEW_LINE:
+                if (lastChar == '/' && (c != '/' && c != '*')) { 
+                    token->tokenType = T_EOL;
+                    ungetc(c, stdin);
+                    ungetc(lastChar, stdin);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return LEX_OK;
+                 }
                 switch (c) {
                 case '\n':
                 case '\r':
                     lineNumber++;
                     charNumber = 0;
-                    printf("\nEOL\n"); 
+                    //printf("\nEOL\n"); 
                     lastChar = '\0';
                     break;
                 case ' ':
@@ -196,6 +200,44 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     charNumber++;
                     charNumber++;
                     lastChar = '\t';
+                    break;
+                case '/':
+                    if (lastChar == '/') { 
+                        ungetc (c, stdin); 
+                        ungetc('/', stdin);
+                        state = S_START; 
+                        }
+                    lastChar = '/';
+                    break;
+                case '*':
+                    if (lastChar == '/') { 
+                        ungetc (c, stdin); 
+                        ungetc('/', stdin);
+                        state = S_START; 
+                        }
+                    else {
+                        token->tokenType = T_EOL;
+                        ungetc(c, stdin);
+                        ungetc(lastChar, stdin);
+                        token->position->charNumber = charNumber;
+                        token->position->lineNumber = lineNumber;
+                        return LEX_OK;
+                    }
+                    break;
+                default:
+                    token->tokenType = T_EOL;
+                    ungetc(c, stdin);
+                    if (lastChar == ' ' || lastChar == '\t') { ungetc(lastChar, stdin); }
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return LEX_OK;
+                    break;
+                }
+                break;
+            case S_TRANSITION_TO_COMMENT:
+                switch (c) {
+                case '\\':
+                    state = S_LINE_COMMENT;
                     break;
                 default:
                     token->tokenType = T_EOL;
@@ -225,6 +267,23 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 }
                 break;
 
+            case S_VAR_MUL_VAR:
+                if (c == '=') { 
+                    token->tokenType = T_VAR_MUL_VAR;
+                    charNumber++;
+                    strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return LEX_OK;
+                }
+                else {
+                    token->tokenType = T_MULTIPLICATION;
+                    ungetc(c, stdin);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return LEX_OK;
+                }
+                break;
             case S_DECREMENT:
                 if (c == '=') { 
                     token->tokenType = T_DECREMENT;
@@ -370,6 +429,15 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case ' ':
                 case '\n':
                 case '(':
+                case ')':
+                case ',':
+                case '{':
+                case '}':
+                case '?':
+                case EOF:
+                    //printf("\ncurrent token val='");
+                    strPrint(token->value);
+                    printf("\n");
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
                         ungetc(c, stdin);
@@ -475,14 +543,14 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         token->position->lineNumber = lineNumber;
                         return LEX_OK;
                     }
-                    else if (strCmpConstStr(token->value, "Int1Double") == 0) {
+                    else if (strCmpConstStr(token->value, "Int2Double") == 0) {
                         token->tokenType = KW_INT_TO_DOUBLE;
                         ungetc(c, stdin);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         return LEX_OK;
                     }
-                    else if (strCmpConstStr(token->value, "Double1Int") == 0) {
+                    else if (strCmpConstStr(token->value, "Double2Int") == 0) {
                         token->tokenType = KW_DOUBLE_TO_INT;
                         ungetc(c, stdin);
                         token->position->charNumber = charNumber;
@@ -720,6 +788,15 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '*':
                     state = S_BLOCK_COMMENT;
                     break;
+                case '=':
+                    token->tokenType = T_VAR_DIV_VAR;
+                    charNumber++;
+                    strAddChar(token->value, lastChar);
+                    strAddChar(token->value, c);
+                    token->position->charNumber = charNumber;
+                    token->position->lineNumber = lineNumber;
+                    return LEX_OK;
+                    break;
                 default:
                     strAddChar(token->value, lastChar);
                     token->tokenType = T_DIVISION;
@@ -732,7 +809,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 }
                 break;
             case S_LINE_COMMENT:
-                if (c == '\n') { lineNumber++; lastChar = c; charNumber = 0; state = S_START; }
+                if (c == '\n') { ungetc(c, stdin); state = S_START; }
                 break;
             case S_BLOCK_COMMENT:
                 if (c == '\n' || c == '\r') { lineNumber++; }
