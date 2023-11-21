@@ -1,0 +1,28 @@
+var a: Int
+
+a = 1
+
+f()
+
+func f() {
+    write(a)
+}
+
+func 
+foo
+(
+with
+a
+:
+Int
+,
+or
+b
+:
+Int
+) 
+->
+Int
+{
+return 0
+}

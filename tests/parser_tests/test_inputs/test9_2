@@ -1,0 +1,29 @@
+// function definition
+func findSquare (num: Int) -> Int {
+  var result = num * num
+  return result
+}
+
+// function call
+var square = findSquare(num: 3)
+
+write("Square:",square)
+
+func test35(num: Int) -> Int {
+    if num % 3 == 0{
+        return 1
+    } else {
+        return 0
+    }
+}
+
+print(test35(num: 33)) 
+print(test35(num: 100))
+print(test35(num: 15)) 
+print(test35(num: 17)) /* My first 
+program in Swift 
+4 
+*/
+var myString = "Hello, World!"; print(myString)
+myString = "He
+llo, World!"; print(myString)
