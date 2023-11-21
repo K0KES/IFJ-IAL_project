@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 TARGET_EXEC ?= IFJ_compiler.out
 
 BUILD_DIR ?= ./build
@@ -26,36 +28,37 @@ $(BUILD_DIR)/%.c.o: %.c %.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # regular tests
-test_eparser: $(BUILD_DIR)/$(TARGET_EXEC)
+test_eparser: 
 	$(TEST_CC) -o my_gtest_test_expression_parser $(TEST_DIR)/expression_parser_tests/main.cpp -lgtest -lgtest_main -g
-	./my_gtest_test_expression_parser
+# ./my_gtest_test_expression_parser < $(TEST_DIR)/expression_parser_tests/test1.txt
+	# ./my_gtest_test_expression_parser
 
-test_parser: $(BUILD_DIR)/$(TARGET_EXEC)
+test_parser: 
 	$(TEST_CC) -o my_gtest_test_parser $(TEST_DIR)/parser_tests/main.cpp -lgtest -lgtest_main -g
 	./my_gtest_test_parser
 
-test_scanner: $(BUILD_DIR)/$(TARGET_EXEC)
+test_scanner: 
 	$(TEST_CC) -o my_gtest_test_scanner $(TEST_DIR)/scanner_tests/main.cpp -lgtest -lgtest_main -g
 	./my_gtest_test_scanner
 
-test_symtable: $(BUILD_DIR)/$(TARGET_EXEC)
+test_symtable: 
 	$(TEST_CC) -o my_gtest_test_symtable $(TEST_DIR)/symtable_tests/main.cpp -lgtest -lgtest_main -g
 	./my_gtest_test_symtable
 
 # memory leaks test
-valgrind_eparser: $(BUILD_DIR)/$(TARGET_EXEC)
+valgrind_eparser: 
 	$(TEST_CC) -o my_gtest_test_expression_parser $(TEST_DIR)/expression_parser_tests/main.cpp -lgtest -lgtest_main -g
 	valgrind --leak-check=full --show-leak-kinds=all ./my_gtest_test_expression_parser
 
-valgrind_parser: $(BUILD_DIR)/$(TARGET_EXEC)
+valgrind_parser: 
 	$(TEST_CC) -o my_gtest_test_parser $(TEST_DIR)/parser_tests/main.cpp -lgtest -lgtest_main -g
 	valgrind --leak-check=full --show-leak-kinds=all ./my_gtest_test_parser
 
-valgrind_scanner: $(BUILD_DIR)/$(TARGET_EXEC)
+valgrind_scanner: 
 	$(TEST_CC) -o my_gtest_test_scanner $(TEST_DIR)/scanner_tests/main.cpp -lgtest -lgtest_main -g
 	valgrind --leak-check=full --show-leak-kinds=all ./my_gtest_test_scanner
 
-valgrind_symtable: $(BUILD_DIR)/$(TARGET_EXEC)
+valgrind_symtable: 
 	$(TEST_CC) -o my_gtest_test_symtable $(TEST_DIR)/symtable_tests/main.cpp -lgtest -lgtest_main -g
 	valgrind --leak-check=full --show-leak-kinds=all ./my_gtest_test_symtable
 

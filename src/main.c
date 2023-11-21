@@ -32,15 +32,6 @@ int main(int argc, char const *argv[]){
     activeToken->position->charNumber = 0;
     activeToken->position->lineNumber = 1;
 
-    //Symtable init
-    symtable *symTable = symtableInit();
-
-    //Call parser
-    parse(activeToken,symTable);
-
-    //symtablePrintVariables(symTable);
-    //symtableFree(symTable);
-    tokenFree(activeToken);
-    //fclose(fptr);
+    parse(activeToken);
     return 0;
 }
