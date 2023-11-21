@@ -962,6 +962,8 @@ bool varDec(token *activeToken){
             }
 
             symtableInsert(symTable,activeToken->value->str,false);
+            // TO DO přidat do vygenerovaného kodu - DEFVAR activeToken->value->str
+            //TO DO Generování uložit id na stack
 
             getNextToken(activeToken);
             varDecStatus = eol(activeToken) && varDecMid(activeToken);
@@ -1015,7 +1017,8 @@ bool varDef(token *activeToken){
             // 43) <varDef> -> = <expression>
             getNextToken(activeToken);
             //TO DO symtable check if expression has same type as variable
-            varDefStatus = expression(activeToken);
+            varDefStatus = expression(activeToken); //expression parser pushne výsledek výrazu na zásobník 
+            //TO DO generování pop 2 prvky ze zásobníku vygeneruji - MOV id1 id2
             break;
         default:
             // verification of: EOL
