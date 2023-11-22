@@ -27,21 +27,40 @@ int main(int argc, char const *argv[]){
     activeToken->position->charNumber = 0;
     activeToken->position->lineNumber = 1;
 
-    //Symtable init
-    symtable *symTable = symtableInit();
-
-    //Generator init
-    generator *gen = generatorInit();
+    //Program state init
+    programState *programState = programStateInit(); 
 
     //Call parser
-    parse(activeToken,symTable,gen);
+    parse(activeToken,programState);
 
-    generatorGenerateOutput(gen);
+    generatorGenerateOutput(programState->gen);
 
     //symtablePrintVariables(symTable);
-    //generatorFree(gen);
-    symtableFree(symTable);
+
+    programStateFree(programState);
     tokenFree(activeToken);
 
     return 0;
 }
+
+
+
+programState *programStateInit(){
+    programState *state = (programState*)malloc(sizeof(programState));
+    if (state == NULL) {raiseError(ERR_INTERNAL);}
+
+    state->tokenQueue = listInit();
+    state->gen = generatorInit();
+    state->symTable = symtableInit();
+    return state;
+}
+
+void programStateFree(programState *state){
+    generatorFree(state->gen);
+    symtableFree(state->symTable);
+    listDestroy(state->tokenQueue);
+
+    free(state);
+    state = NULL;
+}
+

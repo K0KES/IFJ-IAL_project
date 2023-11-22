@@ -128,13 +128,6 @@ typedef struct {
     char lastChar;
 } token;
 
-typedef struct{
-    token *lastReadToken;
-    bool isLastReadTokenValid;
-    unsigned int lineNumber;
-    unsigned int charNumber;
-} programState;
-
 void tokenClear (token* token);
 int getToken(token *token, int charNumber, int lineNumber);
 
