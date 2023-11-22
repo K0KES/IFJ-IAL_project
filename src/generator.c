@@ -23,7 +23,7 @@ void generatorPushStringToList(list *list, char *string){
     int stringLength = strlen(string) + 1;
     char *text = (char *)malloc(stringLength);
     memcpy(text,string,stringLength);
-    listPushFirst(list,text);
+    listPushBack(list,text);
 }
 
 char* generatorPopFirstStringFromList(list *list){
@@ -55,20 +55,25 @@ void generatorFree(generator *gen){
 }
 
 void generatorGenerateOutput(generator *gen){
-    FILE *fptr;
+    FILE *fptr = NULL;
     fptr = fopen("output", "w");
     fprintf(fptr, ".IFJcode23\n");
     fprintf(fptr, "JUMP $$main\n");
 
-    //INSERT FUNCTIONS
-    
-    fprintf(fptr, "LABEL $$main\n");
-    
-    char* line = (char *)listPopLast(gen->mainCode);
+    char* line = (char *)listPopFirst(gen->functions);
     while(line != NULL){
         fprintf(fptr, line);
         fprintf(fptr, "\n");
-        line = (char *)listPopLast(gen->mainCode);
+        line = (char *)listPopFirst(gen->functions);
+    }
+    
+    fprintf(fptr, "LABEL $$main\n");
+    
+    line = (char *)listPopFirst(gen->mainCode);
+    while(line != NULL){
+        fprintf(fptr, line);
+        fprintf(fptr, "\n");
+        line = (char *)listPopFirst(gen->mainCode);
     }
     
     fclose(fptr);

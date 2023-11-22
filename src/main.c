@@ -51,7 +51,7 @@ programState *programStateInit(){
 
     state->tokenQueue = listInit();
     state->gen = generatorInit();
-    state->symTable = symtableInit();
+    state->symTable = symtableInit(state->gen);
     return state;
 }
 
