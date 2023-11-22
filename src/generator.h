@@ -25,6 +25,8 @@ char* generatorPopStringFromList(list *list);
 
 void generatorPushStringToList(list *list, char *string);
 
+char * concatString(int num_args, ...);
+
 /*
 
 1) push nazev_promene to parser stack

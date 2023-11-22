@@ -22,7 +22,6 @@ symtable* symtableInit(){
 
 bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctionItem){
     printf("Entering scope - %s \n",scope == NULL ? "GLOBAL" : scope);
-    raiseError(ERR_SYNTAX);
     ht_table_t *hashmap;
     ht_init(&hashmap);
     if(hashmap == NULL) return false;

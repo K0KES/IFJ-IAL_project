@@ -8,6 +8,7 @@
 #include "../../src/symtable.c"
 #include "../../src/custom_data_types/list.c"
 #include "../../src/custom_data_types/hashtable.c"
+#include "../../src/error.c"
 /*
 TEST(SymtableTest, Test1) {
     

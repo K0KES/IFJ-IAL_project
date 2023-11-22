@@ -2,24 +2,17 @@
 #include <stdbool.h>
 #include "scanner.h"
 
-deftype tokenQueue {
+/*
+deftype struct tokenQueue {
     token *token;
     tokenQueue *next;
-} tokenQueue;
-
-
-
-
-
+} tokenQueue;*/
+/*
 struct programState {
     token *lastReadToken;
     bool isLastReadTokenValid;
     unsigned int lineNumber;
     unsigned int charNumber;
-} programState;
-
-
+} programState;*/
 
 int main(int argc, char const *argv[]);
-
-

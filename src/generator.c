@@ -1,5 +1,6 @@
 #include "generator.h"
 #include <stdio.h>
+#include <stdarg.h>
 
 generator* generatorInit(){
     generator *gen = (generator *)(malloc(sizeof(generator))); 
@@ -46,10 +47,32 @@ void generatorGenerateOutput(generator *gen){
 
     //INSERT FUNCTIONS
     
-    fprintf(fptr, "LABEL $$main");
-    //INSERT MAIN CODE
+    fprintf(fptr, "LABEL $$main\n");
+    
+    char* line = (char *)listPopLast(gen->mainCode);
+    while(line != NULL){
+        fprintf(fptr, line);
+        fprintf(fptr, "\n");
+        line = (char *)listPopLast(gen->mainCode);
+    }
     
     fclose(fptr);
+}
 
-    
+char * concatString(int num_args, ...){
+    va_list args;
+    va_start(args, num_args);
+
+    char* first = va_arg(args, char *);
+    int stringLength = strlen(first) + 1;
+    char *newFirst = (char *)malloc(stringLength);
+    memcpy(newFirst,first,stringLength);
+
+    for(int i = 1; i < num_args; i++) {
+        char* text = va_arg(args, char *);
+        strcat(newFirst,text);
+    }
+
+    va_end(args);
+    return newFirst;
 }

@@ -3,9 +3,12 @@
 
 #include "scanner.h"
 #include "symtable.h"
+#include "error.h"
+#include "generator.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #pragma once
 
 /// @brief Function initialize memory for one active token

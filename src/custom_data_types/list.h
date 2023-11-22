@@ -23,7 +23,9 @@ void* listGetFirst(list *list);
 
 bool listPushFirst(list *list, void *data);
 bool listPushBack(list *list, void *data);
+
 void* listPopFirst(list *list);
+void* listPopLast(list *list);
 
 void listClear(list *list);
 void listDestroy(list *list);

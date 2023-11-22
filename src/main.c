@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "scanner.h"
 #include "symtable.h"
+#include "generator.h"
 
 int main(int argc, char const *argv[]){
     //Parser init
@@ -35,8 +36,10 @@ int main(int argc, char const *argv[]){
     //Call parser
     parse(activeToken,symTable,gen);
 
+    generatorGenerateOutput(gen);
+
     //symtablePrintVariables(symTable);
-    generatorFree(gen);
+    //generatorFree(gen);
     symtableFree(symTable);
     tokenFree(activeToken);
 

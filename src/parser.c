@@ -1,5 +1,4 @@
 #include "parser.h"
-#include "error.h"
 
 enum tokenType typeOfLastToken;
 symtable *symTable;
@@ -316,7 +315,7 @@ bool definition(token *activeToken){
 
             //Add function to symtable
             symtableInsert(symTable,activeToken->value->str,true);
-            symtableEnterScope(symTable,activeToken->value->str);
+            symtableEnterScope(symTable,activeToken->value->str,NULL);
 
             // verification of: func <eol> ID <eol>
             getNextToken(activeToken);
@@ -619,7 +618,7 @@ bool statement(token *activeToken){
         case KW_IF:
             // 27) <statement> -> if <eol> <expression> <eol> {<statements>} <eol> else <eol> {<statements>}
             
-            symtableEnterScope(symTable,"if");
+            symtableEnterScope(symTable,"if",NULL);
             
             getNextToken(activeToken);
             statementStatus = eol(activeToken) && expression(activeToken) && eol(activeToken);  //TO DO jak to bude s expression (má potom být další getNextToken())
@@ -659,7 +658,7 @@ bool statement(token *activeToken){
         case KW_WHILE:
             // 28) <statement> -> while <eol> <expression> <eol> {<statements>}
 
-            symtableEnterScope(symTable,"while");
+            symtableEnterScope(symTable,"while",NULL);
 
             getNextToken(activeToken);
             statementStatus = eol(activeToken) && expression(activeToken) && eol(activeToken);
@@ -965,9 +964,12 @@ bool varDec(token *activeToken){
 
             symtableInsert(symTable,activeToken->value->str,false);
             // TO DO přidat do vygenerovaného kodu - DEFVAR activeToken->value->str
-            generatorPushStringToList(gen->mainCode,"DEFVAR GF@"+activeToken->value->str);
+            //generatorPushStringToList(gen->mainCode,strcat("DEFVAR GF@",activeToken->value->str));
+
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR GF@",activeToken->value->str));
             //TO DO Generování uložit id na stack
-            generatorPushStringToList(gen->parserStack,"GF@"+activeToken->value->str);
+            //generatorPushStringToList(gen->parserStack,strcat());
+            generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
             
 
             getNextToken(activeToken);
@@ -1025,7 +1027,7 @@ bool varDef(token *activeToken){
             varDefStatus = expression(activeToken); //expression parser pushne výsledek výrazu na zásobník 
             generatorPushStringToList(gen->parserStack,"int@5");
             //TO DO generování pop 2 prvky ze zásobníku vygeneruji - MOV id1 id2
-            generatorPushStringToList(gen->mainCode,"MOV "+generatorPopStringFromList(gen->parserStack),generatorPopStringFromList(gen->parserStack));
+            generatorPushStringToList(gen->mainCode,concatString(4,"MOV ",generatorPopStringFromList(gen->parserStack)," ",generatorPopStringFromList(gen->parserStack)));
             break;
         default:
             // verification of: EOL

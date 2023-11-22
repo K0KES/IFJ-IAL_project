@@ -103,6 +103,22 @@ void* listPopFirst(list *list){
     return data;
 }
 
+void* listPopLast(list *list){
+    if(!list) return NULL;
+
+    listNode *node = list->last;
+    if(node == NULL) return NULL;
+
+    void *data = node->data;
+
+    list->last = node->prev;
+    list->size--;
+
+    free(node);
+
+    return data;
+}
+
 void* listGetFirst(list *list) {
     if(list->size == 0) return NULL;
     return list->first->data;
