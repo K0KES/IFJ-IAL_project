@@ -1,4 +1,5 @@
 #include "scanner.h"
+#include "error.h"
 #pragma once
 
 void tokenClear (token* token) {
@@ -10,11 +11,14 @@ void tokenClear (token* token) {
 int getToken(token *token, int charNumber, int lineNumber) {
     char c = '\0';
     enum state state = S_START;
-    printf("\n");
+    // printf("\n");
     char lastChar = '\0';
+    int multilineExit = 0;
+    int multilineEnter = 0;
     while (c != EOF) {
         c = getc(stdin);
         if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { /*printf("%c\n", c);*/ }
+        if (lineNumber > 10) {  raiseError(ERR_LEXICAL); }
         switch (state) {
             /////////////////////////  
             //first starting STATE
@@ -148,7 +152,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strAddChar(token->value, c);
-                        // return LEX_ERROR;
+                        //  raiseError(ERR_LEXICAL);
+                       
                         return LEX_OK;
                         break;
                     /////////////////////////  
@@ -166,7 +171,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         }
                         break;
                 }
-                lastChar = c;
+                if (state != S_NEW_LINE) lastChar = c;
                 break;
             /////////////////////////  
             //STATES continues
@@ -231,21 +236,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
-            case S_TRANSITION_TO_COMMENT:
-                switch (c) {
-                case '\\':
-                    state = S_LINE_COMMENT;
-                    break;
-                default:
-                    token->tokenType = T_EOL;
-                    ungetc(c, stdin);
-                    if (lastChar == ' ' || lastChar == '\t') { ungetc(lastChar, stdin); }
-                    token->position->charNumber = charNumber;
-                    token->position->lineNumber = lineNumber;
-                    return LEX_OK;
-                    break;
-                }
-                break;
+           
             case S_INCREMENT:
                 if (c == '=') { 
                     token->tokenType = T_INCREMENT;
@@ -433,8 +424,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '?':
                 case EOF:
                     //printf("\ncurrent token val='");
-                    strPrint(token->value);
-                    printf("\n");
+                    // strPrint(token->value);
+                    // printf("\n");
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
                         ungetc(c, stdin);
@@ -640,16 +631,16 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case 'e':
                 case 'E':
                 case '.':
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return LEX_ERROR;
+                    // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                     raiseError(ERR_LEXICAL);
                     break;
                 case ' ':
                 case '\t':
                 case '\n':
                 case '\r':
                     if (lastChar == 'e' || lastChar == 'E' || lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return LEX_ERROR;    
+                        // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                         raiseError(ERR_LEXICAL);    
                     }
                     token->tokenType = T_INT;
                     ungetc(c, stdin);
@@ -665,8 +656,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lastChar = c;
                     }
                     else if (lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return LEX_ERROR;
+                        // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                         raiseError(ERR_LEXICAL);
                     }
                     else {
                         token->tokenType = T_INT;
@@ -683,8 +674,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lastChar = c;
                     }
                     else if (lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return LEX_ERROR;
+                        // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                         raiseError(ERR_LEXICAL);
                     }
                     else {
                         token->tokenType = T_INT;
@@ -721,16 +712,16 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case 'e':
                 case 'E':
                 case '.':
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return LEX_ERROR;
+                    // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                     raiseError(ERR_LEXICAL);
                     break;
                 case ' ':
                 case '\t':
                 case '\n':
                 case '\r':
                     if (lastChar == 'e' || lastChar == 'E' || lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return LEX_ERROR;    
+                        // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                         raiseError(ERR_LEXICAL);    
                     }
                     token->tokenType = T_DOUBLE;
                     ungetc(c, stdin);
@@ -746,8 +737,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lastChar = c;
                     }
                     else if (lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return LEX_ERROR;
+                        // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                         raiseError(ERR_LEXICAL);
                     }
                     else {
                         token->tokenType = T_DOUBLE;
@@ -764,8 +755,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lastChar = c;
                     }
                     else if (lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return LEX_ERROR;
+                        // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                         raiseError(ERR_LEXICAL);
                     }
                     else {
                         token->tokenType = T_DOUBLE;
@@ -784,6 +775,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 case '*':
                     state = S_BLOCK_COMMENT;
+                    multilineExit++;
                     break;
                 case '=':
                     token->tokenType = T_VAR_DIV_VAR;
@@ -810,8 +802,14 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 break;
             case S_BLOCK_COMMENT:
                 if (c == '\n' || c == '\r') { lineNumber++; }
-                if (c == '/' && lastChar == '*') { state = S_START; }
+                if (c == '/' && lastChar == '*') {
+                    multilineExit--;
+                    if (multilineExit == 0) { state = S_START; }
+                }
+                if (c == '*' && lastChar == '/') { multilineExit++; }
+                if (c == EOF && multilineExit > 0) {  /*printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);*/  raiseError(ERR_LEXICAL); }
                 lastChar = c;
+                if (multilineExit == 0) lastChar = '\0';
                 break;
             case S_MULTILINE_LINE_STRING:
                 switch (c) {
@@ -821,8 +819,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     state = S_MULTILINE_LINE_STRING_CHECK;
                     break;
                 case EOF:
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return LEX_ERROR;
+                    // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                     raiseError(ERR_LEXICAL);
                     break;
                 default:
                     ungetc(c, stdin);
@@ -854,8 +852,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\r':
                 case '\n':
                 case EOF:
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return LEX_ERROR;
+                    // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                     raiseError(ERR_LEXICAL);
                 default:
                     charNumber++;
                     lastChar = c;
@@ -879,8 +877,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 //ERROR
                 default:
                     charNumber++;
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return LEX_ERROR;
+                    // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                     raiseError(ERR_LEXICAL);
                     break;
                 }
                 break;
@@ -923,8 +921,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 case '"':
                     if (lastChar != '\n') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return LEX_ERROR;
+                        // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                         raiseError(ERR_LEXICAL);
                     }
                     strAddChar(token->value, c);
                     charNumber++;
@@ -935,8 +933,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 default:
                     if (lastChar == '"') {
                         charNumber++;
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                        return LEX_ERROR;
+                        // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                         raiseError(ERR_LEXICAL);
                     }
 
                     strAddChar(token->value, c);
@@ -964,8 +962,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 default:
                     charNumber++;
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return LEX_ERROR;
+                    // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                     raiseError(ERR_LEXICAL);
                     break;
                 }
                 break;
@@ -986,14 +984,14 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 //ERROR
                 default:
                     charNumber++;
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    return LEX_ERROR;
+                    // printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                     raiseError(ERR_LEXICAL);
                     break;
                 }
                 break;
         }
     }
-    return LEX_ERROR;
+     raiseError(ERR_LEXICAL);
 }
 
 const char* getTokenName(enum tokenType tokenType) {
