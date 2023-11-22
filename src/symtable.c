@@ -10,6 +10,7 @@ symtable* symtableInit(){
 
     table->tables = listInit();
     table->scopes = listInit();
+    table->functionCalls = listInit();
 
     if(table->tables == NULL){ free(table); return NULL; }
     
@@ -25,7 +26,6 @@ bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctio
     ht_table_t *hashmap;
     ht_init(&hashmap);
     if(hashmap == NULL) return false;
-    
 
     listPushFirst(table->tables,hashmap);
 
@@ -40,8 +40,6 @@ bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctio
 
         listPushFirst(table->scopes,string);
     }
-
-    
 }
 
 void symtableExitScope(symtable *table){
@@ -83,6 +81,7 @@ void symtableFree(symtable *table){
 
     listDestroy(table->tables);
     listDestroy(table->scopes);
+    listDestroy(table->functionCalls);
     free(table);
 }
 
@@ -97,6 +96,7 @@ void symtableInsert(symtable *table, char *varName, bool isFunction){
     newSymtableItem->name = string;
     newSymtableItem->funcData = NULL;
     newSymtableItem->data = NULL;
+    newSymtableItem->type = DATA_TYPE_NOTSET;
 
     if(isFunction){
         newSymtableItem->funcData = (functionData *)malloc(sizeof(functionData));
@@ -230,6 +230,10 @@ void symtableAddFunctionNextArgument(symtable *table){
     if(table->activeItem->funcData == NULL) return;
 
     functionArgument *argument = (functionArgument *)malloc(sizeof(functionArgument));
+    argument->type = DATA_TYPE_NOTSET;
+    argument->name = "";
+    argument->id = "";
+    argument->nullable = false;
     
     listPushBack(table->activeItem->funcData->arguments,argument);
 }
@@ -286,16 +290,125 @@ enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table){
     return table->currentFunction->funcData->returnType;
 }
 
-/*
-isVariableDefined(nazev) = je v tom daném scopu
-isVariableInitiated(nazev) = má hodnotu
+symtableItem *symtableFindSymtableItem(symtable *table, char *varName){
+    listNode *currentNode = table->tables->first;
+    while(currentNode != NULL){
+        ht_table_t *currentTable = (ht_table_t *)(currentNode->data);
+        ht_item_t *item = ht_search(currentTable,varName);
+        if(item != NULL){
+            return (symtableItem *)(item->data);
+        }
+        currentNode = currentNode->next;
+    }   
+    return NULL;
+}
 
-getVariableType(nazev) = vrací type proměnné
+bool symtableIsVariableDefined(symtable *table,char *varName){
+    return symtableFindSymtableItem(table,varName) != NULL;
+}
 
-functionCallStart(nazev_funkce)
-functionCallNextParameter()
-functionCallSetParameterType() typ se musí rovnat typu
-functionCallSetParameterName() name se musí rovnat name
-functionCallEnd() checkne integritu volání
+bool symtableIsVariableInitiated(symtable *table,char *varName){
+    symtableItem *item = symtableFindSymtableItem(table,varName);
+    if(item == NULL) return false;
+    return item->data != NULL;
+}
 
-*/
+enum data_type symtableGetVariableType(symtable *table, char *varName){
+    symtableItem *item = symtableFindSymtableItem(table,varName);
+
+    if(item == NULL) raiseError(ERR_UNDEFINED_VARIABLE);
+    if(item->funcData == NULL){
+        return item->type;
+    }else{
+        return item->funcData->returnType;
+    }
+}
+
+//FUNCTION CALLS ex. foo(par1, par2, par3);
+
+
+void symtableFunctionCallStart(symtable *table, char *funcName){
+    table->lastFunctionCall = funcName;
+    
+    functionData *funcData = (functionData *)(malloc(sizeof(functionData)));
+    funcData->returnType = DATA_TYPE_NOTSET;
+    funcData->arguments = listInit();
+
+    listPushFirst(table->functionCalls,funcData);
+}
+
+void symtableFunctionCallNextParameter(symtable *table){
+    functionData *funcData = (functionData *)listGetLast(table->functionCalls);
+    
+    functionArgument *argument = (functionArgument *)malloc(sizeof(functionArgument));
+    argument->type = DATA_TYPE_NOTSET;
+    argument->name = "";
+    argument->id = "";
+    argument->nullable = false;
+    listPushBack(funcData->arguments,argument);
+}
+
+void symtableFunctionCallSetParameterType(symtable *table, enum data_type type, bool nullable){
+    functionData *funcData = (functionData *)listGetLast(table->functionCalls);
+    functionArgument *argument = (functionArgument *)listGetLast(funcData->arguments);
+    argument->type = type;
+    argument->nullable = nullable;
+}
+
+void symtableFunctionCallSetParameterName(symtable *table, char* name){
+    functionData *funcData = (functionData *)listGetLast(table->functionCalls);
+    functionArgument *argument = (functionArgument *)listGetLast(funcData->arguments);
+
+    int stringLength = strlen(name) + 1;
+    char *string = (char *)malloc(stringLength);
+    memcpy(string,name,stringLength);
+
+    argument->name = string;
+}
+
+void symtableFunctionCallEnd(symtable *table){
+    functionData *funcData = (functionData *)listGetLast(table->functionCalls);
+
+    symtableItem *item = symtableFindSymtableItem(table,table->lastFunctionCall);
+    if(item != NULL){
+        if(item->funcData == NULL) raiseError(ERR_UNDEFINED_FUNCTION);
+
+        listNode *callCurrentItem = funcData->arguments->first;
+        listNode *funcCurrentItem = item->funcData->arguments->first;
+
+        while(true){
+            if(callCurrentItem == NULL && funcCurrentItem != NULL) raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            if(callCurrentItem != NULL && funcCurrentItem == NULL) raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            if(callCurrentItem == NULL || funcCurrentItem == NULL) break;
+            functionArgument *callArg = (functionArgument *)(callCurrentItem->data);
+            functionArgument *funcArg = (functionArgument *)(funcCurrentItem->data);
+
+            if(callArg->type != funcArg->type){
+                raiseError(ERR_WRONG_TYPE);
+            }
+            if(strcmp(callArg->name,funcArg->name) != 0){
+                if(strcmp(funcArg->name,"_") != 0){
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                if(strcmp(callArg->name,"") != 0){
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                
+                
+            }
+            if(callArg->nullable != funcArg->nullable){
+                if(!(funcArg->nullable && !callArg->nullable)){
+                    raiseError(ERR_WRONG_TYPE);
+                }
+            }
+
+            callCurrentItem = callCurrentItem->next;
+            funcCurrentItem = funcCurrentItem->next;
+        }
+
+        listDestroy(funcData->arguments);
+        free(funcData);
+        funcData = NULL;
+        listPopLast(table->functionCalls);
+    }
+}

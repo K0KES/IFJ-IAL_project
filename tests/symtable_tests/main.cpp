@@ -72,9 +72,82 @@ TEST(SymtableTest, Test2){
 
     symtableFree(table);
 }*/
+/*
+TEST(SymtableTest, Test3){
+    symtable *table = symtableInit();
 
+    double testDouble = 27.27f;
+    int testInt = 27;
+    char *testString = "ahoj světe";
+
+    EXPECT_EQ(symtableIsVariableDefined(table,"x"),false);
+    EXPECT_EQ(symtableIsVariableInitiated(table,"x"),false);
+
+    symtableInsert(table,"x",false);
+
+    EXPECT_EQ(symtableGetVariableType(table,"x"),DATA_TYPE_NOTSET);
+
+    EXPECT_EQ(symtableIsVariableInitiated(table,"x"),false);
+
+    symtableSetDataType(table,DATA_TYPE_INTEGER,false);
+    symtableSetVariableValue(table,&testInt);
+
+    EXPECT_EQ(symtableGetVariableType(table,"x"),DATA_TYPE_INTEGER);
+
+    EXPECT_EQ(symtableIsVariableInitiated(table,"x"),true);
+
+    EXPECT_EQ(symtableIsVariableDefined(table,"x"),true);
+    EXPECT_EQ(symtableIsVariableDefined(table,"funkce"),false);
+
+    symtableInsert(table,"funkce",true);
+    symtableFunctionEndOfArguments(table);
+    symtableSetDataType(table,DATA_TYPE_VOID,false);
+
+    EXPECT_EQ(symtableIsVariableDefined(table,"a"),false);
+    symtableInsert(table,"a",false);
+    EXPECT_EQ(symtableIsVariableDefined(table,"a"),true);
+    EXPECT_EQ(symtableIsVariableDefined(table,"x"),true);
+    EXPECT_EQ(symtableIsVariableInitiated(table,"x"),true);
+    EXPECT_EQ(symtableGetVariableType(table,"x"),DATA_TYPE_INTEGER);
+
+    symtableExitScope(table);
+
+    EXPECT_EQ(symtableIsVariableDefined(table,"funkce"),true);
+    EXPECT_EQ(symtableIsVariableDefined(table,"a"),false);
+
+    symtableFree(table);
+}*/
+
+TEST(SymtableTest, Test5){
+    symtable *table = symtableInit();
+
+    double testDouble = 27.27f;
+    int testInt = 27;
+    char *testString = "ahoj světe";
+
+    symtableInsert(table,"funkce",true);
+
+    symtableAddFunctionNextArgument(table);
+    symtableSetDataType(table,DATA_TYPE_INTEGER,false);
+    symtableSetFunctionArgumentName(table,"xd");
+
+    symtableFunctionEndOfArguments(table);
+    symtableSetDataType(table,DATA_TYPE_VOID,false);
+    symtableExitScope(table);
+
+    symtableFunctionCallStart(table,"funkce");
+    symtableFunctionCallNextParameter(table);
+    symtableFunctionCallSetParameterName(table,"x");
+    symtableFunctionCallSetParameterType(table,DATA_TYPE_INTEGER,false);
+    symtableFunctionCallEnd(table);
+
+    symtableFree(table);
+
+    //Kdyz meno je podrzitko pri volani ho neupouzivas
+}
+/*
 TEST(GeneratorTest,Test1){
     generator *gen = generatorInit();
     generatorGenerateOutput(gen);
     generatorFree(gen);
-}
+}*/

@@ -55,6 +55,8 @@ typedef struct symtable_s
 	ht_table_t *globalTable;
     symtableItem *activeItem;
     symtableItem *currentFunction;
+    list *functionCalls;
+    char* lastFunctionCall;
 }symtable;
 
 ///Initializes symtable - MUST BE CALLED BEFORE ANY OTHER FUNCTION!
@@ -86,6 +88,8 @@ void symtableAddFunctionNextArgument(symtable *table);
 
 ///Sets name for last argument (Must be called after symtableFunctionNextArgument)
 void symtableSetFunctionArgumentName(symtable *table, char *name);
+
+bool symtableIsVariableDefined(symtable *table,char *varName);
 
 ///Sets data_type for last argument (Must be called after symtableFunctionNextArgument)
 //void symtableSetFunctionArgumentType(symtable *table, enum data_type type);
