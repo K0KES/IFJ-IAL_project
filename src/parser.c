@@ -684,7 +684,7 @@ bool statement(){
             //TO DO symtable kontrola symtable jestli je var/func definovaná - setActive prvek
 
             //Generator
-            generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
+            generatorPushStringFirstToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
 
             getNextToken();
             statementStatus = callOrAssign();
@@ -1032,7 +1032,7 @@ bool varDec(){
 
             //Generator
             generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR GF@",activeToken->value->str));
-            generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
+            generatorPushStringFirstToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
 
             getNextToken();
             varDecStatus = eol() && varDecMid();
@@ -1056,7 +1056,7 @@ bool varDec(){
             //Generator
             printf("GEN: %d\n",gen);
             generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR GF@",activeToken->value->str));
-            generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
+            generatorPushStringFirstToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
 
             getNextToken();
             varDecStatus = eol() && varDecMid();
@@ -1338,7 +1338,7 @@ bool expression(){
             tempVarName = concatString(2,"GF@",generatorGenerateTempVarName());
             generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
             generatorPushStringToList(gen->mainCode,concatString(3,"READ ",tempVarName, " string"));
-            generatorPushStringToList(gen->parserStack,tempVarName);
+            generatorPushStringFirstToList(gen->parserStack,tempVarName);
 
             getNextToken();
             expressionStatus = true;
@@ -1361,7 +1361,7 @@ bool expression(){
             tempVarName = concatString(2,"GF@",generatorGenerateTempVarName());
             generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
             generatorPushStringToList(gen->mainCode,concatString(3,"READ ",tempVarName, " int"));
-            generatorPushStringToList(gen->parserStack,tempVarName);
+            generatorPushStringFirstToList(gen->parserStack,tempVarName);
 
             getNextToken();
             expressionStatus = true;
@@ -1383,7 +1383,7 @@ bool expression(){
             tempVarName = concatString(2,"GF@",generatorGenerateTempVarName());
             generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
             generatorPushStringToList(gen->mainCode,concatString(3,"READ ",tempVarName, " float"));
-            generatorPushStringToList(gen->parserStack,tempVarName);
+            generatorPushStringFirstToList(gen->parserStack,tempVarName);
 
             getNextToken();
             expressionStatus = true;
@@ -1398,14 +1398,14 @@ bool expression(){
             getNextToken();
             expressionStatus = argument();
             //TO DO expression parser push to stack parser_stack
-            generatorPushStringToList(gen->parserStack,"int@4"); //TO DO zkontrolovat zápis floatu
+            generatorPushStringFirstToList(gen->parserStack,"int@4"); //TO DO zkontrolovat zápis floatu
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
             generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
 
             generatorPushStringToList(gen->mainCode,concatString(4, "INT2FLOAT ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            generatorPushStringToList(gen->parserStack,tempVarName);
+            generatorPushStringFirstToList(gen->parserStack,tempVarName);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function expression() with %d ...\n",false);
@@ -1423,14 +1423,14 @@ bool expression(){
             getNextToken();
             expressionStatus = argument();
             //TO DO expression parser push to stack parser_stack
-            generatorPushStringToList(gen->parserStack,"float@4"); //TO DO zkontrolovat zápis floatu
+            generatorPushStringFirstToList(gen->parserStack,"float@4"); //TO DO zkontrolovat zápis floatu
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
             generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
 
             generatorPushStringToList(gen->mainCode,concatString(4, "FLOAT2INT ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            generatorPushStringToList(gen->parserStack,tempVarName);
+            generatorPushStringFirstToList(gen->parserStack,tempVarName);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function expression() with %d ...\n",false);
@@ -1448,14 +1448,14 @@ bool expression(){
             getNextToken();
             expressionStatus = argument();
             //TO DO expression parser push to stack parser_stack
-            generatorPushStringToList(gen->parserStack,"string@retezec"); //TO DO zkontrolovat zápis floatu
+            generatorPushStringFirstToList(gen->parserStack,"string@retezec"); //TO DO zkontrolovat zápis floatu
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
             generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
 
             generatorPushStringToList(gen->mainCode,concatString(4, "STRLEN ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            generatorPushStringToList(gen->parserStack,tempVarName);
+            generatorPushStringFirstToList(gen->parserStack,tempVarName);
             
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function expression() with %d ...\n",false);
@@ -1499,7 +1499,7 @@ bool expression(){
 
             //Generator
             //TO DO generator push to stack parser_stack
-            generatorPushStringToList(gen->parserStack,"int@3");
+            generatorPushStringFirstToList(gen->parserStack,"int@3");
 
             getNextToken();
             break;
@@ -1519,7 +1519,7 @@ bool expression(){
 
             //Generator
             //TO DO generator push to stack parser_stack
-            generatorPushStringToList(gen->parserStack,"int@4");
+            generatorPushStringFirstToList(gen->parserStack,"int@4");
 
             getNextToken();
             break;
@@ -1540,12 +1540,12 @@ bool expression(){
 
             //Generator
             //TO DO generator push to stack parser_stack
-            generatorPushStringToList(gen->parserStack,"int@4");
+            generatorPushStringFirstToList(gen->parserStack,"int@4");
 
             getNextToken();
             break;
         default:
-            generatorPushStringToList(gen->parserStack,"int@5");
+            generatorPushStringFirstToList(gen->parserStack,"int@5");
             if (activeToken->tokenType == T_LEFT_BRACKET){
                 while (activeToken->tokenType != T_RIGHT_BRACKET){
                     printf("getting next\n");
