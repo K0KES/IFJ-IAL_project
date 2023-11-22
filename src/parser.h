@@ -21,9 +21,9 @@ int tokenFree(token *activeToken);
 /// @brief Function that starts the parser
 /// @param activeToken pointer to token
 /// @param symTablePtr pointer to symtable
+/// @param genPtr pointer to generator
 /// @return returns 0 if was parsed succesfully, otherwise returns 2
-int parse(token *activeToken, symtable *symTablePtr);
-
+int parse(token *activeToken, symtable *symTablePtr, generator *genPtr);
 
 /// @brief Function gets next token and saves it in activeToken
 /// @param activeToken pointer to token

@@ -3,6 +3,7 @@
 
 enum tokenType typeOfLastToken;
 symtable *symTable;
+generator *gen;
 
 int tokenInit(token *activeToken){
     activeToken = (token*)malloc(sizeof(token));
@@ -42,8 +43,9 @@ int tokenFree(token *activeToken){
     return 0;
 }
 
-int parse(token *activeToken, symtable *symTablePtr){
+int parse(token *activeToken, symtable *symTablePtr, generator *genPtr){
     symTable = symTablePtr;
+    gen = genPtr;
     getNextToken(activeToken);
     if(start(activeToken)){
         printf("Success\n");
@@ -963,7 +965,10 @@ bool varDec(token *activeToken){
 
             symtableInsert(symTable,activeToken->value->str,false);
             // TO DO přidat do vygenerovaného kodu - DEFVAR activeToken->value->str
+            generatorPushStringToList(gen->mainCode,"DEFVAR GF@"+activeToken->value->str);
             //TO DO Generování uložit id na stack
+            generatorPushStringToList(gen->parserStack,"GF@"+activeToken->value->str);
+            
 
             getNextToken(activeToken);
             varDecStatus = eol(activeToken) && varDecMid(activeToken);
@@ -1018,7 +1023,9 @@ bool varDef(token *activeToken){
             getNextToken(activeToken);
             //TO DO symtable check if expression has same type as variable
             varDefStatus = expression(activeToken); //expression parser pushne výsledek výrazu na zásobník 
+            generatorPushStringToList(gen->parserStack,"int@5");
             //TO DO generování pop 2 prvky ze zásobníku vygeneruji - MOV id1 id2
+            generatorPushStringToList(gen->mainCode,"MOV "+generatorPopStringFromList(gen->parserStack),generatorPopStringFromList(gen->parserStack));
             break;
         default:
             // verification of: EOL

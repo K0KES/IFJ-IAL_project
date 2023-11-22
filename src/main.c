@@ -29,10 +29,14 @@ int main(int argc, char const *argv[]){
     //Symtable init
     symtable *symTable = symtableInit();
 
+    //Generator init
+    generator *gen = generatorInit();
+
     //Call parser
-    parse(activeToken,symTable);
+    parse(activeToken,symTable,gen);
 
     //symtablePrintVariables(symTable);
+    generatorFree(gen);
     symtableFree(symTable);
     tokenFree(activeToken);
 
