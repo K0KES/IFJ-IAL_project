@@ -14,3 +14,13 @@ x += 3
 x -= 3
 x *= 3
 x /= 3
+
+x = readString()
+x = readInt()
+x = readDouble()
+x = Int2Double(3)
+
+x = length("2")
+x = substring("AS",3,4)
+x = ord("asda")
+x = chr(4)
