@@ -99,6 +99,32 @@ void* listPopFirst(list *list){
     list->size--;
 
     free(node);
+    node = NULL;
+
+    return data;
+}
+
+void* listPopLast(list *list){
+    if(!list) return NULL;
+
+    listNode *node = list->last;
+    if(node == NULL) return NULL;
+
+    void *data = node->data;
+    
+    if(node->prev == NULL) 
+        list->first = node->next;
+    else 
+        node->prev->next = node->next;
+    
+    if(node->next == NULL)
+        list->last = node->prev; 
+    else
+        node->next->prev = node->prev;
+
+    list->size--;
+
+    free(node);
 
     return data;
 }

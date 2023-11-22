@@ -1,31 +1,31 @@
 #include "parser.h"
 
 enum tokenType typeOfLastToken;
-symtable *symTable;
 
-int tokenInit(token *activeToken){
-    activeToken = (token*)malloc(sizeof(token));
-    if(activeToken == NULL){
-        return 99;
-    }
+symtable *symTable;
+generator *gen;
+token *activeToken;
+programState *state;
+
+token *tokenInit(){
+    token *activeToken = (token*)malloc(sizeof(token));
+    if(activeToken == NULL){ raiseError(ERR_INTERNAL); }
 
     activeToken->value = (string*)malloc(sizeof(string));
-    if(activeToken->value == NULL){
-        return 99;
-    }
+    if(activeToken->value == NULL){ raiseError(ERR_INTERNAL); }
+
     strInit(activeToken->value);
 
     activeToken->position = (positionInfo*)malloc(sizeof(positionInfo));
-    if(activeToken->position == NULL){
-        return 99;
-    }
+    if(activeToken->position == NULL){ raiseError(ERR_INTERNAL); }
+
     activeToken->position->charNumber = 0;
     activeToken->position->lineNumber = 1;
-    return 0;
+    return activeToken;
 }
 
-int tokenFree(token *activeToken){
-    if (activeToken == NULL) return 99;
+void tokenFree(token *activeToken ){
+    if (activeToken == NULL){ raiseError(ERR_INTERNAL); }
 
     if(activeToken->position != NULL){
         free(activeToken->position);
@@ -38,23 +38,27 @@ int tokenFree(token *activeToken){
     }
     free(activeToken);
     activeToken = NULL;
-    return 0;
+    return;
 }
 
-int parse(token *activeToken, symtable *symTablePtr){
-    symTable = symTablePtr;
-    getNextToken(activeToken);
-    if(start(activeToken)){
+int parse(programState *programState){
+    state = programState;
+    symTable = programState->symTable;
+    gen = programState->gen;
+    activeToken = programState->activeToken;
+    getNextToken();
+    if(start()){
         printf("Success\n");
         return 0;
     }
     else{
         printf("Error\n");
+        raiseError(ERR_SYNTAX);
         return 2;
     }
 }
 
-int getNextToken(token *activeToken){
+int getNextToken(){
     typeOfLastToken = activeToken->tokenType;
     tokenClear(activeToken);
     int getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
@@ -64,7 +68,7 @@ int getNextToken(token *activeToken){
     return getTokenErr;
 }
 
-bool start(token *activeToken){
+bool start(){
     bool startStatus = false;
     printf("Start token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function start()...\n");
@@ -90,11 +94,11 @@ bool start(token *activeToken){
         case KW_ORD:
         case KW_CHR:
             // 1) <start> -> <eol> <code>
-            startStatus = eol(activeToken) && code(activeToken);
+            startStatus = eol() && code();
             break;
         case T_END:
             // 2) <start> -> EPS
-            getNextToken(activeToken);  //TO DO maybe verify if non token is after END
+            getNextToken();  //TO DO maybe verify if non token is after END
             startStatus = true;
             break;
         default:  
@@ -105,7 +109,7 @@ bool start(token *activeToken){
     return startStatus;
 }
 
-bool code(token *activeToken){
+bool code(){
     bool codeStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function code()...\n");
@@ -113,7 +117,7 @@ bool code(token *activeToken){
     switch(activeToken->tokenType) {
         case KW_FUNC:
             // 3) <code> -> <definition> EOL/EOF <code>
-            codeStatus = definition(activeToken);
+            codeStatus = definition();
 
             // verification of: EOF
             if (activeToken->tokenType == T_EOF){ 
@@ -127,10 +131,10 @@ bool code(token *activeToken){
                     printf("Leaving function code() with %d ...\n",false);
                     return false;
                 }
-                getNextToken(activeToken);
+                getNextToken();
             }
 
-            codeStatus = codeStatus && code(activeToken);
+            codeStatus = codeStatus && code();
             break;
         case T_IDENTIFIER:
         case KW_RETURN:
@@ -149,7 +153,7 @@ bool code(token *activeToken){
         case KW_ORD:
         case KW_CHR:
             // 4) <code> -> <statement> EOL/EOF <code>
-            codeStatus = statement(activeToken);
+            codeStatus = statement();
 
             // verification of: EOF
             if (activeToken->tokenType == T_EOF){ 
@@ -163,10 +167,10 @@ bool code(token *activeToken){
                     printf("Leaving function code() with %d ...\n",false);
                     return false;
                 }
-                getNextToken(activeToken);
+                getNextToken();
             }
             
-            codeStatus = codeStatus && code(activeToken);
+            codeStatus = codeStatus && code();
             break;
         case T_EOF:
             // 5) <code> -> EOF
@@ -181,7 +185,7 @@ bool code(token *activeToken){
     return codeStatus;
 }
 
-bool eol(token *activeToken){
+bool eol(){
     bool eolStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function eol()...\n");
@@ -189,7 +193,7 @@ bool eol(token *activeToken){
     switch(activeToken->tokenType) {
         case T_EOL:
             // 6) <eol> -> EOL
-            getNextToken(activeToken);
+            getNextToken();
             eolStatus = true;
             break;
         case T_IDENTIFIER:
@@ -241,7 +245,7 @@ bool eol(token *activeToken){
     return eolStatus;
 }
 
-bool type(token *activeToken){
+bool type(){
     bool typeStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function type()...\n");
@@ -249,10 +253,10 @@ bool type(token *activeToken){
     switch(activeToken->tokenType) {
         case KW_INT:
             // 8) <type> -> int
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
                 //edit symtableSetVariableType(symTable, DATA_TYPE_INTEGER, true);
-                getNextToken(activeToken);
+                getNextToken();
             }
             else {
                 //symtableSetVariableType(symTable, DATA_TYPE_INTEGER, false);
@@ -261,10 +265,10 @@ bool type(token *activeToken){
             break;
         case KW_DOUBLE:
             // 9) <type> -> double
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
                 //symtableSetVariableType(symTable, DATA_TYPE_DOUBLE, true);
-                getNextToken(activeToken);
+                getNextToken();
             }
             else {
                 //symtableSetVariableType(symTable, DATA_TYPE_DOUBLE, false);
@@ -273,10 +277,10 @@ bool type(token *activeToken){
             break;
         case KW_STRING:
             // 10) <type> -> string
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
                 //symtableSetVariableType(symTable, DATA_TYPE_STRING, true);
-                getNextToken(activeToken);
+                getNextToken();
             }
             else {
                 //symtableSetVariableType(symTable, DATA_TYPE_STRING, false);
@@ -291,7 +295,7 @@ bool type(token *activeToken){
     return typeStatus;
 }
 
-bool definition(token *activeToken){
+bool definition(){
     bool definitionStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function definition()...\n");
@@ -301,8 +305,8 @@ bool definition(token *activeToken){
             // 11) <definition> -> func <eol> ID <eol> (<functionParams>) <eol> <funcDefMid>
 
             // verification of: func <eol>
-            getNextToken(activeToken);
-            definitionStatus = eol(activeToken);
+            getNextToken();
+            definitionStatus = eol();
             
             // verification of: func <eol> ID 
             if (activeToken->tokenType != T_IDENTIFIER){ 
@@ -312,11 +316,11 @@ bool definition(token *activeToken){
 
             //Add function to symtable
             symtableInsert(symTable,activeToken->value->str,true);
-            symtableEnterScope(symTable,activeToken->value->str);
+            symtableEnterScope(symTable,activeToken->value->str,NULL);
 
             // verification of: func <eol> ID <eol>
-            getNextToken(activeToken);
-            definitionStatus = definitionStatus && eol(activeToken);
+            getNextToken();
+            definitionStatus = definitionStatus && eol();
 
             // verification of: func <eol> ID <eol> (
             if (activeToken->tokenType != T_LEFT_BRACKET){ 
@@ -325,16 +329,16 @@ bool definition(token *activeToken){
             }
 
             // verification of: func <eol> ID <eol> (<functionParams>
-            getNextToken(activeToken);
-            definitionStatus = definitionStatus && functionParams(activeToken);
+            getNextToken();
+            definitionStatus = definitionStatus && functionParams();
 
             //TO DO symtable symtableFunctionEndOfArguments()
 
             // verification of: func <eol> ID <eol> (<functionParams>) <eol>
-            definitionStatus = definitionStatus && eol(activeToken);
+            definitionStatus = definitionStatus && eol();
 
             // verification of: func <eol> ID <eol> (<functionParams>) <eol> <funcDefMid>
-            definitionStatus = definitionStatus && funcDefMid(activeToken);
+            definitionStatus = definitionStatus && funcDefMid();
             // debug symtablePrintVariables(symTable);
             symtableExitScope(symTable);
             break;
@@ -346,7 +350,7 @@ bool definition(token *activeToken){
     return definitionStatus;
 }
 
-bool funcDefMid(token *activeToken){
+bool funcDefMid(){
     bool funcDefMidStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function funcDefMid()...\n");
@@ -354,15 +358,13 @@ bool funcDefMid(token *activeToken){
     switch(activeToken->tokenType) {
         case T_LEFT_CURLY_BRACKET:
             // 12) <funcDefMid> -> {<statements>}
-            getNextToken(activeToken);
-            funcDefMidStatus = statements(activeToken);
-
-            //getNextToken(activeToken);
+            getNextToken();
+            funcDefMidStatus = statements();
             break;
         case T_ARROW:
             // 13) <funcDefMid> -> -> <eol> <type> <eol> {<statements>}
-            getNextToken(activeToken);
-            funcDefMidStatus = eol(activeToken) && type(activeToken) && eol(activeToken);
+            getNextToken();
+            funcDefMidStatus = eol() && type() && eol();
 
             // verification of: left curly bracket
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
@@ -370,8 +372,8 @@ bool funcDefMid(token *activeToken){
                 return false;
             }
 
-            getNextToken(activeToken);
-            funcDefMidStatus = funcDefMidStatus && statements(activeToken);
+            getNextToken();
+            funcDefMidStatus = funcDefMidStatus && statements();
             break;
         default:
             printf("Leaving function funcDefMid() with %d ...\n",false);
@@ -381,7 +383,7 @@ bool funcDefMid(token *activeToken){
     return funcDefMidStatus;
 }
 
-bool functionParams(token *activeToken){
+bool functionParams(){
     bool functionParamsStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function functionParams()...\n");
@@ -389,18 +391,18 @@ bool functionParams(token *activeToken){
     switch(activeToken->tokenType) {
         case T_RIGHT_BRACKET:
             // 14) <functionParams> -> EPS
-            getNextToken(activeToken);
+            getNextToken();
             functionParamsStatus = true;
             break;
         case T_EOL:
             // 15) <functionParams> -> EOL <functionParams>
-            getNextToken(activeToken);
-            functionParamsStatus = functionParams(activeToken);
+            getNextToken();
+            functionParamsStatus = functionParams();
             break;
         case T_IDENTIFIER:
         case KW_UNDERSCORE:
             // 16) <functionParams> -> <functionParam> <functionParamsN> <eol>
-            functionParamsStatus = functionParam(activeToken) && functionParamsN(activeToken) && eol(activeToken);
+            functionParamsStatus = functionParam() && functionParamsN() && eol();
             break;
         default:
             printf("Leaving function functionParams() with %d ...\n",false);
@@ -410,7 +412,7 @@ bool functionParams(token *activeToken){
     return functionParamsStatus;
 }
 
-bool functionParamsN(token *activeToken){
+bool functionParamsN(){
     bool functionParamsNStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function functionParamsN()...\n");
@@ -418,13 +420,13 @@ bool functionParamsN(token *activeToken){
     switch(activeToken->tokenType) {
         case T_COMMA:
             // 17) <functionParamsN> -> , <eol> <functionParam> <functionParamsN>
-            getNextToken(activeToken);
-            functionParamsNStatus = eol(activeToken) && functionParam(activeToken) && functionParamsN(activeToken);
+            getNextToken();
+            functionParamsNStatus = eol() && functionParam() && functionParamsN();
             break;
         case T_RIGHT_BRACKET:
         case T_EOL:
             // 18) <functionParamsN> -> EPS
-            getNextToken(activeToken);
+            getNextToken();
             functionParamsNStatus = true;
             break;
         default:
@@ -435,7 +437,7 @@ bool functionParamsN(token *activeToken){
     return functionParamsNStatus;
 }
 
-bool functionParam(token *activeToken){
+bool functionParam(){
     bool functionParamStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function functionParam()...\n");
@@ -449,8 +451,8 @@ bool functionParam(token *activeToken){
             symtableSetFunctionArgumentName(symTable,"_");
 
             // verification of: _ <eol>
-            getNextToken(activeToken);
-            functionParamStatus = eol(activeToken);
+            getNextToken();
+            functionParamStatus = eol();
 
             // verification of: _ <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
@@ -461,8 +463,8 @@ bool functionParam(token *activeToken){
             //edit symtableSetFunctionArgumentID(symTable,activeToken->value->str);
 
             // verification of: _ <eol> ID <eol>
-            getNextToken(activeToken);
-            functionParamStatus = functionParamStatus && eol(activeToken);
+            getNextToken();
+            functionParamStatus = functionParamStatus && eol();
 
             // verification of: _ <eol> ID <eol> :
             if (activeToken->tokenType != T_COLON){
@@ -471,8 +473,8 @@ bool functionParam(token *activeToken){
             }
 
             // verification of: _ <eol> ID <eol> : <eol> <type> <eol>
-            getNextToken(activeToken);
-            functionParamStatus = functionParamStatus && eol(activeToken) && type(activeToken) && eol(activeToken);
+            getNextToken();
+            functionParamStatus = functionParamStatus && eol() && type() && eol();
             break;
         case T_IDENTIFIER:
             // 20) <functionParam> -> ID <eol> ID <eol> : <eol> <type> <eol>
@@ -480,8 +482,8 @@ bool functionParam(token *activeToken){
             symtableSetFunctionArgumentName(symTable,activeToken->value->str);
 
             // verification of: ID <eol>
-            getNextToken(activeToken);
-            functionParamStatus = eol(activeToken);
+            getNextToken();
+            functionParamStatus = eol();
 
             // verification of: ID <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
@@ -492,8 +494,8 @@ bool functionParam(token *activeToken){
             //edit symtableSetFunctionArgumentID(symTable,activeToken->value->str);
 
             // verification of: ID <eol> ID <eol>
-            getNextToken(activeToken);
-            functionParamStatus = functionParamStatus && eol(activeToken);
+            getNextToken();
+            functionParamStatus = functionParamStatus && eol();
 
             // verification of: ID <eol> ID <eol> :
             if (activeToken->tokenType != T_COLON){
@@ -501,8 +503,8 @@ bool functionParam(token *activeToken){
                 return false;
             }
             // verification of: ID <eol> ID <eol> : <eol> <type> <eol>
-            getNextToken(activeToken);
-            functionParamStatus = eol(activeToken) && type(activeToken) && eol(activeToken);
+            getNextToken();
+            functionParamStatus = eol() && type() && eol();
             break;
         default:
             printf("Leaving function functionParam() with %d ...\n",false);
@@ -512,7 +514,7 @@ bool functionParam(token *activeToken){
     return functionParamStatus;
 }
 
-bool statements(token *activeToken){
+bool statements(){
     bool statementsStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function statements()...\n");
@@ -536,11 +538,11 @@ bool statements(token *activeToken){
         case KW_ORD:
         case KW_CHR:
             // 22) <statements> -> EOL <statementBlock> <eol>
-            statementsStatus = eol(activeToken) && statementsBlock(activeToken) && eol(activeToken);
+            statementsStatus = eol() && statementsBlock() && eol();
             break;
         case T_RIGHT_CURLY_BRACKET:
             // 23) <statements> -> EPS
-            getNextToken(activeToken);
+            getNextToken();
             statementsStatus = true;
             break;
         default:
@@ -551,7 +553,7 @@ bool statements(token *activeToken){
     return statementsStatus;
 }
 
-bool statementsBlock(token *activeToken){
+bool statementsBlock(){
     bool statementsBlockStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function statementsBlock()...\n");
@@ -574,7 +576,7 @@ bool statementsBlock(token *activeToken){
         case KW_ORD:
         case KW_CHR:
             // 24) <statementsBlock> -> <statement> EOL <statementsBlock>
-            statementsBlockStatus = statement(activeToken);
+            statementsBlockStatus = statement();
 
             // verification of: <statement> EOL
             if (typeOfLastToken != T_EOL && activeToken->tokenType != T_RIGHT_CURLY_BRACKET){ 
@@ -582,15 +584,15 @@ bool statementsBlock(token *activeToken){
                     printf("Leaving function statementsBlock() with %d ...\n",false);
                     return false;
                 }
-                getNextToken(activeToken);
+                getNextToken();
             }
 
-            statementsBlockStatus = statementsBlockStatus && statementsBlock(activeToken);
+            statementsBlockStatus = statementsBlockStatus && statementsBlock();
             break;
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
             // 25) <statementsBlock> -> EPS
-            getNextToken(activeToken);
+            getNextToken();
             statementsBlockStatus = true;
             break;
         default:
@@ -601,7 +603,7 @@ bool statementsBlock(token *activeToken){
     return statementsBlockStatus;
 }
 
-bool statement(token *activeToken){
+bool statement(){
     bool statementStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function statement()...\n");
@@ -610,15 +612,15 @@ bool statement(token *activeToken){
         case KW_LET:
         case KW_VAR:
             // 26) <statement> -> <varDec>
-            statementStatus = varDec(activeToken);
+            statementStatus = varDec();
             break;
         case KW_IF:
             // 27) <statement> -> if <eol> <expression> <eol> {<statements>} <eol> else <eol> {<statements>}
             
-            symtableEnterScope(symTable,"if");
+            symtableEnterScope(symTable,"if",NULL);
             
-            getNextToken(activeToken);
-            statementStatus = eol(activeToken) && expression(activeToken) && eol(activeToken);  //TO DO jak to bude s expression (má potom být další getNextToken())
+            getNextToken();
+            statementStatus = eol() && expression() && eol();  //TO DO jak to bude s expression (má potom být další getNextToken())
 
             // verification of: if <eol>  <expression> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
@@ -627,8 +629,8 @@ bool statement(token *activeToken){
             }
 
             // verification of: if <eol>  <expression> <eol> {<statements>} <eol> 
-            getNextToken(activeToken);
-            statementStatus = statementStatus && statements(activeToken) && eol(activeToken);
+            getNextToken();
+            statementStatus = statementStatus && statements() && eol();
 
             // verification of: if <eol>  <expression> <eol> {<statements>} <eol> else
             if (activeToken->tokenType != KW_ELSE){
@@ -637,8 +639,8 @@ bool statement(token *activeToken){
             }
 
             // verification of: if <eol>  <expression> <eol> {<statements>} <eol> else <eol>
-            getNextToken(activeToken);
-            statementStatus = statementStatus && eol(activeToken);
+            getNextToken();
+            statementStatus = statementStatus && eol();
 
             // verification of: if <eol>  <expression> <eol> {<statements>} <eol> else <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
@@ -646,8 +648,8 @@ bool statement(token *activeToken){
                 return false;
             }
 
-            getNextToken(activeToken);
-            statementStatus = statementStatus && statements(activeToken);
+            getNextToken();
+            statementStatus = statementStatus && statements();
 
             symtableExitScope(symTable);
 
@@ -655,10 +657,10 @@ bool statement(token *activeToken){
         case KW_WHILE:
             // 28) <statement> -> while <eol> <expression> <eol> {<statements>}
 
-            symtableEnterScope(symTable,"while");
+            symtableEnterScope(symTable,"while",NULL);
 
-            getNextToken(activeToken);
-            statementStatus = eol(activeToken) && expression(activeToken) && eol(activeToken);
+            getNextToken();
+            statementStatus = eol() && expression() && eol();
 
             // verification of: while <eol>  <expression> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
@@ -666,188 +668,192 @@ bool statement(token *activeToken){
                 return false;
             }
 
-            getNextToken(activeToken);
-            statementStatus = statementStatus && statements(activeToken);
+            getNextToken();
+            statementStatus = statementStatus && statements();
 
             symtableExitScope(symTable);
 
             break;
         case KW_RETURN:
             // 29) <statement> -> return <returnExpression>
-            getNextToken(activeToken);
+            getNextToken();
             //TO DO expression parser has to check if returnExpression is same type as return type of function
-            statementStatus = returnExpression(activeToken);
+            statementStatus = returnExpression();
             break;
         case T_IDENTIFIER:
             // 30) <statement> -> ID <callOrAssign>
             //TO DO symtable kontrola symtable jestli je var/func definovaná 
-            getNextToken(activeToken);
-            statementStatus = callOrAssign(activeToken);
+
+            //Generator
+            generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
+
+            getNextToken();
+            statementStatus = callOrAssign();
             break;
-        case KW_READSTRING:
+        /*case KW_READSTRING:
             // 66) <statement> -> KW_VESTAVENA_FUNKC ()
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             statementStatus = true;
             break;
         case KW_READINT:
             // 66) <statement> -> KW_VESTAVENA_FUNKC ()
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             statementStatus = true;
             break;
         case KW_READDOUBLE:
             // 66) <statement> -> KW_VESTAVENA_FUNKC ()
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             statementStatus = true;
-            break;
+            break;*/
         case KW_WRITE:
-            // 66) <statement> -> KW_VESTAVENA_FUNKCE (<arguments>)
-            getNextToken(activeToken);
+            // 66) <statement> -> write(<arguments>)
+            getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
-            statementStatus = arguments(activeToken);
+            getNextToken();
+            statementStatus = arguments();
             break;
-        case KW_INT_TO_DOUBLE:
+        /*case KW_INT_TO_DOUBLE:
             // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
-            statementStatus = argument(activeToken);
+            getNextToken();
+            statementStatus = argument();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             break;
         case KW_DOUBLE_TO_INT:
             // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
-            statementStatus = argument(activeToken);
+            getNextToken();
+            statementStatus = argument();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             break;
         case KW_LENGTH:
             // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
-            statementStatus = argument(activeToken);
+            getNextToken();
+            statementStatus = argument();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             break;
         case KW_SUBSTRING:
             // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>)
             // verification of: KW_VESTAVENA_FUNKCE (<argument>
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
-            statementStatus = argument(activeToken);
+            getNextToken();
+            statementStatus = argument();
             
             // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
-            statementStatus = statementStatus && argument(activeToken);
+            getNextToken();
+            statementStatus = statementStatus && argument();
 
             // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
-            statementStatus = statementStatus && argument(activeToken);
+            getNextToken();
+            statementStatus = statementStatus && argument();
 
             // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>)
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             break;
         case KW_ORD:
             // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
-            statementStatus = argument(activeToken);
+            getNextToken();
+            statementStatus = argument();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
+            getNextToken();
             break;
         case KW_CHR:
             // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
-            getNextToken(activeToken);
+            getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
-            statementStatus = argument(activeToken);
+            getNextToken();
+            statementStatus = argument();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            getNextToken(activeToken);
-            break;
+            getNextToken();
+            break;*/
         default:
             printf("Leaving function statement() with %d ...\n",false);
             return false;  
@@ -856,7 +862,7 @@ bool statement(token *activeToken){
     return statementStatus;
 }
 
-bool callOrAssign(token *activeToken){
+bool callOrAssign(){
     bool callOrAssignStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function callOrAssign()...\n");
@@ -869,12 +875,17 @@ bool callOrAssign(token *activeToken){
         case T_VAR_DIV_VAR:
         case T_EOL:
             // 36) <callOrAssign> -> <eol> <assign>>
-            callOrAssignStatus = eol(activeToken) && assign(activeToken);
+            callOrAssignStatus = eol() && assign();
             break;
         case T_LEFT_BRACKET:
             // 37) <callOrAssign> -> (<arguments>)
-            getNextToken(activeToken);
-            callOrAssignStatus = arguments(activeToken);
+
+            //Generator
+            //TO DO generator zpracovat volání funkce
+            generatorPopFirstStringFromList(gen->parserStack);
+
+            getNextToken();
+            callOrAssignStatus = arguments();
             break;
         default:
             printf("Leaving function callOrAssign() with %d ...\n",false);
@@ -884,37 +895,102 @@ bool callOrAssign(token *activeToken){
     return callOrAssignStatus;
 }
 
-bool assign(token *activeToken){
+bool assign(){
     bool assignStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function assign()...\n");
+
+    char *var;
+    char *tempVarName;
 
     //TO DO symtable pouze assignment jde u všech datových typů -> ošetřit
     switch(activeToken->tokenType) {
         case T_ASSIGNMENT:
             // 61) <assign> -> = <expression>
-            getNextToken(activeToken);
-            assignStatus = expression(activeToken);
+            getNextToken();
+            assignStatus = expression();
+
+            //Generator
+            printf("LIST BEFORE MOVE:\n");
+            printList(gen->parserStack);
+            var = generatorPopLastStringFromList(gen->parserStack);
+            printList(gen->parserStack);
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",var));
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             break;
-        case T_INCREMENT:
+        case T_INCREMENT:;
             // 62) <assign> -> += <expression>
-            getNextToken(activeToken);
-            assignStatus = expression(activeToken);
+
+            //Generator
+            var = generatorPopFirstStringFromList(gen->parserStack);
+
+            //Parser
+            getNextToken();
+            assignStatus = expression();
+
+            //Generator
+            tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+
+            generatorPushStringToList(gen->mainCode,concatString(6, "ADD ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
-        case T_DECREMENT:
+        case T_DECREMENT:;
             // 63) <assign> -> -= <expression>
-            getNextToken(activeToken);
-            assignStatus = expression(activeToken);
+
+            //Generator
+            var = generatorPopFirstStringFromList(gen->parserStack);
+
+            //Parser
+            getNextToken();
+            assignStatus = expression();
+
+            //Generator
+            tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+
+            generatorPushStringToList(gen->mainCode,concatString(6, "SUB ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
-        case T_VAR_MUL_VAR:
+        case T_VAR_MUL_VAR:;
             // 64) <assign> -> *= <expression>
-            getNextToken(activeToken);
-            assignStatus = expression(activeToken);
+
+            //Generator
+            var = generatorPopFirstStringFromList(gen->parserStack);
+
+            //Parser
+            getNextToken();
+            assignStatus = expression();
+
+            //Generator
+            tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+
+            generatorPushStringToList(gen->mainCode,concatString(6, "MUL ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
-        case T_VAR_DIV_VAR:
+        case T_VAR_DIV_VAR:;
             // 65) <assign> -> /= <expression>
-            getNextToken(activeToken);
-            assignStatus = expression(activeToken);
+            //TO DO semantika dělení nulou řešíme my nebo ne??
+
+            //Generator
+            var = generatorPopFirstStringFromList(gen->parserStack);
+
+            //Parser
+            getNextToken();
+            assignStatus = expression();
+
+            //Generator
+            tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+            
+            if (1 > 0){ //typ oparandu je int
+                generatorPushStringToList(gen->mainCode,concatString(6, "IDIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            }
+            else{ //typ operandu je float
+                generatorPushStringToList(gen->mainCode,concatString(6, "DIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            }
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
         default:
             printf("Leaving function assign() with %d ...\n",false);
@@ -924,7 +1000,7 @@ bool assign(token *activeToken){
     return assignStatus;
 }
 
-bool varDec(token *activeToken){
+bool varDec(){
     bool varDecStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function varDec()...\n");
@@ -933,8 +1009,8 @@ bool varDec(token *activeToken){
         case KW_LET:
             // 38) <varDec> -> let <eol> ID <eol> <varDecMid>
 
-            getNextToken(activeToken);
-            varDecStatus = eol(activeToken);
+            getNextToken();
+            varDecStatus = eol();
 
             // verification of: let <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
@@ -942,16 +1018,21 @@ bool varDec(token *activeToken){
                 return false;
             }
 
+            //Symtable
             symtableInsert(symTable,activeToken->value->str,false);
 
-            getNextToken(activeToken);
-            varDecStatus = eol(activeToken) && varDecMid(activeToken);
+            //Generator
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR GF@",activeToken->value->str));
+            generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
+
+            getNextToken();
+            varDecStatus = eol() && varDecMid();
             break;
         case KW_VAR:
             // 39) <varDec> -> var <eol> ID <eol> <varDecMid>
 
-            getNextToken(activeToken);
-            varDecStatus = eol(activeToken);
+            getNextToken();
+            varDecStatus = eol();
             
             // verification of: var <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
@@ -959,10 +1040,17 @@ bool varDec(token *activeToken){
                 return false;
             }
 
+            //Symtable
+            printf("Symtable: %d\n",symTable);
             symtableInsert(symTable,activeToken->value->str,false);
 
-            getNextToken(activeToken);
-            varDecStatus = eol(activeToken) && varDecMid(activeToken);
+            //Generator
+            printf("GEN: %d\n",gen);
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR GF@",activeToken->value->str));
+            generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
+
+            getNextToken();
+            varDecStatus = eol() && varDecMid();
             break;
         default:
             printf("Leaving function varDec() with %d ...\n",false);
@@ -972,7 +1060,7 @@ bool varDec(token *activeToken){
     return varDecStatus;
 }
 
-bool varDecMid(token *activeToken){
+bool varDecMid(){
     bool varDecMidStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function varDecMid()...\n");
@@ -980,14 +1068,17 @@ bool varDecMid(token *activeToken){
     switch(activeToken->tokenType) {
         case T_COLON:
             // 40) <varDecMid> -> : <eol> <type> <eol> <varDef>
-            getNextToken(activeToken);
-            varDecMidStatus = eol(activeToken) && type(activeToken) && eol(activeToken) && varDef(activeToken);
+            getNextToken();
+            varDecMidStatus = eol() && type() && eol() && varDef();
             break;
         case T_ASSIGNMENT:
             // 41) <varDecMid> -> = <expression>
-            getNextToken(activeToken);
-            varDecMidStatus = expression(activeToken);
+            getNextToken();
+            varDecMidStatus = expression();
             //TO DO symtable get type of expression and set it as type of active item 
+
+            //Generator
+            generatorPushStringToList(gen->mainCode,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
         default:
             printf("Leaving function varDecMid() with %d ...\n",false);
@@ -997,7 +1088,7 @@ bool varDecMid(token *activeToken){
     return varDecMidStatus;
 }
 
-bool varDef(token *activeToken){
+bool varDef(){
     bool varDefStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function varDef()...\n");
@@ -1006,14 +1097,17 @@ bool varDef(token *activeToken){
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
             // 42) <varDef> -> EPS
-            getNextToken(activeToken);
+            getNextToken();
             varDefStatus = true;
             break;
         case T_ASSIGNMENT:
             // 43) <varDef> -> = <expression>
-            getNextToken(activeToken);
+            getNextToken();
             //TO DO symtable check if expression has same type as variable
-            varDefStatus = expression(activeToken);
+            varDefStatus = expression(); //expression parser pushne výsledek výrazu na zásobník 
+
+            //Generator
+            generatorPushStringToList(gen->mainCode,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
         default:
             // verification of: EOL
@@ -1028,7 +1122,7 @@ bool varDef(token *activeToken){
     return varDefStatus;
 }
 
-bool returnExpression(token *activeToken){
+bool returnExpression(){
     bool returnExpressionStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function returnExpression()...\n");
@@ -1042,14 +1136,14 @@ bool returnExpression(token *activeToken){
         default:
             // 44) <returnExpression> -> <expression>
             //TO DO symtable check if function has same return type as is type of expression
-            returnExpressionStatus = expression(activeToken);
+            returnExpressionStatus = expression();
             break;
     }
     printf("Leaving function returnExpression() with %d ...\n",returnExpressionStatus);
     return returnExpressionStatus;
 }
 
-bool arguments(token *activeToken){
+bool arguments(){
     bool argumentsStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function arguments()...\n");
@@ -1057,20 +1151,20 @@ bool arguments(token *activeToken){
     switch(activeToken->tokenType) {
         case T_RIGHT_BRACKET:
             // 46) <arguments> -> EPS
-            getNextToken(activeToken);
+            getNextToken();
             argumentsStatus = true;
             break;
         case T_EOL:
             // 47) <arguments> -> EOL <arguments>
-            getNextToken(activeToken);
-            argumentsStatus = arguments(activeToken);
+            getNextToken();
+            argumentsStatus = arguments();
             break;
         case T_IDENTIFIER:
         case T_INT:
         case T_DOUBLE:
         case T_STRING:
             // 48) <arguments> -> <argument> <argumentsN> <eol>
-            argumentsStatus = argument(activeToken) && argumentsN(activeToken); //&& eol(activeToken)
+            argumentsStatus = argument() && argumentsN(); //&& eol()
             break;
         default:
             printf("Leaving function arguments() with %d ...\n",false);
@@ -1080,7 +1174,7 @@ bool arguments(token *activeToken){
     return argumentsStatus;
 }
 
-bool argumentsN(token *activeToken){
+bool argumentsN(){
     bool argumentsNStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function argumentsN()...\n");
@@ -1088,13 +1182,13 @@ bool argumentsN(token *activeToken){
     switch(activeToken->tokenType) {
         case T_COMMA:
             // 49) <argumentsN> -> , <eol> <argument> <argumentsN>
-            getNextToken(activeToken);
-            argumentsNStatus = eol(activeToken) && argument(activeToken) && argumentsN(activeToken);
+            getNextToken();
+            argumentsNStatus = eol() && argument() && argumentsN();
             break;
         case T_RIGHT_BRACKET:
         case T_EOL:
             // 50) <argumentsN> -> EPS
-            getNextToken(activeToken);
+            getNextToken();
             argumentsNStatus = true;
             break;
         default:
@@ -1105,7 +1199,7 @@ bool argumentsN(token *activeToken){
     return argumentsNStatus;
 }
 
-bool argument(token *activeToken){
+bool argument(){
     bool argumentStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function argument()...\n");
@@ -1116,12 +1210,12 @@ bool argument(token *activeToken){
         case T_DOUBLE:
         case T_STRING:
             // 51) <argument> -> <dataType> <eol>
-            argumentStatus = dataType(activeToken) && eol(activeToken);
+            argumentStatus = dataType() && eol();
             break;
         case T_IDENTIFIER:
             // 52) <argument> -> ID <eol> <argWithName> <eol>
-            getNextToken(activeToken);
-            argumentStatus = eol(activeToken) && argWithName(activeToken) && eol(activeToken);
+            getNextToken();
+            argumentStatus = eol() && argWithName() && eol();
             break;
         default:
             printf("Leaving function argument() with %d ...\n",false);
@@ -1131,7 +1225,7 @@ bool argument(token *activeToken){
     return argumentStatus;
 }
 
-bool argWithName(token *activeToken){
+bool argWithName(){
     bool argWithNameStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function argWithName()...\n");
@@ -1139,14 +1233,13 @@ bool argWithName(token *activeToken){
     switch(activeToken->tokenType) {
         case T_COLON:
             // 53) <argWithName> -> : <eol> <argumentType>
-            getNextToken(activeToken);
-            argWithNameStatus = eol(activeToken) && argumentType(activeToken);
+            getNextToken();
+            argWithNameStatus = eol() && argumentType();
             break;
         case T_RIGHT_BRACKET:
         case T_COMMA:
         case T_EOL:
             // 54) <argWithName> -> EPS
-            //getNextToken(activeToken);
             argWithNameStatus = true;
             break;
         default:
@@ -1157,7 +1250,7 @@ bool argWithName(token *activeToken){
     return argWithNameStatus;
 }
 
-bool argumentType(token *activeToken){
+bool argumentType(){
     bool argumentTypeStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function argumentType()...\n");
@@ -1165,14 +1258,14 @@ bool argumentType(token *activeToken){
     switch(activeToken->tokenType) {
         case T_IDENTIFIER:
             // 55) <argumentType> -> ID
-            getNextToken(activeToken);
+            getNextToken();
             argumentTypeStatus = true;
             break;
         case T_INT:
         case T_DOUBLE:
         case T_STRING:
             // 56) <argumentType> -> <dataType>
-            argumentTypeStatus = dataType(activeToken);
+            argumentTypeStatus = dataType();
             break;
         default:
             printf("Leaving function argumentType() with %d ...\n",false);
@@ -1182,7 +1275,7 @@ bool argumentType(token *activeToken){
     return argumentTypeStatus;
 }
 
-bool dataType(token *activeToken){
+bool dataType(){
     bool dataTypeStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function dataType()...\n");
@@ -1190,17 +1283,17 @@ bool dataType(token *activeToken){
     switch(activeToken->tokenType) {
         case T_INT:
             // 57) <dataType> -> IntData
-            getNextToken(activeToken);
+            getNextToken();
             dataTypeStatus = true;
             break;
         case T_STRING:
             // 58) <dataType> -> StringData
-            getNextToken(activeToken);
+            getNextToken();
             dataTypeStatus = true;
             break;
         case T_DOUBLE:
             // 59) <dataType> -> DoubleData
-            getNextToken(activeToken);
+            getNextToken();
             dataTypeStatus = true;
             break;
         default:
@@ -1210,17 +1303,234 @@ bool dataType(token *activeToken){
     return dataTypeStatus;
 }
 
-bool expression(token *activeToken){
+bool expression(){
+    bool expressionStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function expression()...\n");
-    if (activeToken->tokenType == T_LEFT_BRACKET){
-        while (activeToken->tokenType != T_RIGHT_BRACKET){
-            printf("getting next\n");
-            getNextToken(activeToken);
-        }
+
+    char *var;
+    char *tempVarName;
+
+    switch(activeToken->tokenType) {
+        case KW_READSTRING:
+            // 67) <expression> -> readString()
+            getNextToken();
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken();
+            expressionStatus = true;
+            break;
+        case KW_READINT:
+            // 67) <expression> -> readInt()
+            getNextToken();
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken();
+            expressionStatus = true;
+            break;
+        case KW_READDOUBLE:
+            // 67) <expression> -> readDouble()
+            getNextToken();
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken();
+            expressionStatus = true;
+            break;
+        case KW_INT_TO_DOUBLE:
+            // 67) <expression> -> Int2Double(term : Int)
+            getNextToken();
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            expressionStatus = argument();
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            break;
+        case KW_DOUBLE_TO_INT:
+            // 67) <expression> -> Double2Int(term : Double)
+            getNextToken();
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            expressionStatus = argument();
+            //TO DO expression parser push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"float@4"); //TO DO zkontrolovat zápis floatu
+
+            //Generator
+            tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+
+            generatorPushStringToList(gen->mainCode,concatString(4, "FLOAT2INT ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringToList(gen->parserStack,tempVarName);
+
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            break;
+        case KW_LENGTH:
+            // 67) <expression> -> length(s : String)
+            getNextToken();
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            expressionStatus = argument();
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+            
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            break;
+        case KW_SUBSTRING:
+            // 67) <expression> -> substring(s : String, start : Int, end : Int)
+            // 67) <expression> -> substring(<argument>,<argument>,<argument>)
+            // verification of: KW_VESTAVENA_FUNKCE (<argument>
+            getNextToken();
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            expressionStatus = argument();
+            
+            // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>
+            if (activeToken->tokenType != T_COMMA){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            expressionStatus = expressionStatus && argument();
+
+            // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>
+            if (activeToken->tokenType != T_COMMA){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            expressionStatus = expressionStatus && argument();
+
+            // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>)
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken();
+            break;
+        case KW_ORD:
+            // 67) <expression> -> ord(s : String)
+            getNextToken();
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            expressionStatus = argument();
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken();
+            break;
+        case KW_CHR:
+            // 67) <expression> -> chr(i : Int)
+            getNextToken();
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+            expressionStatus = argument();
+            //TO DO generator push to stack parser_stack
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken();
+            break;
+        default:
+            generatorPushStringToList(gen->parserStack,"int@5");
+            if (activeToken->tokenType == T_LEFT_BRACKET){
+                while (activeToken->tokenType != T_RIGHT_BRACKET){
+                    printf("getting next\n");
+                    getNextToken();
+                }
+            }
+            
+            getNextToken();
+            printf("Leaving function expression() with %d ...\n",true);
+            return true;
     }
-    
-    getNextToken(activeToken);
-    printf("Leaving function expression() with %d ...\n",true);
-    return true;
+    printf("Leaving function expression() with %d ...\n",expressionStatus);
+    return expressionStatus;
 }

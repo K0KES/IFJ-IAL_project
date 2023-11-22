@@ -3,44 +3,45 @@
 #include "parser.h"
 #include "scanner.h"
 #include "symtable.h"
-
-//#define printf(...) fprintf(fptr, __VA_ARGS__)
+#include "generator.h"
 
 int main(int argc, char const *argv[]){
-
-    //FILE *fptr;
-    //fptr = fopen("output","w");
-
-    //Parser init
-    token *activeToken;
-    //tokenInit(activeToken);
-    activeToken = malloc(sizeof(token));
-    if(activeToken == NULL){
-        return;
-    }
-
-    activeToken->value = (string*)malloc(sizeof(string));
-    if(activeToken->value == NULL){
-        return;
-    }
-    strInit(activeToken->value);
-
-    activeToken->position = (positionInfo*)malloc(sizeof(positionInfo));
-    if(activeToken->position == NULL){
-        return;
-    }
-    activeToken->position->charNumber = 0;
-    activeToken->position->lineNumber = 1;
-
-    //Symtable init
-    symtable *symTable = symtableInit();
+    //Program state init
+    programState *programState = programStateInit(); 
 
     //Call parser
-    parse(activeToken,symTable);
+    parse(programState);
+
+    //Generate output code
+    generatorGenerateOutput(programState->gen);
 
     //symtablePrintVariables(symTable);
-    //symtableFree(symTable);
-    tokenFree(activeToken);
-    //fclose(fptr);
+
+    programStateFree(programState);
+
     return 0;
 }
+
+
+
+programState *programStateInit(){
+    programState *state = (programState*)malloc(sizeof(programState));
+    if (state == NULL) {raiseError(ERR_INTERNAL);}
+
+    state->tokenQueue = listInit();
+    state->gen = generatorInit();
+    state->symTable = symtableInit();
+    state->activeToken = tokenInit();
+    return state;
+}
+
+void programStateFree(programState *state){
+    tokenFree(state->activeToken);
+    symtableFree(state->symTable);
+    generatorFree(state->gen);
+    listDestroy(state->tokenQueue);
+
+    free(state);
+    state = NULL;
+}
+

@@ -3,161 +3,161 @@
 
 #include "scanner.h"
 #include "symtable.h"
+#include "error.h"
+#include "generator.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "main.h"
 #pragma once
 
 /// @brief Function initialize memory for one active token
-/// @param activeToken pointer to token
-/// @return returns 0 if everything went well, otherwise returns 99
-int tokenInit(token *activeToken);
+/// @return returns pointer to activeToken
+token *tokenInit();
 
 /// @brief Function clear memory of a token
 /// @param activeToken pointer to token
-/// @return returns 0 if everything went well, otherwise returns 99
-int tokenFree(token *activeToken);
+/// @return return
+void tokenFree(token *activeToken );
 
 /// @brief Function that starts the parser
-/// @param activeToken pointer to token
-/// @param symTablePtr pointer to symtable
+/// @param programState pointer to programState
 /// @return returns 0 if was parsed succesfully, otherwise returns 2
-int parse(token *activeToken, symtable *symTablePtr);
-
+int parse(programState *programState);
 
 /// @brief Function gets next token and saves it in activeToken
-/// @param activeToken pointer to token
 /// @return returns 0 if everything went well, otherwise returns 1
-int getNextToken(token *activeToken);
+int getNextToken();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool start(token *activeToken);
+bool start();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool code(token *activeToken);
+bool code();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool eol(token *activeToken);
+bool eol();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool type(token *activeToken);
+bool type();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool definition(token *activeToken);
+bool definition();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool funcDefMid(token *activeToken);
+bool funcDefMid();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool functionParams(token *activeToken);
+bool functionParams();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool functionParamsN(token *activeToken);
+bool functionParamsN();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool functionParam(token *activeToken);
+bool functionParam();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool statements(token *activeToken);
+bool statements();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool statementsBlock(token *activeToken);
+bool statementsBlock();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool statement(token *activeToken);
+bool statement();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool statementOnLine(token *activeToken);
+bool statementOnLine();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool callOrAssign(token *activeToken);
+bool callOrAssign();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool assign(token *activeToken);
+bool assign();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool varDec(token *activeToken);
+bool varDec();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool varDecMid(token *activeToken);
+bool varDecMid();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool varDef(token *activeToken);
+bool varDef();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool returnExpression(token *activeToken);
+bool returnExpression();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool arguments(token *activeToken);
+bool arguments();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool argumentsN(token *activeToken);
+bool argumentsN();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool argument(token *activeToken);
+bool argument();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool argWithName(token *activeToken);
+bool argWithName();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool argumentType(token *activeToken);
+bool argumentType();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool dataType(token *activeToken);
+bool dataType();
 
 /// @brief Function of LL grammer
 /// @param activeToken pointer to token
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool expression(token *activeToken);
+bool expression();
 
 #endif
