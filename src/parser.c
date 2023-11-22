@@ -684,10 +684,14 @@ bool statement(token *activeToken){
         case T_IDENTIFIER:
             // 30) <statement> -> ID <callOrAssign>
             //TO DO symtable kontrola symtable jestli je var/func definovaná 
+
+            //Generator
+            generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
+
             getNextToken(activeToken);
             statementStatus = callOrAssign(activeToken);
             break;
-        case KW_READSTRING:
+        /*case KW_READSTRING:
             // 66) <statement> -> KW_VESTAVENA_FUNKC ()
             getNextToken(activeToken);
             if (activeToken->tokenType != T_LEFT_BRACKET){
@@ -731,7 +735,7 @@ bool statement(token *activeToken){
             }
             getNextToken(activeToken);
             statementStatus = true;
-            break;
+            break;*/
         case KW_WRITE:
             // 66) <statement> -> KW_VESTAVENA_FUNKCE (<arguments>)
             getNextToken(activeToken);
@@ -742,7 +746,7 @@ bool statement(token *activeToken){
             getNextToken(activeToken);
             statementStatus = arguments(activeToken);
             break;
-        case KW_INT_TO_DOUBLE:
+        /*case KW_INT_TO_DOUBLE:
             // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
             getNextToken(activeToken);
             if (activeToken->tokenType != T_LEFT_BRACKET){
@@ -850,7 +854,7 @@ bool statement(token *activeToken){
                 return false;
             }
             getNextToken(activeToken);
-            break;
+            break;*/
         default:
             printf("Leaving function statement() with %d ...\n",false);
             return false;  
@@ -876,6 +880,11 @@ bool callOrAssign(token *activeToken){
             break;
         case T_LEFT_BRACKET:
             // 37) <callOrAssign> -> (<arguments>)
+
+            //Generator
+            //TO DO generator zpracovat volání funkce
+            generatorPopFirstStringFromList(gen->parserStack);
+
             getNextToken(activeToken);
             callOrAssignStatus = arguments(activeToken);
             break;
@@ -892,32 +901,84 @@ bool assign(token *activeToken){
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function assign()...\n");
 
+    char *var;
+    char *tempVarName;
+
     //TO DO symtable pouze assignment jde u všech datových typů -> ošetřit
     switch(activeToken->tokenType) {
         case T_ASSIGNMENT:
             // 61) <assign> -> = <expression>
             getNextToken(activeToken);
             assignStatus = expression(activeToken);
+
+            //Generator
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", generatorPopFirstStringFromList(gen->parserStack), " ", generatorPopFirstStringFromList(gen->parserStack)));
             break;
-        case T_INCREMENT:
+        case T_INCREMENT:;
             // 62) <assign> -> += <expression>
+
+            //Generator
+            var = generatorPopFirstStringFromList(gen->parserStack);
+
+            //Parser
             getNextToken(activeToken);
             assignStatus = expression(activeToken);
+
+            //Generator
+            tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(6, "ADD ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
-        case T_DECREMENT:
+        case T_DECREMENT:;
             // 63) <assign> -> -= <expression>
+
+            //Generator
+            var = generatorPopFirstStringFromList(gen->parserStack);
+
+            //Parser
             getNextToken(activeToken);
             assignStatus = expression(activeToken);
+
+            //Generator
+            tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(6, "SUB ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
-        case T_VAR_MUL_VAR:
+        case T_VAR_MUL_VAR:;
             // 64) <assign> -> *= <expression>
+
+            //Generator
+            var = generatorPopFirstStringFromList(gen->parserStack);
+
+            //Parser
             getNextToken(activeToken);
             assignStatus = expression(activeToken);
+
+            //Generator
+            tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(6, "MUL ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
-        case T_VAR_DIV_VAR:
+        case T_VAR_DIV_VAR:;
             // 65) <assign> -> /= <expression>
+            //TO DO semantika dělení nulou řešíme my nebo ne??
+
+            //Generator
+            var = generatorPopFirstStringFromList(gen->parserStack);
+
+            //Parser
             getNextToken(activeToken);
             assignStatus = expression(activeToken);
+
+            //Generator
+            tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            if (1 > 0){ //typ oparandu je int
+                generatorPushStringToList(gen->mainCode,concatString(6, "IDIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            }
+            else{ //typ operandu je float
+                generatorPushStringToList(gen->mainCode,concatString(6, "DIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            }
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
         default:
             printf("Leaving function assign() with %d ...\n",false);
@@ -945,7 +1006,12 @@ bool varDec(token *activeToken){
                 return false;
             }
 
+            //Symtable
             symtableInsert(symTable,activeToken->value->str,false);
+
+            //Generator
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR GF@",activeToken->value->str));
+            generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
 
             getNextToken(activeToken);
             varDecStatus = eol(activeToken) && varDecMid(activeToken);
@@ -962,15 +1028,12 @@ bool varDec(token *activeToken){
                 return false;
             }
 
+            //Symtable
             symtableInsert(symTable,activeToken->value->str,false);
-            // TO DO přidat do vygenerovaného kodu - DEFVAR activeToken->value->str
-            //generatorPushStringToList(gen->mainCode,strcat("DEFVAR GF@",activeToken->value->str));
 
+            //Generator
             generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR GF@",activeToken->value->str));
-            //TO DO Generování uložit id na stack
-            //generatorPushStringToList(gen->parserStack,strcat());
             generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
-            
 
             getNextToken(activeToken);
             varDecStatus = eol(activeToken) && varDecMid(activeToken);
@@ -999,6 +1062,9 @@ bool varDecMid(token *activeToken){
             getNextToken(activeToken);
             varDecMidStatus = expression(activeToken);
             //TO DO symtable get type of expression and set it as type of active item 
+
+            //Generator
+            generatorPushStringToList(gen->mainCode,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
         default:
             printf("Leaving function varDecMid() with %d ...\n",false);
@@ -1025,9 +1091,9 @@ bool varDef(token *activeToken){
             getNextToken(activeToken);
             //TO DO symtable check if expression has same type as variable
             varDefStatus = expression(activeToken); //expression parser pushne výsledek výrazu na zásobník 
-            generatorPushStringToList(gen->parserStack,"int@5");
-            //TO DO generování pop 2 prvky ze zásobníku vygeneruji - MOV id1 id2
-            generatorPushStringToList(gen->mainCode,concatString(4,"MOVE ",generatorPopStringFromList(gen->parserStack)," ",generatorPopStringFromList(gen->parserStack)));
+
+            //Generator
+            generatorPushStringToList(gen->mainCode,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
         default:
             // verification of: EOL
@@ -1225,16 +1291,225 @@ bool dataType(token *activeToken){
 }
 
 bool expression(token *activeToken){
+    bool expressionStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function expression()...\n");
-    if (activeToken->tokenType == T_LEFT_BRACKET){
-        while (activeToken->tokenType != T_RIGHT_BRACKET){
-            printf("getting next\n");
+
+    switch(activeToken->tokenType) {
+        case KW_READSTRING:
+            // 67) <expression> -> readString()
             getNextToken(activeToken);
-        }
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken(activeToken);
+            expressionStatus = true;
+            break;
+        case KW_READINT:
+            // 67) <expression> -> readInt()
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken(activeToken);
+            expressionStatus = true;
+            break;
+        case KW_READDOUBLE:
+            // 67) <expression> -> readDouble()
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken(activeToken);
+            expressionStatus = true;
+            break;
+        case KW_INT_TO_DOUBLE:
+            // 67) <expression> -> Int2Double(term : Int)
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            expressionStatus = argument(activeToken);
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            break;
+        case KW_DOUBLE_TO_INT:
+            // 67) <expression> -> Double2Int(term : Double)
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            expressionStatus = argument(activeToken);
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            break;
+        case KW_LENGTH:
+            // 67) <expression> -> length(s : String)
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            expressionStatus = argument(activeToken);
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+            
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            break;
+        case KW_SUBSTRING:
+            // 67) <expression> -> substring(s : String, start : Int, end : Int)
+            // 67) <expression> -> substring(<argument>,<argument>,<argument>)
+            // verification of: KW_VESTAVENA_FUNKCE (<argument>
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            expressionStatus = argument(activeToken);
+            
+            // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>
+            if (activeToken->tokenType != T_COMMA){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            expressionStatus = expressionStatus && argument(activeToken);
+
+            // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>
+            if (activeToken->tokenType != T_COMMA){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            expressionStatus = expressionStatus && argument(activeToken);
+
+            // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>)
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken(activeToken);
+            break;
+        case KW_ORD:
+            // 67) <expression> -> ord(s : String)
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            expressionStatus = argument(activeToken);
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+
+            getNextToken(activeToken);
+            break;
+        case KW_CHR:
+            // 67) <expression> -> chr(i : Int)
+            getNextToken(activeToken);
+            if (activeToken->tokenType != T_LEFT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+            getNextToken(activeToken);
+            expressionStatus = argument(activeToken);
+            //TO DO generator push to stack parser_stack
+            if (activeToken->tokenType != T_RIGHT_BRACKET){
+                printf("Leaving function expression() with %d ...\n",false);
+                return false;
+            }
+
+            //Generator
+            //TO DO generator push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"int@4");
+            
+            getNextToken(activeToken);
+            break;
+        default:
+            generatorPushStringToList(gen->parserStack,"int@5");
+            if (activeToken->tokenType == T_LEFT_BRACKET){
+                while (activeToken->tokenType != T_RIGHT_BRACKET){
+                    printf("getting next\n");
+                    getNextToken(activeToken);
+                }
+            }
+            
+            getNextToken(activeToken);
+            printf("Leaving function expression() with %d ...\n",true);
+            return true;
     }
-    
-    getNextToken(activeToken);
-    printf("Leaving function expression() with %d ...\n",true);
-    return true;
+    printf("Leaving function expression() with %d ...\n",expressionStatus);
+    return expressionStatus;
 }
