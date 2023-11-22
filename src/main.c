@@ -6,39 +6,18 @@
 #include "generator.h"
 
 int main(int argc, char const *argv[]){
-    //Parser init
-    token *activeToken;
-    //tokenInit(activeToken);
-    activeToken = malloc(sizeof(token));
-    if(activeToken == NULL){
-        return;
-    }
-
-    activeToken->value = (string*)malloc(sizeof(string));
-    if(activeToken->value == NULL){
-        return;
-    }
-    strInit(activeToken->value);
-
-    activeToken->position = (positionInfo*)malloc(sizeof(positionInfo));
-    if(activeToken->position == NULL){
-        return;
-    }
-    activeToken->position->charNumber = 0;
-    activeToken->position->lineNumber = 1;
-
     //Program state init
     programState *programState = programStateInit(); 
 
     //Call parser
-    parse(activeToken,programState);
+    parse(programState);
 
+    //Generate output code
     generatorGenerateOutput(programState->gen);
 
     //symtablePrintVariables(symTable);
 
     programStateFree(programState);
-    tokenFree(activeToken);
 
     return 0;
 }
@@ -52,12 +31,14 @@ programState *programStateInit(){
     state->tokenQueue = listInit();
     state->gen = generatorInit();
     state->symTable = symtableInit();
+    state->activeToken = tokenInit();
     return state;
 }
 
 void programStateFree(programState *state){
-    generatorFree(state->gen);
+    tokenFree(state->activeToken);
     symtableFree(state->symTable);
+    generatorFree(state->gen);
     listDestroy(state->tokenQueue);
 
     free(state);
