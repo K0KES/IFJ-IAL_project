@@ -19,6 +19,13 @@ generator* generatorInit(){
     return gen;
 }
 
+void generatorPushStringFirstToList(list *list, char *string){
+    int stringLength = strlen(string) + 1;
+    char *text = (char *)malloc(stringLength);
+    memcpy(text,string,stringLength);
+    listPushFirst(list,text);
+}
+
 void generatorPushStringToList(list *list, char *string){
     int stringLength = strlen(string) + 1;
     char *text = (char *)malloc(stringLength);

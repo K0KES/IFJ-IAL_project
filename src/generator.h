@@ -29,6 +29,8 @@ char* generatorGetFirstStringFromList(list *list);
 
 char* generatorGetLastStringFromList(list *list);
 
+void generatorPushStringFirstToList(list *list, char *string);
+
 void generatorPushStringToList(list *list, char *string);
 
 char* generatorGenerateTempVarName();
