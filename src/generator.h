@@ -21,9 +21,17 @@ void generatorGenerateOutput(generator *gen);
 ///Free up all memory that was alocated by symtable
 void generatorFree(generator *gen);
 
-char* generatorPopStringFromList(list *list);
+char* generatorPopFirstStringFromList(list *list);
+
+char* generatorPopLastStringFromList(list *list);
+
+char* generatorGetFirstStringFromList(list *list);
+
+char* generatorGetLastStringFromList(list *list);
 
 void generatorPushStringToList(list *list, char *string);
+
+char* generatorGenerateTempVarName();
 
 char * concatString(int num_args, ...);
 

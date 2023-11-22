@@ -1,6 +1,9 @@
 #include "generator.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
+
+int temp_var_count = -1;
 
 generator* generatorInit(){
     generator *gen = (generator *)(malloc(sizeof(generator))); 
@@ -23,8 +26,20 @@ void generatorPushStringToList(list *list, char *string){
     listPushFirst(list,text);
 }
 
-char* generatorPopStringFromList(list *list){
+char* generatorPopFirstStringFromList(list *list){
     return (char *)listPopFirst(list);
+}
+
+char* generatorPopLastStringFromList(list *list){
+    return (char *)listPopLast(list);
+}
+
+char* generatorGetFirstStringFromList(list *list){
+    return (char *)listGetFirst(list);
+}
+
+char* generatorGetLastStringFromList(list *list){
+    return (char *)listGetLast(list);
 }
 
 void generatorFree(generator *gen){
@@ -75,4 +90,12 @@ char * concatString(int num_args, ...){
 
     va_end(args);
     return newFirst;
+}
+
+char* generatorGenerateTempVarName(){
+    static char result[100];
+    temp_var_count++;
+
+    snprintf(result, sizeof(result), "temp%d", temp_var_count);
+    return result;
 }
