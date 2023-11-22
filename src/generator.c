@@ -74,16 +74,6 @@ void generatorGenerateOutput(generator *gen){
     fclose(fptr);
 }
 
-void printList(list *l){
-    char* line = (char *)listPopLast(l);
-    printf("LIST PRINT: ");
-    while(line != NULL){
-        printf("%s ")
-        line = (char *)listPopLast(l);
-    }
-    printf("\n");
-}
-
 char * concatString(int num_args, ...){
     va_list args;
     va_start(args, num_args);
