@@ -35,6 +35,8 @@ char* generatorGenerateTempVarName();
 
 char * concatString(int num_args, ...);
 
+void printList(list *l);
+
 /*
 
 1) push nazev_promene to parser stack

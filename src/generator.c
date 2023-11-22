@@ -74,16 +74,6 @@ void generatorGenerateOutput(generator *gen){
     fclose(fptr);
 }
 
-void printList(list *l){
-    char* line = (char *)listPopLast(l);
-    printf("LIST PRINT: ");
-    while(line != NULL){
-        printf("%s ")
-        line = (char *)listPopLast(l);
-    }
-    printf("\n");
-}
-
 char * concatString(int num_args, ...){
     va_list args;
     va_start(args, num_args);
@@ -108,4 +98,15 @@ char* generatorGenerateTempVarName(){
 
     snprintf(result, sizeof(result), "temp%d", temp_var_count);
     return result;
+}
+
+void printList(list *l){
+    listNode *currentNode = l->first;
+    printf("LIST PRINT: ");
+    while(currentNode != NULL){
+        char* line = (char *)(currentNode->data);
+        printf("%s ",line);
+        currentNode = currentNode->next;
+    }
+    printf("\n");
 }

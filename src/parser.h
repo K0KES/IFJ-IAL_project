@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "main.h"
 #pragma once
 
 /// @brief Function initialize memory for one active token
@@ -23,10 +24,9 @@ int tokenFree(token *activeToken);
 
 /// @brief Function that starts the parser
 /// @param activeToken pointer to token
-/// @param symTablePtr pointer to symtable
-/// @param genPtr pointer to generator
+/// @param programState pointer to programState
 /// @return returns 0 if was parsed succesfully, otherwise returns 2
-int parse(token *activeToken, symtable *symTablePtr, generator *genPtr);
+int parse(token *activeToken, programState *programState);
 
 /// @brief Function gets next token and saves it in activeToken
 /// @param activeToken pointer to token

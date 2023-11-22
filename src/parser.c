@@ -3,6 +3,7 @@
 enum tokenType typeOfLastToken;
 symtable *symTable;
 generator *gen;
+programState *state;
 
 int tokenInit(token *activeToken){
     activeToken = (token*)malloc(sizeof(token));
@@ -42,9 +43,10 @@ int tokenFree(token *activeToken){
     return 0;
 }
 
-int parse(token *activeToken, symtable *symTablePtr, generator *genPtr){
-    symTable = symTablePtr;
-    gen = genPtr;
+int parse(token *activeToken, programState *programState){
+    state = programState;
+    symTable = programState->symTable;
+    gen = programState->gen;
     getNextToken(activeToken);
     if(start(activeToken)){
         printf("Success\n");
@@ -737,7 +739,7 @@ bool statement(token *activeToken){
             statementStatus = true;
             break;*/
         case KW_WRITE:
-            // 66) <statement> -> KW_VESTAVENA_FUNKCE (<arguments>)
+            // 66) <statement> -> write(<arguments>)
             getNextToken(activeToken);
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 printf("Leaving function statement() with %d ...\n",false);
@@ -912,7 +914,12 @@ bool assign(token *activeToken){
             assignStatus = expression(activeToken);
 
             //Generator
-            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", generatorPopFirstStringFromList(gen->parserStack), " ", generatorPopFirstStringFromList(gen->parserStack)));
+            printf("LIST BEFORE MOVE:\n");
+            printList(gen->parserStack);
+            var = generatorPopLastStringFromList(gen->parserStack);
+            printList(gen->parserStack);
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",var));
+            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             break;
         case T_INCREMENT:;
             // 62) <assign> -> += <expression>
@@ -926,6 +933,8 @@ bool assign(token *activeToken){
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+
             generatorPushStringToList(gen->mainCode,concatString(6, "ADD ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
@@ -941,6 +950,8 @@ bool assign(token *activeToken){
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+
             generatorPushStringToList(gen->mainCode,concatString(6, "SUB ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
@@ -956,6 +967,8 @@ bool assign(token *activeToken){
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+
             generatorPushStringToList(gen->mainCode,concatString(6, "MUL ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
@@ -972,6 +985,8 @@ bool assign(token *activeToken){
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+            
             if (1 > 0){ //typ oparandu je int
                 generatorPushStringToList(gen->mainCode,concatString(6, "IDIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             }
@@ -1029,9 +1044,11 @@ bool varDec(token *activeToken){
             }
 
             //Symtable
+            printf("Symtable: %d\n",symTable);
             symtableInsert(symTable,activeToken->value->str,false);
 
             //Generator
+            printf("GEN: %d\n",gen);
             generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR GF@",activeToken->value->str));
             generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
 
@@ -1295,6 +1312,9 @@ bool expression(token *activeToken){
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function expression()...\n");
 
+    char *var;
+    char *tempVarName;
+
     switch(activeToken->tokenType) {
         case KW_READSTRING:
             // 67) <expression> -> readString()
@@ -1385,10 +1405,15 @@ bool expression(token *activeToken){
             }
             getNextToken(activeToken);
             expressionStatus = argument(activeToken);
+            //TO DO expression parser push to stack parser_stack
+            generatorPushStringToList(gen->parserStack,"float@4"); //TO DO zkontrolovat zápis floatu
 
             //Generator
-            //TO DO generator push to stack parser_stack
-            generatorPushStringToList(gen->parserStack,"int@4");
+            tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
+            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+
+            generatorPushStringToList(gen->mainCode,concatString(4, "FLOAT2INT ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringToList(gen->parserStack,tempVarName);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 printf("Leaving function expression() with %d ...\n",false);
@@ -1494,7 +1519,7 @@ bool expression(token *activeToken){
             //Generator
             //TO DO generator push to stack parser_stack
             generatorPushStringToList(gen->parserStack,"int@4");
-            
+
             getNextToken(activeToken);
             break;
         default:
