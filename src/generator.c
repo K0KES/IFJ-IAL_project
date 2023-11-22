@@ -99,3 +99,14 @@ char* generatorGenerateTempVarName(){
     snprintf(result, sizeof(result), "temp%d", temp_var_count);
     return result;
 }
+
+void printList(list *l){
+    listNode *currentNode = l->first;
+    printf("LIST PRINT: ");
+    while(currentNode != NULL){
+        char* line = (char *)(currentNode->data);
+        printf("%s ",line);
+        currentNode = currentNode->next;
+    }
+    printf("\n");
+}
