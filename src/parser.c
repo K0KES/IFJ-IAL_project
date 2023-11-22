@@ -1027,7 +1027,7 @@ bool varDef(token *activeToken){
             varDefStatus = expression(activeToken); //expression parser pushne výsledek výrazu na zásobník 
             generatorPushStringToList(gen->parserStack,"int@5");
             //TO DO generování pop 2 prvky ze zásobníku vygeneruji - MOV id1 id2
-            generatorPushStringToList(gen->mainCode,concatString(4,"MOV ",generatorPopStringFromList(gen->parserStack)," ",generatorPopStringFromList(gen->parserStack)));
+            generatorPushStringToList(gen->mainCode,concatString(4,"MOVE ",generatorPopStringFromList(gen->parserStack)," ",generatorPopStringFromList(gen->parserStack)));
             break;
         default:
             // verification of: EOL
