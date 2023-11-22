@@ -54,7 +54,6 @@ int parse(programState *programState){
     else{
         printf("Error\n");
         raiseError(ERR_SYNTAX);
-        return 2;
     }
 }
 
@@ -255,11 +254,11 @@ bool type(){
             // 8) <type> -> int
             getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
-                //edit symtableSetVariableType(symTable, DATA_TYPE_INTEGER, true);
+                symtableSetDataType(symTable, DATA_TYPE_INTEGER, true);
                 getNextToken();
             }
             else {
-                //symtableSetVariableType(symTable, DATA_TYPE_INTEGER, false);
+                symtableSetDataType(symTable, DATA_TYPE_INTEGER, false);
             }
             typeStatus = true;
             break;
@@ -267,11 +266,11 @@ bool type(){
             // 9) <type> -> double
             getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
-                //symtableSetVariableType(symTable, DATA_TYPE_DOUBLE, true);
+                symtableSetDataType(symTable, DATA_TYPE_DOUBLE, true);
                 getNextToken();
             }
             else {
-                //symtableSetVariableType(symTable, DATA_TYPE_DOUBLE, false);
+                symtableSetDataType(symTable, DATA_TYPE_DOUBLE, false);
             }
             typeStatus = true;
             break;
@@ -279,11 +278,11 @@ bool type(){
             // 10) <type> -> string
             getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
-                //symtableSetVariableType(symTable, DATA_TYPE_STRING, true);
+                symtableSetDataType(symTable, DATA_TYPE_STRING, true);
                 getNextToken();
             }
             else {
-                //symtableSetVariableType(symTable, DATA_TYPE_STRING, false);
+                symtableSetDataType(symTable, DATA_TYPE_STRING, false);
             }
             typeStatus = true;
             break;
@@ -332,7 +331,7 @@ bool definition(){
             getNextToken();
             definitionStatus = definitionStatus && functionParams();
 
-            //TO DO symtable symtableFunctionEndOfArguments()
+            symtableFunctionEndOfArguments(symTable);
 
             // verification of: func <eol> ID <eol> (<functionParams>) <eol>
             definitionStatus = definitionStatus && eol();
@@ -460,7 +459,7 @@ bool functionParam(){
                 return false;
             }
 
-            //edit symtableSetFunctionArgumentID(symTable,activeToken->value->str);
+            symtableSetFunctionArgumentID(symTable,activeToken->value->str);
 
             // verification of: _ <eol> ID <eol>
             getNextToken();
@@ -491,7 +490,7 @@ bool functionParam(){
                 return false;
             }
 
-            //edit symtableSetFunctionArgumentID(symTable,activeToken->value->str);
+            symtableSetFunctionArgumentID(symTable,activeToken->value->str);
 
             // verification of: ID <eol> ID <eol>
             getNextToken();
@@ -620,7 +619,7 @@ bool statement(){
             symtableEnterScope(symTable,"if",NULL);
             
             getNextToken();
-            statementStatus = eol() && expression() && eol();  //TO DO jak to bude s expression (má potom být další getNextToken())
+            statementStatus = eol() && expression() && eol();
 
             // verification of: if <eol>  <expression> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
@@ -682,7 +681,7 @@ bool statement(){
             break;
         case T_IDENTIFIER:
             // 30) <statement> -> ID <callOrAssign>
-            //TO DO symtable kontrola symtable jestli je var/func definovaná 
+            //TO DO symtable kontrola symtable jestli je var/func definovaná - setActive prvek
 
             //Generator
             generatorPushStringToList(gen->parserStack,concatString(2,"GF@",activeToken->value->str));
@@ -904,11 +903,13 @@ bool assign(){
     char *tempVarName;
 
     //TO DO symtable pouze assignment jde u všech datových typů -> ošetřit
+    //lastVarType = symtable getActiveVarType 
     switch(activeToken->tokenType) {
         case T_ASSIGNMENT:
             // 61) <assign> -> = <expression>
             getNextToken();
             assignStatus = expression();
+            //TO DO check if returnExpressionType == lastVarExpression
 
             //Generator
             var = generatorPopLastStringFromList(gen->parserStack);
@@ -917,12 +918,15 @@ bool assign(){
         case T_INCREMENT:;
             // 62) <assign> -> += <expression>
 
+            //TO DO if (lastVarType != int || lastVarType != double) {raiseError(semantika)} 
+
             //Generator
             var = generatorPopFirstStringFromList(gen->parserStack);
 
             //Parser
             getNextToken();
             assignStatus = expression();
+            //TO DO check if returnExpressionType == lastVarExpression
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
@@ -934,12 +938,15 @@ bool assign(){
         case T_DECREMENT:;
             // 63) <assign> -> -= <expression>
 
+            //TO DO if (lastVarType != int || lastVarType != double) {raiseError(semantika)} 
+
             //Generator
             var = generatorPopFirstStringFromList(gen->parserStack);
 
             //Parser
             getNextToken();
             assignStatus = expression();
+            //TO DO check if returnExpressionType == lastVarExpression
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
@@ -951,12 +958,15 @@ bool assign(){
         case T_VAR_MUL_VAR:;
             // 64) <assign> -> *= <expression>
 
+            //TO DO if (lastVarType != int || lastVarType != double) {raiseError(semantika)} 
+
             //Generator
             var = generatorPopFirstStringFromList(gen->parserStack);
 
             //Parser
             getNextToken();
             assignStatus = expression();
+            //TO DO check if returnExpressionType == lastVarExpression
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
@@ -967,7 +977,9 @@ bool assign(){
             break;
         case T_VAR_DIV_VAR:;
             // 65) <assign> -> /= <expression>
+
             //TO DO semantika dělení nulou řešíme my nebo ne??
+            //TO DO if (lastVarType != int || lastVarType != double) {raiseError(semantika)} 
 
             //Generator
             var = generatorPopFirstStringFromList(gen->parserStack);
@@ -975,6 +987,7 @@ bool assign(){
             //Parser
             getNextToken();
             assignStatus = expression();
+            //TO DO check if returnExpressionType == lastVarExpression
 
             //Generator
             tempVarName = concatString(2, "GF@", generatorGenerateTempVarName());
@@ -1099,8 +1112,8 @@ bool varDef(){
         case T_ASSIGNMENT:
             // 43) <varDef> -> = <expression>
             getNextToken();
-            //TO DO symtable check if expression has same type as variable
-            varDefStatus = expression(); //expression parser pushne výsledek výrazu na zásobník 
+            //TO DO check if returnExpressionType == activeVarType
+            varDefStatus = expression();
 
             //Generator
             generatorPushStringToList(gen->mainCode,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
