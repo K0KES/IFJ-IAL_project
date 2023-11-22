@@ -107,6 +107,10 @@ void symtableFunctionEndOfArguments(symtable *table);
 void symtableSetFunctionArgumentID(symtable *table, char *id);
 enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table);
 
+char* symtableGetFramePrefix(symtable *table);
+char* symtableGetVariablePrefix(symtable *table);
+char* symtableGetScopePrefixName(symtable *table);
+
 ///Sets data_type for last argument (Must be called after symtableFunctionNextArgument)
 //void symtableSetFunctionArgumentType(symtable *table, enum data_type type);
 

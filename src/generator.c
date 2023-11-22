@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-int temp_var_count = -1;
-
 generator* generatorInit(){
     generator *gen = (generator *)(malloc(sizeof(generator))); 
     if(gen == NULL) return NULL;
@@ -14,7 +12,7 @@ generator* generatorInit(){
     gen->parserStack = listInit();
     gen->temporary = listInit();
 
-    gen->counter = 0;
+    gen->counter = 1;
 
     return gen;
 }
@@ -104,11 +102,10 @@ char * concatString(int num_args, ...){
     return newFirst;
 }
 
-char* generatorGenerateTempVarName(){
+char* generatorGenerateTempVarName(generator *gen){
     static char result[100];
-    temp_var_count++;
-
-    snprintf(result, sizeof(result), "temp%d", temp_var_count);
+    snprintf(result, sizeof(result), "temp%d", gen->counter);
+    gen->counter++;
     return result;
 }
 

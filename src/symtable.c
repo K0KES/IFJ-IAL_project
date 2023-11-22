@@ -211,7 +211,7 @@ void symtableSetDataType(symtable *table, enum data_type type, bool nullable){
             table->activeItem->funcData->returnType = type;
             table->activeItem->funcData->returnTypeNullable = nullable;
             symtableEnterScope(table,table->activeItem->name,table->activeItem);
-            symtableCreateFunctionStructure(table);
+            
         }
     }
 }
@@ -301,6 +301,8 @@ void symtableFunctionEndOfArguments(symtable *table){
     if(table->activeItem->funcData == NULL) return;
 
     table->activeItem->funcData->endOfArguments = true;
+
+    symtableCreateFunctionStructure(table);
 }
 
 enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table){
@@ -359,7 +361,7 @@ void symtableCreateFunctionStructure(symtable *table){
         char str[128];
         char str2[128];
         sprintf(str, "LF@param%d", i);
-        sprintf(str2, "LF@%%%d", i);
+        sprintf(str2, "LF@!%d",i);
         generatorPushStringToList(table->functionCodeHeader,concatString(2,"DEFVAR ",str));
         generatorPushStringToList(table->functionCodeHeader,concatString(4,"MOVE ",str," ",str2));
         i++;
@@ -370,8 +372,31 @@ void symtableCreateFunctionStructure(symtable *table){
     generatorPushStringToList(table->functionCodeFooter,"RETURN");
 }
 
-//FUNCTION CALLS ex. foo(par1, par2, par3);
+char* symtableGetScopePrefixName(symtable *table){
+    if(listLength(table->scopes) != 0){
+        char *scopeString = (char *)listGetFirst(table->scopes);
 
+        char str[64];
+        sprintf(str,"%d",table->gen->counter);
+        return concatString(3,scopeString,str,"_");
+    }else{
+        return "global_";
+    }
+}
+
+char* symtableGetVariablePrefix(symtable *table){
+    return concatString(symtableGetFramePrefix(table),symtableGetScopePrefixName(table));
+}
+
+char* symtableGetFramePrefix(symtable *table){
+    if(listLength(table->scopes) != 0){
+        return "LF@";
+    }else{
+        return "GF@";
+    }
+}
+
+//FUNCTION CALLS ex. foo(par1, par2, par3);
 
 void symtableFunctionCallStart(symtable *table, char *funcName){
     table->lastFunctionCall = funcName;
