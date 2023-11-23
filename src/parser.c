@@ -1068,11 +1068,9 @@ bool varDec(){
             }
 
             //Symtable
-            printf("Symtable: %d\n",symTable);
             symtableInsert(symTable,activeToken->value->str,false);
 
             //Generator
-            printf("GEN: %d\n",gen);
             symtablePushCode(symTable,concatString(3,"DEFVAR ",symtableGetVariablePrefix(symTable),activeToken->value->str));
             generatorPushStringFirstToList(gen->parserStack,concatString(2,symtableGetVariablePrefix(symTable),activeToken->value->str));
 
@@ -1126,7 +1124,7 @@ bool varDef(){
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
             // 42) <varDef> -> EPS
-            getNextToken();
+            //getNextToken();
             varDefStatus = true;
             break;
         case T_ASSIGNMENT:

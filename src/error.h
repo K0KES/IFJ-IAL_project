@@ -36,4 +36,6 @@ enum errorType
 
 void raiseError(enum errorType error);
 
+const char* getErrorName(enum errorType tokenType);
+
 #endif
