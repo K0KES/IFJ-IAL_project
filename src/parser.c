@@ -1415,8 +1415,6 @@ bool expression(){
             }
             getNextToken();
             expressionStatus = argument();
-            //TO DO expression parser push to stack parser_stack
-            generatorPushStringFirstToList(gen->parserStack,"int@4"); //TO DO zkontrolovat zápis floatu
 
             //Generator
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
@@ -1440,8 +1438,6 @@ bool expression(){
             }
             getNextToken();
             expressionStatus = argument();
-            //TO DO expression parser push to stack parser_stack
-            generatorPushStringFirstToList(gen->parserStack,"float@4"); //TO DO zkontrolovat zápis floatu
 
             //Generator
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
@@ -1465,8 +1461,6 @@ bool expression(){
             }
             getNextToken();
             expressionStatus = argument();
-            //TO DO expression parser push to stack parser_stack
-            generatorPushStringFirstToList(gen->parserStack,"string@retezec"); //TO DO zkontrolovat zápis floatu
 
             //Generator
             tempVarName = concatString(2,symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
@@ -1516,8 +1510,6 @@ bool expression(){
             }
 
             //Generator
-            //TO DO generator push to stack parser_stack
-            generatorPushStringFirstToList(gen->parserStack,"int@3");
 
             getNextToken();
             break;
@@ -1536,8 +1528,6 @@ bool expression(){
             }
 
             //Generator
-            //TO DO generator push to stack parser_stack
-            generatorPushStringFirstToList(gen->parserStack,"int@4");
 
             getNextToken();
             break;
@@ -1557,14 +1547,10 @@ bool expression(){
             }
 
             //Generator
-            //TO DO generator push to stack parser_stack
-            generatorPushStringFirstToList(gen->parserStack,"int@4");
 
             getNextToken();
             break;
         default:
-            generatorPushStringFirstToList(gen->parserStack,"GF@promena");
-
             listPushBack(state->tokenQueue,activeToken);
             expressionStatus = expressionParserStart(state);
 
