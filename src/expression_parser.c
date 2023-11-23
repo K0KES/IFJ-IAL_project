@@ -444,6 +444,14 @@ int expressionParserStart(programState *PS)
         {
             printf("Push ) to stack and do reduction\n");
             printf("E -> ( E )\n");
+            if (tokenStackGet(tokenStack, 0)->tokenType != T_RIGHT_BRACKET || tokenStackGet(tokenStack, 1)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_LEFT_BRACKET)
+            {
+                //print token types
+                printf("Token types: %d %d %d\n", tokenStackGet(tokenStack, 0)->tokenType, tokenStackGet(tokenStack, 1)->tokenType, tokenStackGet(tokenStack, 2)->tokenType);
+                raiseError(ERR_SYNTAX);
+            }
+            
+
             // tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
             // popFirstFromQueue(tokenQueue);
             // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
