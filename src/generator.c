@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-list *allocatedStrings;
-
 generator* generatorInit(){
     generator *gen = (generator *)(malloc(sizeof(generator))); 
     if(gen == NULL) return NULL;
@@ -13,8 +11,6 @@ generator* generatorInit(){
     gen->mainCode = listInit();
     gen->parserStack = listInit();
     gen->temporary = listInit();
-
-    allocatedStrings = listInit();
 
     gen->counter = 1;
 
@@ -59,14 +55,6 @@ void generatorFree(generator *gen){
     listDestroy(gen->parserStack);
     listDestroy(gen->temporary);
 
-    /*char* string = (char *)(listPopFirst(allocatedStrings));
-    while(string != NULL){
-        free(string);
-        string = (char *)(listPopFirst(allocatedStrings));
-    }*/
-
-    listDestroy(allocatedStrings);
-
     free(gen);
     gen = NULL;
 }
@@ -103,7 +91,6 @@ char * concatString(int num_args, ...){
     char* first = va_arg(args, char *);
     int stringLength = strlen(first) + 1;
     char *newFirst = (char *)malloc(stringLength);
-    listPushBack(allocatedStrings,newFirst);
     memcpy(newFirst,first,stringLength);
 
     for(int i = 1; i < num_args; i++) {
