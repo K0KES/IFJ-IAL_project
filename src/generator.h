@@ -8,7 +8,6 @@ typedef struct generator_h
     list *mainCode; //List of strings that contains whole 
     int counter; //Unique counter
     list *temporary;
-
     list *parserStack; 
 }generator;
 
@@ -28,6 +27,8 @@ char* generatorPopLastStringFromList(list *list);
 char* generatorGetFirstStringFromList(list *list);
 
 char* generatorGetLastStringFromList(list *list);
+
+void generatorPushStringFirstToList(list *list, char *string);
 
 void generatorPushStringToList(list *list, char *string);
 

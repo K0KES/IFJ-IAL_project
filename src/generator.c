@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-int temp_var_count = -1;
+list *allocatedStrings;
 
 generator* generatorInit(){
     generator *gen = (generator *)(malloc(sizeof(generator))); 
@@ -14,16 +14,25 @@ generator* generatorInit(){
     gen->parserStack = listInit();
     gen->temporary = listInit();
 
-    gen->counter = 0;
+    allocatedStrings = listInit();
+
+    gen->counter = 1;
 
     return gen;
+}
+
+void generatorPushStringFirstToList(list *list, char *string){
+    int stringLength = strlen(string) + 1;
+    char *text = (char *)malloc(stringLength);
+    memcpy(text,string,stringLength);
+    listPushFirst(list,text);
 }
 
 void generatorPushStringToList(list *list, char *string){
     int stringLength = strlen(string) + 1;
     char *text = (char *)malloc(stringLength);
     memcpy(text,string,stringLength);
-    listPushFirst(list,text);
+    listPushBack(list,text);
 }
 
 char* generatorPopFirstStringFromList(list *list){
@@ -50,25 +59,38 @@ void generatorFree(generator *gen){
     listDestroy(gen->parserStack);
     listDestroy(gen->temporary);
 
+    char* string = (char *)(listPopFirst(allocatedStrings));
+    while(string != NULL){
+        free(string);
+        string = (char *)(listPopFirst(allocatedStrings));
+    }
+
+    listDestroy(allocatedStrings);
+
     free(gen);
     gen = NULL;
 }
 
 void generatorGenerateOutput(generator *gen){
-    FILE *fptr;
+    FILE *fptr = NULL;
     fptr = fopen("output", "w");
     fprintf(fptr, ".IFJcode23\n");
     fprintf(fptr, "JUMP $$main\n");
 
-    //INSERT FUNCTIONS
-    
-    fprintf(fptr, "LABEL $$main\n");
-    
-    char* line = (char *)listPopLast(gen->mainCode);
+    char* line = (char *)listPopFirst(gen->functions);
     while(line != NULL){
         fprintf(fptr, line);
         fprintf(fptr, "\n");
-        line = (char *)listPopLast(gen->mainCode);
+        line = (char *)listPopFirst(gen->functions);
+    }
+    
+    fprintf(fptr, "LABEL $$main\n");
+    
+    line = (char *)listPopFirst(gen->mainCode);
+    while(line != NULL){
+        fprintf(fptr, line);
+        fprintf(fptr, "\n");
+        line = (char *)listPopFirst(gen->mainCode);
     }
     
     fclose(fptr);
@@ -81,6 +103,7 @@ char * concatString(int num_args, ...){
     char* first = va_arg(args, char *);
     int stringLength = strlen(first) + 1;
     char *newFirst = (char *)malloc(stringLength);
+    listPushBack(allocatedStrings,newFirst);
     memcpy(newFirst,first,stringLength);
 
     for(int i = 1; i < num_args; i++) {
@@ -92,11 +115,10 @@ char * concatString(int num_args, ...){
     return newFirst;
 }
 
-char* generatorGenerateTempVarName(){
+char* generatorGenerateTempVarName(generator *gen){
     static char result[100];
-    temp_var_count++;
-
-    snprintf(result, sizeof(result), "temp%d", temp_var_count);
+    snprintf(result, sizeof(result), "temp%d", gen->counter);
+    gen->counter++;
     return result;
 }
 

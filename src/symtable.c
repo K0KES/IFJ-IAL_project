@@ -1,16 +1,21 @@
 #pragma once
 #include "symtable.h"
-#include "scanner.h"
 #include <stdio.h>
 #include "error.h"
 
-symtable* symtableInit(){
+symtable* symtableInit(generator *generator)
+{
     symtable *table = (symtable *)(malloc(sizeof(symtable))); 
     if(table == NULL) return NULL;
 
+    table->gen = generator;
     table->tables = listInit();
     table->scopes = listInit();
     table->functionCalls = listInit();
+
+    table->functionCodeHeader = listInit();
+    table->functionCodeBody = listInit();
+    table->functionCodeFooter = listInit();
 
     if(table->tables == NULL){ free(table); return NULL; }
     
@@ -47,15 +52,6 @@ void symtableExitScope(symtable *table){
     ht_table_t *hashmap;
 
     hashmap = (ht_table_t *)listGetFirst(table->tables);
-
-    /*
-    printf("LOADED ADRESS: %d \n",hashmap);
-
-    float *val = ht_get(hashmap,"test123");
-
-    printf("READED VALUE %f \n", *val);*/
-
-    //TODO - Free every symtable item on exit (64B leak)
     
     ht_delete_all(hashmap);
     free(hashmap);
@@ -64,6 +60,28 @@ void symtableExitScope(symtable *table){
     
     if(listLength(table->scopes) != 0){
         char *scopeString = (char *)listGetFirst(table->scopes);
+
+        if(strcmp(scopeString,"while") != 0 && strcmp(scopeString,"if") != 0){
+            char* line = listPopFirst(table->functionCodeHeader);
+            
+            while(line != NULL){
+                listPushBack(table->gen->functions,line);
+                line = listPopFirst(table->functionCodeHeader);
+            }
+
+            line = listPopFirst(table->functionCodeBody);
+            while(line != NULL){
+                listPushBack(table->gen->functions,line);
+                line = listPopFirst(table->functionCodeBody);
+            }
+
+            line = listPopFirst(table->functionCodeFooter);
+            while(line != NULL){
+                listPushBack(table->gen->functions,line);
+                line = listPopFirst(table->functionCodeFooter);
+            }
+        }
+
         printf("Exiting scope - %s \n",scopeString);
         free(scopeString);
         listPopFirst(table->scopes);
@@ -82,6 +100,10 @@ void symtableFree(symtable *table){
     listDestroy(table->tables);
     listDestroy(table->scopes);
     listDestroy(table->functionCalls);
+
+    listDestroy(table->functionCodeFooter);
+    listDestroy(table->functionCodeBody);
+    listDestroy(table->functionCodeHeader);
     free(table);
 }
 
@@ -181,19 +203,22 @@ bool symtableContainsVariable(symtable *table, char* name){
 
 void symtableSetDataType(symtable *table, enum data_type type, bool nullable){
     if(table->activeItem == NULL) return;
+    
     if(table->activeItem->funcData == NULL){
         table->activeItem->type = type;
         table->activeItem->nullable = nullable;
     }else{
+        
         if(table->activeItem->funcData->endOfArguments == false){
             functionArgument *argument = (functionArgument *)listGetLast(table->activeItem->funcData->arguments);
             argument->type = type;
             argument->nullable = nullable;
+            
         }else{
             table->activeItem->funcData->returnType = type;
             table->activeItem->funcData->returnTypeNullable = nullable;
-
             symtableEnterScope(table,table->activeItem->name,table->activeItem);
+            
         }
     }
 }
@@ -283,6 +308,8 @@ void symtableFunctionEndOfArguments(symtable *table){
     if(table->activeItem->funcData == NULL) return;
 
     table->activeItem->funcData->endOfArguments = true;
+
+    symtableCreateFunctionStructure(table);
 }
 
 enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table){
@@ -324,8 +351,64 @@ enum data_type symtableGetVariableType(symtable *table, char *varName){
     }
 }
 
-//FUNCTION CALLS ex. foo(par1, par2, par3);
+void symtableCreateFunctionStructure(symtable *table){
+    if(table->activeItem == NULL) return;
+    if(table->activeItem->funcData == NULL) return;
 
+    printf("-------------->>> CREATING STRUCTURE CODE \n");
+
+    generatorPushStringToList(table->functionCodeHeader,concatString(2,"LABEL $",table->activeItem->name));
+    generatorPushStringToList(table->functionCodeHeader,"PUSHFRAME");
+    generatorPushStringToList(table->functionCodeHeader,"DEFVAR LF@%retval");
+    generatorPushStringToList(table->functionCodeHeader,"MOVE LF@%retval nil@nil");
+
+    listNode *arg = table->activeItem->funcData->arguments->first;
+    int i = 1;
+    while(arg != NULL){
+        char str[128];
+        char str2[128];
+        sprintf(str, "LF@param%d", i);
+        sprintf(str2, "LF@!%d",i);
+        generatorPushStringToList(table->functionCodeHeader,concatString(2,"DEFVAR ",str));
+        generatorPushStringToList(table->functionCodeHeader,concatString(4,"MOVE ",str," ",str2));
+        i++;
+        arg = arg->next;
+    }
+
+    generatorPushStringToList(table->functionCodeFooter,"POPFRAME");
+    generatorPushStringToList(table->functionCodeFooter,"RETURN");
+}
+
+void symtablePushCode(symtable *table, char* code){
+    if(table == NULL) return;
+    generatorPushStringToList(table->functionCodeBody,code);
+}
+
+char* symtableGetScopePrefixName(symtable *table){
+    if(listLength(table->scopes) != 0){
+        char *scopeString = (char *)listGetFirst(table->scopes);
+
+        char str[64];
+        sprintf(str,"%d",table->gen->counter);
+        return concatString(3,scopeString,str,"_");
+    }else{
+        return "global_";
+    }
+}
+
+char* symtableGetVariablePrefix(symtable *table){
+    return concatString(2,symtableGetFramePrefix(table),symtableGetScopePrefixName(table));
+}
+
+char* symtableGetFramePrefix(symtable *table){
+    if(listLength(table->scopes) != 0){
+        return "LF@";
+    }else{
+        return "GF@";
+    }
+}
+
+//FUNCTION CALLS ex. foo(par1, par2, par3);
 
 void symtableFunctionCallStart(symtable *table, char *funcName){
     table->lastFunctionCall = funcName;

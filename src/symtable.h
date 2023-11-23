@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "custom_data_types/list.h"
 #include "custom_data_types/hashtable.h"
+#include "generator.h"
 
 /**
  * @file sym_table.h
@@ -57,6 +58,10 @@ typedef struct symtable_s
     symtableItem *currentFunction;
     list *functionCalls;
     char* lastFunctionCall;
+    generator *gen;
+    list *functionCodeHeader; 
+    list *functionCodeBody;
+    list *functionCodeFooter;
 }symtable;
 
 ///Initializes symtable - MUST BE CALLED BEFORE ANY OTHER FUNCTION!
@@ -98,6 +103,16 @@ void symtableFunctionCallNextParameter(symtable *table);
 void symtableFunctionCallSetParameterType(symtable *table, enum data_type type, bool nullable);
 void symtableFunctionCallSetParameterName(symtable *table, char* name);
 void symtableFunctionCallEnd(symtable *table);
+void symtableCreateFunctionStructure(symtable *table);
+void symtableFunctionEndOfArguments(symtable *table);
+void symtableSetFunctionArgumentID(symtable *table, char *id);
+enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table);
+
+char* symtableGetFramePrefix(symtable *table);
+char* symtableGetVariablePrefix(symtable *table);
+char* symtableGetScopePrefixName(symtable *table);
+
+void symtablePushCode(symtable *table, char* code);
 
 ///Sets data_type for last argument (Must be called after symtableFunctionNextArgument)
 //void symtableSetFunctionArgumentType(symtable *table, enum data_type type);
