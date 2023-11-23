@@ -1558,7 +1558,10 @@ bool expression(){
         default:
             generatorPushStringFirstToList(gen->parserStack,"GF@promena");
 
+            printf("---------Lenght: %d\n",listLength(state->tokenQueue));
             listPushBack(state->tokenQueue,activeToken);
+            //printList(state->tokenQueue);
+            printf("---------Lenght: %d\n",listLength(state->tokenQueue));
             expressionStatus = expressionParserStart(state);
 
             // if (activeToken->tokenType == T_LEFT_BRACKET){
