@@ -543,24 +543,14 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E - E\n");
 
-                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                // {
-                //     return checkTokensOnTopOfTheStack(tokenStack);
-                // }
+                if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT || tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE)
+                {
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
-                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                // newRule->description = (char *)malloc(sizeof(char) * 20);
+                symtablePushCode(PS->symTable, concatString(6, "SUB ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                tokenStackPop(tokenStack, 2);
 
-                // newRule->description = "E -> E - E";
-                // newRule->leftSide.tokenType = T_E;
-                // newRule->rightSideLen = 3;
-                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                // tokenStackPop(tokenStack, 2);
-                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -568,24 +558,15 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E * E\n");
 
-                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                // {
-                //     return checkTokensOnTopOfTheStack(tokenStack);
-                // }
+                if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT || tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE)
+                {
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
-                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                // newRule->description = (char *)malloc(sizeof(char) * 20);
+                symtablePushCode(PS->symTable, concatString(6, "MUL ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                tokenStackPop(tokenStack, 2);
 
-                // newRule->description = "E -> E * E";
-                // newRule->leftSide.tokenType = T_E;
-                // newRule->rightSideLen = 3;
-                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                // tokenStackPop(tokenStack, 2);
-                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                
                 break;
             }
 
@@ -593,24 +574,21 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E / E\n");
 
-                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                // {
-                //     return checkTokensOnTopOfTheStack(tokenStack);
-                // }
+                if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT || tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE)
+                {
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
-                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                // newRule->description = (char *)malloc(sizeof(char) * 20);
+                if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT)
+                {
+                    symtablePushCode(PS->symTable, concatString(6, "IDIV ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                }
+                else
+                {
+                    symtablePushCode(PS->symTable, concatString(6, "DIV ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                }
 
-                // newRule->description = "E -> E / E";
-                // newRule->leftSide.tokenType = T_E;
-                // newRule->rightSideLen = 3;
-                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                // tokenStackPop(tokenStack, 2);
-                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                tokenStackPop(tokenStack, 2);
                 break;
             }
 
@@ -801,14 +779,19 @@ int expressionParserStart(programState *PS)
 
         case '0':
             printf("Parsing is done!\n");
+            char *returnAdr =  malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
+            strcpy(returnAdr, tokenStackGet(tokenStack, 0)->value->str);
+            generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
+            PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
+
+
+            tokenFree(activeToken);
+            tokenFree(firstToken);
             tokenStackClear(tokenStack);
             free(tokenQueue);
-            free(activeToken->position);
-            free(activeToken);
-            free(firstToken);
             symtablePushCode(PS->symTable, "#Expression parser ended!\n");
 
-            return 0;
+            return 1;
             break;
 
         default:
