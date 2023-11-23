@@ -33,6 +33,7 @@ void tokenFree(token *activeToken ){
     }
 
     if(activeToken->value != NULL){
+        strFree(activeToken->value);
         free(activeToken->value);
         activeToken->value = NULL;
     }
@@ -1550,12 +1551,14 @@ bool expression(){
             break;
         default:
             generatorPushStringFirstToList(gen->parserStack,"int@5");
-            if (activeToken->tokenType == T_LEFT_BRACKET){
-                while (activeToken->tokenType != T_RIGHT_BRACKET){
-                    printf("getting next\n");
-                    getNextToken();
-                }
-            }
+            expressionStatus = expressionParserStart(state);
+
+            // if (activeToken->tokenType == T_LEFT_BRACKET){
+            //     while (activeToken->tokenType != T_RIGHT_BRACKET){
+            //         printf("getting next\n");
+            //         getNextToken();
+            //     }
+            // }
             
             getNextToken();
             printf("Leaving function expression() with %d ...\n",true);
