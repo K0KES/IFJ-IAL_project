@@ -52,7 +52,24 @@ void symtableExitScope(symtable *table){
     ht_table_t *hashmap;
 
     hashmap = (ht_table_t *)listGetFirst(table->tables);
+
+    for (size_t i = 0; i < HT_SIZE; i++)
+    {
+        ht_item_t *currentItem = (*hashmap)[i];
+
+        while(currentItem != NULL){
+            symtableItem * item = (symtableItem *)(currentItem->data);
+            free(item->name);
+            free(item->data);
+            free(item->funcData);
+            free(item);
+            item = NULL;
+            currentItem = currentItem->next;  
+        }
+    }
     
+    //Need to loop through all symtableItems and free them with its data
+
     ht_delete_all(hashmap);
     free(hashmap);
     
@@ -103,9 +120,9 @@ void symtableFree(symtable *table){
     listDestroy(table->scopes);
     listDestroy(table->functionCalls);
 
-    listDestroy(table->functionCodeFooter);
-    listDestroy(table->functionCodeBody);
-    listDestroy(table->functionCodeHeader);
+    freeContentOfListAndDestroy(table->functionCodeFooter);
+    freeContentOfListAndDestroy(table->functionCodeBody);
+    freeContentOfListAndDestroy(table->functionCodeHeader);
     free(table);
 }
 
