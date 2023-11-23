@@ -60,6 +60,7 @@ typedef struct symtable_s
     char* lastFunctionCall;
     generator *gen;
     list *functionCodeHeader; 
+    list *functionCodeBody;
     list *functionCodeFooter;
 }symtable;
 
@@ -110,6 +111,8 @@ enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table);
 char* symtableGetFramePrefix(symtable *table);
 char* symtableGetVariablePrefix(symtable *table);
 char* symtableGetScopePrefixName(symtable *table);
+
+void symtablePushCode(symtable *table, char* code);
 
 ///Sets data_type for last argument (Must be called after symtableFunctionNextArgument)
 //void symtableSetFunctionArgumentType(symtable *table, enum data_type type);

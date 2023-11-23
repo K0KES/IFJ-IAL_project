@@ -14,6 +14,7 @@ symtable* symtableInit(generator *generator)
     table->functionCalls = listInit();
 
     table->functionCodeHeader = listInit();
+    table->functionCodeBody = listInit();
     table->functionCodeFooter = listInit();
 
     if(table->tables == NULL){ free(table); return NULL; }
@@ -64,9 +65,14 @@ void symtableExitScope(symtable *table){
             char* line = listPopFirst(table->functionCodeHeader);
             
             while(line != NULL){
-                printf("------->>> PUSHING TO GEN %s \n",line);
                 listPushBack(table->gen->functions,line);
                 line = listPopFirst(table->functionCodeHeader);
+            }
+
+            line = listPopFirst(table->functionCodeBody);
+            while(line != NULL){
+                listPushBack(table->gen->functions,line);
+                line = listPopFirst(table->functionCodeBody);
             }
 
             line = listPopFirst(table->functionCodeFooter);
@@ -96,6 +102,7 @@ void symtableFree(symtable *table){
     listDestroy(table->functionCalls);
 
     listDestroy(table->functionCodeFooter);
+    listDestroy(table->functionCodeBody);
     listDestroy(table->functionCodeHeader);
     free(table);
 }
@@ -372,6 +379,11 @@ void symtableCreateFunctionStructure(symtable *table){
     generatorPushStringToList(table->functionCodeFooter,"RETURN");
 }
 
+void symtablePushCode(symtable *table, char* code){
+    if(table == NULL) return;
+    generatorPushStringToList(table->functionCodeBody,code);
+}
+
 char* symtableGetScopePrefixName(symtable *table){
     if(listLength(table->scopes) != 0){
         char *scopeString = (char *)listGetFirst(table->scopes);
@@ -385,7 +397,7 @@ char* symtableGetScopePrefixName(symtable *table){
 }
 
 char* symtableGetVariablePrefix(symtable *table){
-    return concatString(symtableGetFramePrefix(table),symtableGetScopePrefixName(table));
+    return concatString(2,symtableGetFramePrefix(table),symtableGetScopePrefixName(table));
 }
 
 char* symtableGetFramePrefix(symtable *table){
