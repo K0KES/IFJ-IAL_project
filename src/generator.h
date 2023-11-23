@@ -1,5 +1,6 @@
 #include "custom_data_types/list.h"
 #include "custom_data_types/hashtable.h"
+#include "error.h"
 #pragma once
 
 typedef struct generator_h
@@ -37,6 +38,8 @@ char* generatorGenerateTempVarName();
 char * concatString(int num_args, ...);
 
 void printList(list *l);
+
+char* stringToAssemblyStringFormat(const char* inputString);
 
 /*
 

@@ -363,6 +363,12 @@ bool symtableIsVariableInitiated(symtable *table,char *varName){
     return item->data != NULL;
 }
 
+bool symtableIsActiveVariableInitiated(symtable *table){
+    if(table == NULL) return false;
+    if(table->activeItem == NULL) return false;
+    return table->activeItem->data != NULL;
+}
+
 enum data_type symtableGetVariableType(symtable *table, char *varName){
     symtableItem *item = symtableFindSymtableItem(table,varName);
 
@@ -541,4 +547,15 @@ enum data_type symtableGetActiveItemType(symtable *table){
     if(table == NULL) return DATA_TYPE_NOTSET;
     if(table->activeItem == NULL) return DATA_TYPE_NOTSET;
     return table->activeItem->type;
+}
+
+char *symtableGetActiveItemName(symtable *table){
+    if(table == NULL) return NULL;
+    if(table->activeItem == NULL) return NULL;
+    return table->activeItem->name;
+}
+
+void symtableSameTypes(enum data_type type1,enum data_type type2){
+    if(type1 == type2) {return;}
+    raiseError(ERR_WRONG_TYPE);
 }

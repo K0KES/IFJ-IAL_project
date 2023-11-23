@@ -149,6 +149,41 @@ char* generatorGenerateTempVarName(generator *gen){
     return result;
 }
 
+char* stringToAssemblyStringFormat(const char* inputString) {
+    int length = 0;
+    const char* p = inputString;
+
+    // Spočítáme délku výsledného řetězce
+    while (*p) {
+        // Escape sekvence nebo bílý znak
+        if (*p == '\\' || *p == '#' || (*p >= 0 && *p <= 32)) { length += 5;} //Escape sekvence má 5 znaků (\x00)
+        else {length++;}
+        p++;
+    }
+
+    char* outputString = (char*)malloc(length + 1);
+    if (!outputString) { raiseError(ERR_INTERNAL); }
+
+    char* q = outputString;
+
+    // Kopírujeme znaky a vytváříme escape sekvence
+    p = inputString;
+    while (*p) {
+        if (*p == '\\' || *p == '#' || (*p >= 0 && *p <= 32)) {
+            // Escape sekvence
+            q += sprintf(q, "\\%03d", *p);
+        } else {
+            // Běžný tisknutelný znak
+            *q++ = *p;
+        }
+        p++;
+    }
+
+    // Nastavíme koncový znak
+    *q = '\0';
+    return outputString;
+}
+
 void printList(list *l){
     listNode *currentNode = l->first;
     printf("LIST PRINT: ");

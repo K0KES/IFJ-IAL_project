@@ -19,11 +19,12 @@
  * @brief enum for data types
 */
 enum data_type{
-    DATA_TYPE_NOTSET,
-    DATA_TYPE_INTEGER,
-    DATA_TYPE_DOUBLE,
-    DATA_TYPE_STRING,
-    DATA_TYPE_VOID
+    DATA_TYPE_INTEGER = 120,
+    DATA_TYPE_DOUBLE = 121,
+    DATA_TYPE_STRING = 122,
+    DATA_TYPE_BOOL = 123,
+    DATA_TYPE_VOID = 124,
+    DATA_TYPE_NOTSET = 125
 };
 
 typedef struct{
@@ -97,6 +98,7 @@ void symtableSetFunctionArgumentName(symtable *table, char *name);
 symtableItem *symtableFindSymtableItem(symtable *table, char *varName);
 bool symtableIsVariableDefined(symtable *table,char *varName);
 bool symtableIsVariableInitiated(symtable *table,char *varName);
+bool symtableIsActiveVariableInitiated(symtable *table);
 enum data_type symtableGetVariableType(symtable *table, char *varName);
 void symtableFunctionCallStart(symtable *table, char *funcName);
 void symtableFunctionCallNextParameter(symtable *table);
@@ -114,6 +116,8 @@ char* symtableGetScopePrefixName(symtable *table);
 
 void symtablePushCode(symtable *table, char* code);
 
+char *symtableGetActiveItemName(symtable *table);
+void symtableSameTypes(enum data_type type1,enum data_type type2);
 ///Sets data_type for last argument (Must be called after symtableFunctionNextArgument)
 //void symtableSetFunctionArgumentType(symtable *table, enum data_type type);
 

@@ -49,15 +49,16 @@ enum tokenType {
     T_NOT, // !
 
     //DATA TYPES
-    T_INT, // Integer
-    T_DOUBLE, // Double
-    T_STRING, // String
-    T_BOOL, // Boolean
+    T_INT = 120 , // Integer
+    T_DOUBLE = 121, // Double
+    T_STRING = 122, // String
+    T_BOOL = 123, // Boolean
+    T_VOID = 124, // Void only for symtable
+    T_NULLABLE = 125, // ?
     T_MULTILINE_STRING, // """ """
-    T_NULLABLE, // ?
 
     //OTHERS
-    T_SEMICOLON, // ;
+    T_SEMICOLON = 40, // ;
     T_COLON, // :
     T_COMMA, // ,
     T_ARROW, // ->
