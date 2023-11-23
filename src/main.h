@@ -11,6 +11,7 @@ typedef struct {
     generator *gen;
     symtable *symTable;
     token *activeToken;
+    enum tokenType expParserReturnType;
 } programState;
 
 programState *programStateInit();
