@@ -913,7 +913,7 @@ bool assign(){
 
             //Generator
             var = generatorPopLastStringFromList(gen->parserStack);
-            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             break;
         case T_INCREMENT:;
             // 62) <assign> -> += <expression>
@@ -932,11 +932,11 @@ bool assign(){
             printf("....... %s\n",symtableGetVariablePrefix(symTable));
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
             printf("test1 %s \n",tempVarName);
-            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
             printf("test2\n");
-            generatorPushStringToList(gen->mainCode,concatString(6, "ADD ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(6, "ADD ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             printf("test3 \n");
-            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
+            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempVarName));
             printf("test4\n");
             break;
         case T_DECREMENT:;
@@ -954,10 +954,10 @@ bool assign(){
 
             //Generator
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
-            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
 
-            generatorPushStringToList(gen->mainCode,concatString(6, "SUB ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
+            symtablePushCode(symTable,concatString(6, "SUB ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
         case T_VAR_MUL_VAR:;
             // 64) <assign> -> *= <expression>
@@ -974,10 +974,10 @@ bool assign(){
 
             //Generator
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
-            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
 
-            generatorPushStringToList(gen->mainCode,concatString(6, "MUL ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
+            symtablePushCode(symTable,concatString(6, "MUL ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
         case T_VAR_DIV_VAR:;
             // 65) <assign> -> /= <expression>
@@ -995,15 +995,15 @@ bool assign(){
 
             //Generator
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
-            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
             
             if (1 > 0){ //typ oparandu je int
-                generatorPushStringToList(gen->mainCode,concatString(6, "IDIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+                symtablePushCode(symTable,concatString(6, "IDIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             }
             else{ //typ operandu je float
-                generatorPushStringToList(gen->mainCode,concatString(6, "DIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+                symtablePushCode(symTable,concatString(6, "DIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             }
-            generatorPushStringToList(gen->mainCode,concatString(4, "MOVE ", var, " ", tempVarName));
+            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempVarName));
             break;
         default:
             printf("Leaving function assign() with %d ...\n",false);
@@ -1035,7 +1035,7 @@ bool varDec(){
             symtableInsert(symTable,activeToken->value->str,false);
 
             //Generator
-            generatorPushStringToList(gen->mainCode,concatString(3,"DEFVAR ", symtableGetVariablePrefix(symTable),activeToken->value->str));
+            symtablePushCode(symTable,concatString(3,"DEFVAR ", symtableGetVariablePrefix(symTable),activeToken->value->str));
             generatorPushStringFirstToList(gen->parserStack,concatString(2, symtableGetVariablePrefix(symTable),activeToken->value->str));
 
             getNextToken();
@@ -1059,7 +1059,7 @@ bool varDec(){
 
             //Generator
             printf("GEN: %d\n",gen);
-            generatorPushStringToList(gen->mainCode,concatString(3,"DEFVAR ",symtableGetVariablePrefix(symTable),activeToken->value->str));
+            symtablePushCode(symTable,concatString(3,"DEFVAR ",symtableGetVariablePrefix(symTable),activeToken->value->str));
             generatorPushStringFirstToList(gen->parserStack,concatString(2,symtableGetVariablePrefix(symTable),activeToken->value->str));
 
             getNextToken();
@@ -1091,7 +1091,7 @@ bool varDecMid(){
             //TO DO symtable get type of expression and set it as type of active item 
 
             //Generator
-            generatorPushStringToList(gen->mainCode,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
         default:
             printf("Leaving function varDecMid() with %d ...\n",false);
@@ -1120,7 +1120,7 @@ bool varDef(){
             varDefStatus = expression();
 
             //Generator
-            generatorPushStringToList(gen->mainCode,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
         default:
             // verification of: EOL
@@ -1340,8 +1340,8 @@ bool expression(){
 
             //Generator
             tempVarName = concatString(2,symtableGetVariablePrefix(symTable),generatorGenerateTempVarName(gen));
-            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
-            generatorPushStringToList(gen->mainCode,concatString(3,"READ ",tempVarName, " string"));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
+            symtablePushCode(symTable,concatString(3,"READ ",tempVarName, " string"));
             generatorPushStringFirstToList(gen->parserStack,tempVarName);
 
             getNextToken();
@@ -1363,8 +1363,8 @@ bool expression(){
             //Generator
             //Generator
             tempVarName = concatString(2,symtableGetVariablePrefix(symTable),generatorGenerateTempVarName(gen));
-            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
-            generatorPushStringToList(gen->mainCode,concatString(3,"READ ",tempVarName, " int"));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
+            symtablePushCode(symTable,concatString(3,"READ ",tempVarName, " int"));
             generatorPushStringFirstToList(gen->parserStack,tempVarName);
 
             getNextToken();
@@ -1385,8 +1385,8 @@ bool expression(){
 
             //Generator
             tempVarName = concatString(2,symtableGetVariablePrefix(symTable),generatorGenerateTempVarName(gen));
-            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
-            generatorPushStringToList(gen->mainCode,concatString(3,"READ ",tempVarName, " float"));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
+            symtablePushCode(symTable,concatString(3,"READ ",tempVarName, " float"));
             generatorPushStringFirstToList(gen->parserStack,tempVarName);
 
             getNextToken();
@@ -1406,9 +1406,9 @@ bool expression(){
 
             //Generator
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
-            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
 
-            generatorPushStringToList(gen->mainCode,concatString(4, "INT2FLOAT ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4, "INT2FLOAT ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
             generatorPushStringFirstToList(gen->parserStack,tempVarName);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
@@ -1431,9 +1431,9 @@ bool expression(){
 
             //Generator
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
-            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
 
-            generatorPushStringToList(gen->mainCode,concatString(4, "FLOAT2INT ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4, "FLOAT2INT ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
             generatorPushStringFirstToList(gen->parserStack,tempVarName);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
@@ -1456,9 +1456,9 @@ bool expression(){
 
             //Generator
             tempVarName = concatString(2,symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
-            generatorPushStringToList(gen->mainCode,concatString(2,"DEFVAR ",tempVarName));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
 
-            generatorPushStringToList(gen->mainCode,concatString(4, "STRLEN ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4, "STRLEN ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
             generatorPushStringFirstToList(gen->parserStack,tempVarName);
             
             if (activeToken->tokenType != T_RIGHT_BRACKET){
