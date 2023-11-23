@@ -73,7 +73,7 @@ bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctio
 ///Exits current scope
 void symtableExitScope(symtable *table);
 
-///Free up all memory that was alocated by symtable
+///Free up all memory that was allocated by symtable
 void symtableFree(symtable *table);
 
 ///Inserts new record into symtable and sets it as active (VAR or FUNCTION)
