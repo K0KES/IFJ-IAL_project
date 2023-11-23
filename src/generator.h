@@ -38,6 +38,8 @@ char * concatString(int num_args, ...);
 
 void printList(list *l);
 
+char* stringToAssemblyStringFormat(const char* inputString);
+
 /*
 
 1) push nazev_promene to parser stack
