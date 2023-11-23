@@ -1265,11 +1265,18 @@ bool argument(){
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
             //tempToken->value->length = activeToken->value->length;
-            strcmp(tempToken->value->str, activeToken->value->str);
+            printf("?????:::::::: %s \n",activeToken->value->str);
+            //strcmp(tempToken->value->str, activeToken->value->str);
+
+            int stringLength = strlen(activeToken->value->str) + 1;
+            char *string = (char *)malloc(stringLength);
+            memcpy(string,activeToken->value->str,stringLength);
+            tempToken->value->str = string;
+
             //listPushBack(state->tokenQueue,activeToken);
             getNextToken();
             argumentStatus = eol();
-            printf(":::::::: %s \n",activeToken->value->str);
+            printf(":::::::: %s \n",tempToken->value->str);
             listPushBack(state->tokenQueue,tempToken);
             argumentStatus = argumentStatus && argWithName();
             tokenFree(tempToken);
