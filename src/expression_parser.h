@@ -1,4 +1,7 @@
 #include "scanner.h"
+#include "symtable.h"
+#include "generator.h"
+#include "main.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -114,7 +117,7 @@ int popFirstFromQueue(struct tokenQueue* tQ);
 /// @param outputPrecedenceRulesList output list of precedence rules
 /// @param PROGRAM_STATE struct with program state
 /// @return error code
-int expressionParserStart(struct precedenceRuleList *outputPrecedenceRulesList, programState *PROGRAM_STATE);
+int expressionParserStart(struct precedenceRuleList *outputPrecedenceRulesList, programState *PS);
 
 /// @brief Function returns precedence of two tokens
 /// @param topOfStack token on the top of the stack

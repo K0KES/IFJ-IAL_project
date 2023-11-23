@@ -328,7 +328,7 @@ int popFirstFromQueue(struct tokenQueue *tQ)
     return 0;
 }
 
-int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, programState *PROGRAM_STATE)
+int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, programState *PS)
 {
     // int retunValue = 0;
     struct tokenStack *tokenStack = tokenStackInit();
@@ -347,6 +347,8 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
 
     tokenStackPush(tokenStack, firstToken);
 
+
+    PS->tokenQueue.
     if (PROGRAM_STATE->isLastReadTokenValid == true)
     {
         if (!isTokenTypeAccepted(PROGRAM_STATE->lastReadToken))
