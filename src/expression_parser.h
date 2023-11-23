@@ -30,7 +30,7 @@ enum tokenType acceptedTokenTypes[] = {
     T_EQUAL,
     T_NOT_EQUAL,
     T_NIL_OP,
-    T_EOL,
+    // T_EOL,
     T_INT,
     T_DOUBLE,
     T_STRING
