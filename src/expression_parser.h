@@ -3,6 +3,7 @@
 #include "generator.h"
 #include "main.h"
 #include "custom_data_types/list.h"
+#include "parser.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

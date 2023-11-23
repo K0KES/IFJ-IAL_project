@@ -1317,7 +1317,6 @@ bool dataType(){
 }
 
 bool expression(){
-    return expressionParserStart(state);
     bool expressionStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function expression()...\n");
@@ -1551,12 +1550,14 @@ bool expression(){
             break;
         default:
             generatorPushStringFirstToList(gen->parserStack,"int@5");
-            if (activeToken->tokenType == T_LEFT_BRACKET){
-                while (activeToken->tokenType != T_RIGHT_BRACKET){
-                    printf("getting next\n");
-                    getNextToken();
-                }
-            }
+            expressionStatus = expressionParserStart(state);
+
+            // if (activeToken->tokenType == T_LEFT_BRACKET){
+            //     while (activeToken->tokenType != T_RIGHT_BRACKET){
+            //         printf("getting next\n");
+            //         getNextToken();
+            //     }
+            // }
             
             getNextToken();
             printf("Leaving function expression() with %d ...\n",true);

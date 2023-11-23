@@ -78,7 +78,7 @@ int checkTokensOnTopOfTheStack(struct tokenStack *stack)
 int tokenStackPush(struct tokenStack *stack, token *tokenIn)
 {
     struct tokenStackElement *newElement = (struct tokenStackElement *)malloc(sizeof(struct tokenStackElement));
-    token *newToken = (token *)malloc(sizeof(token));
+    token *newToken = tokenInit();
     newElement->tokenOnStack = newToken;
     if (newElement == NULL || newElement->tokenOnStack == NULL)
     {
@@ -334,7 +334,7 @@ int expressionParserStart(programState *PS)
 
     // int retunValue = 0;
     struct tokenStack *tokenStack = tokenStackInit();
-    token *firstToken = (token *)malloc(sizeof(token));
+    token *firstToken = tokenInit();
 
     struct tokenQueue *tokenQueue = (struct tokenQueue *)malloc(sizeof(struct tokenQueue));
 
@@ -356,7 +356,7 @@ int expressionParserStart(programState *PS)
         }
         else{
             fprintf(stderr,"Error: invalid token type in tokenQueue in expressionParserStart()!\n");
-            return 69;
+            raiseError(ERR_SYNTAX);
             break;
         }
         
@@ -378,11 +378,8 @@ int expressionParserStart(programState *PS)
     // }
 
     /// activate token for scanner ///
-    token *activeToken = (token *)malloc(sizeof(token));
-    if (activeToken == NULL || setUpActiveToken(activeToken) != 0)
-    {
-        return 99;
-    }
+    token *activeToken = tokenInit();
+
     /// READING LOOP ///
     bool reading = true;
     while (reading)
@@ -398,21 +395,15 @@ int expressionParserStart(programState *PS)
                 continue;
             }
             addLastToQueue(tokenQueue, activeToken);
-            activeToken = (token *)malloc(sizeof(token));
-            if (activeToken == NULL || setUpActiveToken(activeToken) != 0)
-            {
-                return 99;
-            }
+            activeToken = tokenInit();
+
         }
         else
         {
             reading = false;
             listPushBack(PS->tokenQueue, activeToken);
-            activeToken = (token *)malloc(sizeof(token));
-            if (activeToken == NULL || setUpActiveToken(activeToken) != 0)
-            {
-                return 99;
-            }
+            activeToken = tokenInit();
+
             // adding last token to list
             activeToken->tokenType = T_END;
             addLastToQueue(tokenQueue, activeToken);
@@ -477,6 +468,8 @@ int expressionParserStart(programState *PS)
                 printf("E -> i\n");
                 // TO DO
 
+                // symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
+
                 break;
             }
 
@@ -484,15 +477,27 @@ int expressionParserStart(programState *PS)
 
             case T_INT:
                         {
+
                 printf("E -> i\n");
-                char *tempVarName = concatString(2,symtableGetVariablePrefix(PS->symTable),generatorGenerateTempVarName(PS->gen));
+               
+                // char *tempVarName = "GF@xd";
+                // symtablePushCode(PS->symTable,"DEFVAR GF@xd");
+// 
+                // tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
+                // tokenStackGet(tokenStack, 0)->tokenType = T_E;
+               
+               
+               
+               
+               
+                char *tempVarName = concatString(4,symtableGetVariablePrefix(PS->symTable),generatorGenerateTempVarName(PS->gen),"A","D");
                 symtablePushCode(PS->symTable,concatString(2,"DEFVAR ",tempVarName));
                 symtablePushCode(PS->symTable,concatString(4,"MOVE ",tempVarName," int@",tokenStackGet(tokenStack, 0)->value->str));
 
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
                 tokenStackGet(tokenStack, 0)->tokenType = T_E;
                 tokenStackGet(tokenStack, 0)->value->str = tempVarName;
-
+                return 1;
                 break;
             }
 
@@ -511,13 +516,9 @@ int expressionParserStart(programState *PS)
                 // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
                 // copyToken(tokenStackGet(tokenStack, 0), newRule->rightSide);
                 // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                char *tempVarName = concatString(2,symtableGetVariablePrefix(PS->symTable),generatorGenerateTempVarName(PS->gen));
-                symtablePushCode(PS->symTable,concatString(2,"DEFVAR ",tempVarName));
+                // char *tempVarName = concatString(2,symtableGetVariablePrefix(PS->symTable),generatorGenerateTempVarName(PS->gen));
 
 
-                tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
-                tokenStackGet(tokenStack, 0)->tokenType = T_E;
-                // int a = 4 / 0;
                 break;
             }
             case T_PLUS:
