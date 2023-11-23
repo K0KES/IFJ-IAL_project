@@ -59,11 +59,11 @@ void generatorFree(generator *gen){
     listDestroy(gen->parserStack);
     listDestroy(gen->temporary);
 
-    char* string = (char *)(listPopFirst(allocatedStrings));
+    /*char* string = (char *)(listPopFirst(allocatedStrings));
     while(string != NULL){
         free(string);
         string = (char *)(listPopFirst(allocatedStrings));
-    }
+    }*/
 
     listDestroy(allocatedStrings);
 
