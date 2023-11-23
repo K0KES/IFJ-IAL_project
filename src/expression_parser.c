@@ -389,7 +389,7 @@ int expressionParserStart(programState *PS)
     /// READING LOOP ///
     bool reading = true;
     int bracketsState = 0;
-
+    bool wasLastTokenEOL = false;
     // TO DO posefit mezery
 
     while (reading)
@@ -409,10 +409,13 @@ int expressionParserStart(programState *PS)
 
         if (isTokenTypeAccepted(activeToken) && bracketsState >= 0)
         {
+            wasLastTokenEOL = false;
             if (activeToken->tokenType == T_EOL)
             {
+                wasLastTokenEOL = true;
                 continue;
             }
+
 
             addLastToQueue(tokenQueue, activeToken);
             activeToken = tokenInit();
@@ -420,6 +423,12 @@ int expressionParserStart(programState *PS)
         else
         {
             reading = false;
+            if (wasLastTokenEOL)
+            {
+                token* eol_token = tokenInit();
+                listPushBack(PS->tokenQueue, eol_token);
+            }
+            
             listPushBack(PS->tokenQueue, activeToken);
             activeToken = tokenInit();
 
