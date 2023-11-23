@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+list *allocatedStrings;
+
 generator* generatorInit(){
     generator *gen = (generator *)(malloc(sizeof(generator))); 
     if(gen == NULL) return NULL;
@@ -11,6 +13,7 @@ generator* generatorInit(){
     gen->mainCode = listInit();
     gen->parserStack = listInit();
     gen->temporary = listInit();
+    allocatedStrings = listInit();
 
     gen->counter = 1;
 
@@ -32,7 +35,9 @@ void generatorPushStringToList(list *list, char *string){
 }
 
 char* generatorPopFirstStringFromList(list *list){
-    return (char *)listPopFirst(list);
+    char* line = (char *)listPopFirst(list);
+    listPushBack(allocatedStrings,line);
+    return line;
 }
 
 char* generatorPopLastStringFromList(list *list){
@@ -50,10 +55,14 @@ char* generatorGetLastStringFromList(list *list){
 void generatorFree(generator *gen){
     if(gen == NULL) return;
 
-    listDestroy(gen->functions);
-    listDestroy(gen->mainCode);
-    listDestroy(gen->parserStack);
-    listDestroy(gen->temporary);
+    freeContentOfListAndDestroy(gen->functions);
+    freeContentOfListAndDestroy(gen->mainCode);
+    freeContentOfListAndDestroy(gen->parserStack);
+    freeContentOfListAndDestroy(gen->temporary);
+
+    if(allocatedStrings != NULL){
+        freeContentOfListAndDestroy(allocatedStrings);
+    }
 
     free(gen);
     gen = NULL;
@@ -69,6 +78,7 @@ void generatorGenerateOutput(generator *gen){
     while(line != NULL){
         fprintf(fptr, line);
         fprintf(fptr, "\n");
+        free(line);
         line = (char *)listPopFirst(gen->functions);
     }
     
@@ -78,12 +88,14 @@ void generatorGenerateOutput(generator *gen){
     while(line != NULL){
         fprintf(fptr, line);
         fprintf(fptr, "\n");
+        free(line);
         line = (char *)listPopFirst(gen->mainCode);
     }
     
     fclose(fptr);
 }
 
+/*
 char * concatString(int num_args, ...){
     va_list args;
     va_start(args, num_args);
@@ -100,6 +112,34 @@ char * concatString(int num_args, ...){
 
     va_end(args);
     return newFirst;
+}*/
+
+char * concatString(int num_args, ...){
+    va_list args;
+    va_start(args, num_args);
+
+    int length = 0;
+    for (int i = 0; i < num_args; ++i){
+        char* text = va_arg(args, char *);
+        length += strlen(text);
+    }
+    
+    char *output = (char*)malloc(length + 1);
+
+    va_start(args, num_args);
+
+    char *dest = output;
+    for (int i = 0; i < num_args; ++i) {
+        char *src = va_arg(args, char *);
+        while (*src)
+            *dest++ = *src++;
+    }
+    *dest = '\0';
+
+    va_end(args);
+
+    listPushBack(allocatedStrings,output);
+    return output;
 }
 
 char* generatorGenerateTempVarName(generator *gen){
@@ -118,4 +158,14 @@ void printList(list *l){
         currentNode = currentNode->next;
     }
     printf("\n");
+}
+
+void freeContentOfListAndDestroy(list *list){
+    listNode *node = list->first;
+    while(node != NULL){
+        free(node->data);
+        node = node->next;
+    }
+    listDestroy(list);
+    list = NULL;
 }
