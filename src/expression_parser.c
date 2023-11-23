@@ -447,6 +447,8 @@ int expressionParserStart(programState *PS)
             printf("Push ) to stack and do reduction\n");
             printf("E -> ( E )\n");
             tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
+            popFirstFromQueue(tokenQueue);
+            
 
             // print 3 tokens from stack
             // printf("Stack: %s %s %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType), getTokenName(tokenStackGet(tokenStack, 1)->tokenType), getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
@@ -455,9 +457,22 @@ int expressionParserStart(programState *PS)
             {
                 raiseError(ERR_SYNTAX);
             }
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
+
             copyToken(tokenStackGet(tokenStack, 1), tokenStackGet(tokenStack, 2));
+
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
+
+
             tokenStackPop(tokenStack, 2);
-            printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
+
             
 
             // tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
