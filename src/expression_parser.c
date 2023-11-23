@@ -350,13 +350,22 @@ int expressionParserStart(programState *PS)
     tokenQueue->first = NULL;
     tokenQueue->last = NULL;
 
+    int bracketsState = 0;
+
     tokenStackPush(tokenStack, firstToken);
     printf("Token stack size: %d\n", PS->tokenQueue->size);
     while (PS->tokenQueue->size > 0)
     {
         if (isTokenTypeAccepted(listGetFirst(PS->tokenQueue)))
         {
-
+            if (((token* )listGetFirst(PS->tokenQueue))->tokenType == T_LEFT_BRACKET)
+            {
+                bracketsState++;
+            }
+            else if (((token* )listGetFirst(PS->tokenQueue))->tokenType == T_RIGHT_BRACKET)
+            {
+                bracketsState--;
+            }
             addLastToQueue(tokenQueue, listPopFirst(PS->tokenQueue));
         }
         else
@@ -366,21 +375,6 @@ int expressionParserStart(programState *PS)
             break;
         }
     }
-    // return 0;
-
-    // if (PROGRAM_STATE->isLastReadTokenValid == true)
-    // {
-    //     if (!isTokenTypeAccepted(PROGRAM_STATE->lastReadToken))
-    //     {
-    //         fprintf(stderr, "Error: invalid token type in PROGRAM_STATE! Expression scanner did nothing\n");
-    //         tokenStackClear(tokenStack);
-    //         free(tokenQueue);
-    //         free(firstToken);
-    //         return 42;
-    //     }
-    //     addLastToQueue(tokenQueue, PROGRAM_STATE->lastReadToken);
-    //     PROGRAM_STATE->isLastReadTokenValid = false;
-    // }
 
     /// activate token for scanner ///
     token *activeToken = tokenInit();
@@ -388,7 +382,6 @@ int expressionParserStart(programState *PS)
 
     /// READING LOOP ///
     bool reading = true;
-    int bracketsState = 0;
     bool wasLastTokenEOL = false;
     bool wasLastTokenTokenWithValue = false;
     // TO DO posefit mezery
@@ -647,7 +640,7 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E < E\n");
 
-                if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType ))
+                if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
                     raiseError(ERR_WRONG_TYPE);
                 }
@@ -656,7 +649,6 @@ int expressionParserStart(programState *PS)
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
                 symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
-                
 
                 break;
             }
@@ -664,8 +656,6 @@ int expressionParserStart(programState *PS)
             case T_LESS_EQUAL:
             {
                 printf("E -> E <= E\n");
-                
-
 
                 // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
                 // {
