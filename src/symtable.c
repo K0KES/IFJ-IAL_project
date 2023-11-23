@@ -27,7 +27,7 @@ symtable* symtableInit(generator *generator)
 }
 
 bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctionItem){
-    printf("Entering scope - %s \n",scope == NULL ? "GLOBAL" : scope);
+    printf("[SYMTABLE] Entering scope - %s \n",scope == NULL ? "GLOBAL" : scope);
     ht_table_t *hashmap;
     ht_init(&hashmap);
     if(hashmap == NULL) return false;
@@ -80,13 +80,15 @@ void symtableExitScope(symtable *table){
                 listPushBack(table->gen->functions,line);
                 line = listPopFirst(table->functionCodeFooter);
             }
+
+            table->currentFunction = NULL;
         }
 
-        printf("Exiting scope - %s \n",scopeString);
+        printf("[SYMTABLE] Exiting scope - %s \n",scopeString);
         free(scopeString);
         listPopFirst(table->scopes);
     }else{
-        printf("Exiting scope - GLOBAL\n");
+        printf("[SYMTABLE] Exiting scope - GLOBAL\n");
     }
 
 }
@@ -129,6 +131,8 @@ void symtableInsert(symtable *table, char *varName, bool isFunction){
     ht_insert(currentTable,string,newSymtableItem);
 
     table->activeItem = newSymtableItem;
+
+    table->gen->counter++;
 }
 
 void symtablePrintVariables(symtable *table){
@@ -217,7 +221,6 @@ void symtableSetDataType(symtable *table, enum data_type type, bool nullable){
         }else{
             table->activeItem->funcData->returnType = type;
             table->activeItem->funcData->returnTypeNullable = nullable;
-            symtableEnterScope(table,table->activeItem->name,table->activeItem);
             
         }
     }
@@ -309,6 +312,9 @@ void symtableFunctionEndOfArguments(symtable *table){
 
     table->activeItem->funcData->endOfArguments = true;
 
+    printf("----------MANUAL ENTER SCOPE-----------\n");
+    symtableEnterScope(table,table->activeItem->name,table->activeItem);   
+
     symtableCreateFunctionStructure(table);
 }
 
@@ -381,7 +387,17 @@ void symtableCreateFunctionStructure(symtable *table){
 
 void symtablePushCode(symtable *table, char* code){
     if(table == NULL) return;
-    generatorPushStringToList(table->functionCodeBody,code);
+    if(listLength(table->scopes) == 0){
+        generatorPushStringToList(table->gen->mainCode,code);
+    }else{
+        //Check if we are in function
+        if(table->currentFunction == NULL){
+            generatorPushStringToList(table->gen->mainCode,code);
+        }else{
+            generatorPushStringToList(table->functionCodeBody,code);
+        }
+    }
+    
 }
 
 char* symtableGetScopePrefixName(symtable *table){
@@ -390,6 +406,7 @@ char* symtableGetScopePrefixName(symtable *table){
 
         char str[64];
         sprintf(str,"%d",table->gen->counter);
+        
         return concatString(3,scopeString,str,"_");
     }else{
         return "global_";
@@ -494,4 +511,17 @@ void symtableFunctionCallEnd(symtable *table){
         funcData = NULL;
         listPopLast(table->functionCalls);
     }
+}
+
+void symtableSetActiveItem(symtable *table, char* varName){
+    if(table == NULL) return;
+    symtableItem *item = symtableFindSymtableItem(table,varName);
+    if(item == NULL) return;
+    table->activeItem = item;
+}
+
+enum data_type symtableGetActiveItemType(symtable *table){
+    if(table == NULL) return DATA_TYPE_NOTSET;
+    if(table->activeItem == NULL) return DATA_TYPE_NOTSET;
+    return table->activeItem->type;
 }
