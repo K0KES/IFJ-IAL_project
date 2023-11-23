@@ -61,7 +61,14 @@ int parse(programState *programState){
 int getNextToken(){
     typeOfLastToken = activeToken->tokenType;
     tokenClear(activeToken);
-    int getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
+    int getTokenErr = 0;
+
+    if (listLength(state->tokenQueue) == 0){
+        getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
+    }
+    else {
+        activeToken = listPopFirst(state->tokenQueue);
+    }
 
     printf("Got next token: %s\n",getTokenName(activeToken->tokenType));
     
@@ -316,7 +323,6 @@ bool definition(){
 
             //Add function to symtable
             symtableInsert(symTable,activeToken->value->str,true);
-            symtableEnterScope(symTable,activeToken->value->str,NULL);
 
             // verification of: func <eol> ID <eol>
             getNextToken();
@@ -1550,7 +1556,12 @@ bool expression(){
             getNextToken();
             break;
         default:
-            generatorPushStringFirstToList(gen->parserStack,"int@5");
+            generatorPushStringFirstToList(gen->parserStack,"GF@promena");
+
+            printf("---------Lenght: %d\n",listLength(state->tokenQueue));
+            listPushBack(state->tokenQueue,activeToken);
+            //printList(state->tokenQueue);
+            printf("---------Lenght: %d\n",listLength(state->tokenQueue));
             expressionStatus = expressionParserStart(state);
 
             // if (activeToken->tokenType == T_LEFT_BRACKET){
