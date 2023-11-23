@@ -457,6 +457,7 @@ int expressionParserStart(programState *PS)
             }
             copyToken(tokenStackGet(tokenStack, 1), tokenStackGet(tokenStack, 2));
             tokenStackPop(tokenStack, 2);
+            printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
             
 
             // tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
@@ -796,11 +797,12 @@ int expressionParserStart(programState *PS)
 
         case '1':
             printf("Error: invalid expression!\n");
+            raiseError(ERR_SYNTAX);
             tokenStackClear(tokenStack);
             free(tokenQueue);
             free(activeToken);
             free(firstToken);
-            return 2;
+            return 0;
             break;
 
         case '0':
