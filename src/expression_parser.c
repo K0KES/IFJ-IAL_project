@@ -358,11 +358,11 @@ int expressionParserStart(programState *PS)
     {
         if (isTokenTypeAccepted(listGetFirst(PS->tokenQueue)))
         {
-            if (((token* )listGetFirst(PS->tokenQueue))->tokenType == T_LEFT_BRACKET)
+            if (((token *)listGetFirst(PS->tokenQueue))->tokenType == T_LEFT_BRACKET)
             {
                 bracketsState++;
             }
-            else if (((token* )listGetFirst(PS->tokenQueue))->tokenType == T_RIGHT_BRACKET)
+            else if (((token *)listGetFirst(PS->tokenQueue))->tokenType == T_RIGHT_BRACKET)
             {
                 bracketsState--;
             }
@@ -411,6 +411,8 @@ int expressionParserStart(programState *PS)
             //     addLastToQueue(tokenQueue, activeToken);
             // }
 
+            // print token type and its last char
+            printf("Token type: %s, last char: %d\n", getTokenName(activeToken->tokenType), activeToken->lastChar);
             addLastToQueue(tokenQueue, activeToken);
             activeToken = tokenInit();
         }
@@ -424,8 +426,8 @@ int expressionParserStart(programState *PS)
             //     listPushBack(PS->tokenQueue, eol_token);
             // }
 
-            // listPushBack(PS->tokenQueue, activeToken);
-            // activeToken = tokenInit();
+            listPushBack(PS->tokenQueue, activeToken);
+            activeToken = tokenInit();
 
             // adding last token to list
             activeToken->tokenType = T_END;
@@ -649,6 +651,9 @@ int expressionParserStart(programState *PS)
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
                 symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
 
                 break;
             }
@@ -657,23 +662,19 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E <= E\n");
 
-                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                // {
-                //     return checkTokensOnTopOfTheStack(tokenStack);
-                // }
+                char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable), generatorGenerateTempVarName(PS->gen));
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
+                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName_0, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
 
-                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                // newRule->description = (char *)malloc(sizeof(char) * 20);
-                // newRule->description = "E -> E <= E";
-                // newRule->leftSide.tokenType = T_E;
-                // newRule->rightSideLen = 3;
-                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                // tokenStackPop(tokenStack, 2);
-                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable), generatorGenerateTempVarName(PS->gen));
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+
+                symtablePushCode(PS->symTable, concatString(4, "OR ", tempVarName_0, " ", tempVarName_1));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                tokenStackGet(tokenStack, 0)->value->str = tempVarName_0;
+
                 break;
             }
 
@@ -681,23 +682,18 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E > E\n");
 
-                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                // {
-                //     return checkTokensOnTopOfTheStack(tokenStack);
-                // }
+                if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
+                {
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
-                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                // newRule->description = (char *)malloc(sizeof(char) * 20);
-                // newRule->description = "E -> E > E";
-                // newRule->leftSide.tokenType = T_E;
-                // newRule->rightSideLen = 3;
-                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                // tokenStackPop(tokenStack, 2);
-                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable), generatorGenerateTempVarName(PS->gen));
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
+
+                symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
                 break;
             }
 
@@ -705,23 +701,18 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E >= E\n");
 
-                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                // {
-                //     return checkTokensOnTopOfTheStack(tokenStack);
-                // }
+                char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable), generatorGenerateTempVarName(PS->gen));
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
+                symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName_0, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
 
-                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                // newRule->description = (char *)malloc(sizeof(char) * 20);
-                // newRule->description = "E -> E >= E";
-                // newRule->leftSide.tokenType = T_E;
-                // newRule->rightSideLen = 3;
-                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                // tokenStackPop(tokenStack, 2);
-                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable), generatorGenerateTempVarName(PS->gen));
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+
+                symtablePushCode(PS->symTable, concatString(4, "OR ", tempVarName_0, " ", tempVarName_1));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                tokenStackGet(tokenStack, 0)->value->str = tempVarName_0;
                 break;
             }
 
@@ -729,23 +720,18 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E == E\n");
 
-                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                // {
-                //     return checkTokensOnTopOfTheStack(tokenStack);
-                // }
+                if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
+                {
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
-                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                // newRule->description = (char *)malloc(sizeof(char) * 20);
-                // newRule->description = "E -> E == E";
-                // newRule->leftSide.tokenType = T_E;
-                // newRule->rightSideLen = 3;
-                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                // tokenStackPop(tokenStack, 2);
-                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable), generatorGenerateTempVarName(PS->gen));
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
+
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
                 break;
             }
 
@@ -753,23 +739,19 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E != E\n");
 
-                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                // {
-                //     return checkTokensOnTopOfTheStack(tokenStack);
-                // }
+                if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
+                {
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
-                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                // newRule->description = (char *)malloc(sizeof(char) * 20);
-                // newRule->description = "E -> E != E";
-                // newRule->leftSide.tokenType = T_E;
-                // newRule->rightSideLen = 3;
-                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                // tokenStackPop(tokenStack, 2);
-                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable), generatorGenerateTempVarName(PS->gen));
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
+
+                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(4, "NOT ", tempVarName, " ", tempVarName));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
                 break;
             }
 
