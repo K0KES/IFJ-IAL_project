@@ -33,6 +33,7 @@ void tokenFree(token *activeToken ){
     }
 
     if(activeToken->value != NULL){
+        strFree(activeToken->value);
         free(activeToken->value);
         activeToken->value = NULL;
     }
