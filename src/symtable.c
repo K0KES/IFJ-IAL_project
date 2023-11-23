@@ -385,7 +385,7 @@ char* symtableGetScopePrefixName(symtable *table){
 }
 
 char* symtableGetVariablePrefix(symtable *table){
-    return concatString(symtableGetFramePrefix(table),symtableGetScopePrefixName(table));
+    return concatString(2,symtableGetFramePrefix(table),symtableGetScopePrefixName(table));
 }
 
 char* symtableGetFramePrefix(symtable *table){
