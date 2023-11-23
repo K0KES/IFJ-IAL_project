@@ -67,7 +67,7 @@ int getNextToken(){
         getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
     }
     else {
-        activeToken = listPopFirst(state->tokenQueue);
+        activeToken = (token *)listPopFirst(state->tokenQueue);
     }
 
     printf("Got next token: %s\n",getTokenName(activeToken->tokenType));
@@ -921,7 +921,7 @@ bool assign(){
             // 61) <assign> -> = <expression>
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableSameTypes(lastVarType,(enum data_type)state->expParserReturnType);
 
             //Generator
             var = generatorPopLastStringFromList(gen->parserStack);
@@ -937,7 +937,7 @@ bool assign(){
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableSameTypes(lastVarType,(enum data_type)state->expParserReturnType);
 
             //Generator
             printf("....... %s\n",symtableGetVariablePrefix(symTable));
@@ -962,7 +962,7 @@ bool assign(){
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableSameTypes(lastVarType,(enum data_type)state->expParserReturnType);
 
             //Generator
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
@@ -983,7 +983,7 @@ bool assign(){
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableSameTypes(lastVarType,(enum data_type)state->expParserReturnType);
 
             //Generator
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
@@ -1005,7 +1005,7 @@ bool assign(){
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableSameTypes(lastVarType,(enum data_type)state->expParserReturnType);
 
             //Generator
             tempVarName = concatString(2, symtableGetVariablePrefix(symTable), generatorGenerateTempVarName(gen));
@@ -1102,7 +1102,7 @@ bool varDecMid(){
             varDecMidStatus = expression();
             //TO DO umí expressionParser vracet nil?? -> nil vracet jako DATA_TYPE_NOTSET
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { raiseError(ERR_MISSING_TYPE); }
-            symtableSetDataType(symTable,state->expParserReturnType,false);
+            symtableSetDataType(symTable,(enum data_type)state->expParserReturnType,false);
 
             //Generator
             symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
@@ -1132,7 +1132,7 @@ bool varDef(){
             getNextToken();
 
             varDefStatus = expression();
-            symtableSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+            symtableSameTypes(symtableGetActiveItemType(symTable),(enum data_type)state->expParserReturnType);
 
             //Generator
             symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
@@ -1251,10 +1251,10 @@ bool argument(){
 
             //Symtable
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
+                symtableFunctionCallSetParameterType(symTable,(enum data_type)state->expParserReturnType,true); 
             }
             else {
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
+                symtableFunctionCallSetParameterType(symTable,(enum data_type)state->expParserReturnType,false);
             }
             break;
         case T_IDENTIFIER:
@@ -1282,7 +1282,7 @@ bool argWithName(){
 
             //Symtable
             //TO DO vitek set parameter name default to _
-            activeToken = listPopLast(state->tokenQueue);
+            activeToken = (token *)listPopLast(state->tokenQueue);
             symtableFunctionCallSetParameterName(symTable,activeToken->value->str);
             getNextToken();
             argWithNameStatus = eol();
@@ -1291,10 +1291,10 @@ bool argWithName(){
 
             //Symtable
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
+                symtableFunctionCallSetParameterType(symTable,(enum data_type)state->expParserReturnType,true); 
             }
             else {
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
+                symtableFunctionCallSetParameterType(symTable,(enum data_type)state->expParserReturnType,false);
             }
             break;
         case T_RIGHT_BRACKET:
@@ -1305,10 +1305,10 @@ bool argWithName(){
 
             //Symtable
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
+                symtableFunctionCallSetParameterType(symTable,(enum data_type)state->expParserReturnType,true); 
             }
             else {
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
+                symtableFunctionCallSetParameterType(symTable,(enum data_type)state->expParserReturnType,false);
             }
             getNextToken();
             break;

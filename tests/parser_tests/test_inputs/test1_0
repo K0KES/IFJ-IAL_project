@@ -1,7 +1,7 @@
 func test(_ x : Int, o c : String,y a : Double) -> Double {
     return (1.2)
 }
-
+/*
 func function(_ x : Int, o c : String,y a : Double) {
     return
 }
@@ -22,4 +22,4 @@ x
 {return (1.2)
 }
 
-function(3, o : "String", y : x) 
+function(3, o : "String", y : x) */

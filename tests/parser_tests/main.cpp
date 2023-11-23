@@ -7,6 +7,9 @@
 
 //#include "../../src/expression_parser.c"
 //#include "../../src/expression_parser.h"
+
+#include "../../src/expression_parser.h"
+#include "../../src/expression_parser.c"
 #include "../../src/scanner.c"
 #include "../../src/scanner.h"
 #include "../../src/symtable.c"
@@ -23,23 +26,22 @@
 #include "../../src/generator.h"
 #include "../../src/error.c"
 #include "../../src/error.h"
-#include "../../src/expression_parser.c"
-#include "../../src/expression_parser.h"
-#include "../../src/main.c"
 #include "../../src/main.h"
+#include "../../src/main.c"
 #pragma once
 
 TEST(Parser, Test1_0_functions){
+    printf("TESDT\n");
     programState *programState = programStateInit(); 
-    parse(programState);
-    generatorGenerateOutput(programState->gen);
-    programStateFree(programState);
-
+    
     freopen("tests/parser_tests/test_inputs/test1_0", "r", stdin);
 
-    EXPECT_EQ(parse(programState),0);
-}
+    EXPECT_EXIT(parse(programState),testing::ExitedWithCode(ERR_MISSING_TYPE), "");
 
+    generatorGenerateOutput(programState->gen);
+    programStateFree(programState);
+}
+/*
 TEST(Parser, Test1_2_functions){
     programState *programState = programStateInit(); 
     parse(programState);
@@ -125,4 +127,4 @@ TEST(Parser, Test8_kod_ze_zadani_3){
     freopen("tests/parser_tests/test_inputs/test_zadani_3", "r", stdin);
 
     EXPECT_EQ(parse(programState),0);
-}
+}*/

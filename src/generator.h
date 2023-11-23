@@ -33,13 +33,15 @@ void generatorPushStringFirstToList(list *list, char *string);
 
 void generatorPushStringToList(list *list, char *string);
 
-char* generatorGenerateTempVarName();
+char* generatorGenerateTempVarName(generator *gen);
 
 char * concatString(int num_args, ...);
 
 void printList(list *l);
 
 char* stringToAssemblyStringFormat(const char* inputString);
+
+void freeContentOfListAndDestroy(list *list);
 
 /*
 

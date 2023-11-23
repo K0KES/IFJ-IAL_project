@@ -354,10 +354,10 @@ int expressionParserStart(programState *PS)
     printf("Token stack size: %d\n", PS->tokenQueue->size);
     while (PS->tokenQueue->size > 0)
     {
-        if (isTokenTypeAccepted(listGetFirst(PS->tokenQueue)))
+        if (isTokenTypeAccepted((token *)listGetFirst(PS->tokenQueue)))
         {
 
-            addLastToQueue(tokenQueue, listPopFirst(PS->tokenQueue));
+            addLastToQueue(tokenQueue, (token *)listPopFirst(PS->tokenQueue));
         }
         else
         {
@@ -459,10 +459,12 @@ int expressionParserStart(programState *PS)
         switch (getPrecedence(whichTypeIsOnTheStack(tokenStack), getFirstFromQueue(tokenQueue)->tokenType, *precedenceTable))
         {
         case '<':
+            {
             printf("Push to stack\n");
             tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
             popFirstFromQueue(tokenQueue);
             break;
+            }
 
         // handeling of E -> ( E ) it's kinda special case
         case '=':
@@ -491,6 +493,7 @@ int expressionParserStart(programState *PS)
         }
 
         case '>':
+            {
             printf("Do reduction\n");
             switch (whichTypeIsOnTheStack(tokenStack))
             {
@@ -500,7 +503,7 @@ int expressionParserStart(programState *PS)
                 printf("E -> i (identifier)\n");
                 // TO DO
 
-                newIdentifierType = symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
+                newIdentifierType = (enum tokenType)symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
                 if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING)
                 {
                     fprintf(stderr, "Error: expression parser spotted potential function!\n");
@@ -807,8 +810,10 @@ int expressionParserStart(programState *PS)
                 break;
             }
             break;
+            }
 
         case '1':
+            {
             printf("Error: invalid expression!\n");
             raiseError(ERR_SYNTAX);
             tokenStackClear(tokenStack);
@@ -817,10 +822,12 @@ int expressionParserStart(programState *PS)
             free(firstToken);
             return 0;
             break;
+            }
 
         case '0':
+            {
             printf("Parsing is done!\n");
-            char *returnAdr = malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
+            char *returnAdr = (char *)malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
             strcpy(returnAdr, tokenStackGet(tokenStack, 0)->value->str);
             generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
             PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
@@ -833,10 +840,13 @@ int expressionParserStart(programState *PS)
 
             return 1;
             break;
+            }
 
         default:
+            {
             printf("Default state in the first switch: ");
             break;
+            }
         }
 
         // sleep(1);

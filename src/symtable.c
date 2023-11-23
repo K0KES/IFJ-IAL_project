@@ -79,23 +79,23 @@ void symtableExitScope(symtable *table){
         char *scopeString = (char *)listGetFirst(table->scopes);
 
         if(strcmp(scopeString,"while") != 0 && strcmp(scopeString,"if") != 0){
-            char* line = listPopFirst(table->functionCodeHeader);
+            char* line = (char *)listPopFirst(table->functionCodeHeader);
             
             while(line != NULL){
                 listPushBack(table->gen->functions,line);
-                line = listPopFirst(table->functionCodeHeader);
+                line = (char *)listPopFirst(table->functionCodeHeader);
             }
 
-            line = listPopFirst(table->functionCodeBody);
+            line = (char *)listPopFirst(table->functionCodeBody);
             while(line != NULL){
                 listPushBack(table->gen->functions,line);
-                line = listPopFirst(table->functionCodeBody);
+                line = (char *)listPopFirst(table->functionCodeBody);
             }
 
-            line = listPopFirst(table->functionCodeFooter);
+            line = (char *)listPopFirst(table->functionCodeFooter);
             while(line != NULL){
                 listPushBack(table->gen->functions,line);
-                line = listPopFirst(table->functionCodeFooter);
+                line = (char *)listPopFirst(table->functionCodeFooter);
             }
 
             table->currentFunction = NULL;
@@ -127,6 +127,7 @@ void symtableFree(symtable *table){
 }
 
 void symtableInsert(symtable *table, char *varName, bool isFunction){
+    if(symtableFindSymtableItem(table,varName) != NULL) raiseError(ERR_SEMANTIC);
     ht_table_t *currentTable = (ht_table_t *)listGetFirst(table->tables);
 
     int stringLength = strlen(varName) + 1;
@@ -329,8 +330,20 @@ void symtableFunctionEndOfArguments(symtable *table){
 
     table->activeItem->funcData->endOfArguments = true;
 
-    printf("----------MANUAL ENTER SCOPE-----------\n");
     symtableEnterScope(table,table->activeItem->name,table->activeItem);   
+
+    //Push all args to scope
+    listNode *node = table->activeItem->funcData->arguments->first;
+    while(node != NULL){
+        functionArgument *arg = (functionArgument *)(node->data);
+
+        symtableInsert(table,arg->id,false);
+        symtableSetDataType(table,arg->type,arg->nullable);
+
+        node = node->next;
+    }
+
+    table->activeItem = table->currentFunction;
 
     symtableCreateFunctionStructure(table);
 }

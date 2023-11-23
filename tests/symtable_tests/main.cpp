@@ -119,7 +119,8 @@ TEST(SymtableTest, Test3){
 }*/
 
 TEST(SymtableTest, Test5){
-    symtable *table = symtableInit();
+    generator *gen = generatorInit();
+    symtable *table = symtableInit(gen);
 
     double testDouble = 27.27f;
     int testInt = 27;
@@ -137,11 +138,12 @@ TEST(SymtableTest, Test5){
 
     symtableFunctionCallStart(table,"funkce");
     symtableFunctionCallNextParameter(table);
-    symtableFunctionCallSetParameterName(table,"x");
+    symtableFunctionCallSetParameterName(table,"xd");
     symtableFunctionCallSetParameterType(table,DATA_TYPE_INTEGER,false);
     symtableFunctionCallEnd(table);
 
     symtableFree(table);
+    generatorFree(gen);
 
     //Kdyz meno je podrzitko pri volani ho neupouzivas
 }

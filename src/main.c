@@ -5,6 +5,7 @@
 #include "symtable.h"
 #include "generator.h"
 
+/*
 int main(int argc, char const *argv[]){
     //Program state init
     programState *programState = programStateInit(); 
@@ -20,7 +21,7 @@ int main(int argc, char const *argv[]){
     programStateFree(programState);
 
     return 0;
-}
+}*/
 
 
 

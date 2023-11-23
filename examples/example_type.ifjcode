@@ -7,7 +7,7 @@ READ GF@a int
 WRITE GF@a
 
 # Je-li a > 0, pak
-DEFVAR GF@res
+DEFVAR GF@res # Toto hodit nahoru do codu
 GT GF@res GF@a int@0
 JUMPIFNEQ $main$if$1$else GF@res bool@true
 #   a = a + 0.5
@@ -21,3 +21,12 @@ LABEL $main$if$1$else
 WRITE string@\010zaporne\010
 # konec podminky
 LABEL $main$if$1$end
+
+DEFVAR GF@a
+READ GF@a int
+
+DEFVAR GF@res
+MOVE GF@res bool@true
+JUMPIFNEQ $nasifik_nevysel GF@res bool@true
+#TELO IF
+LABEL $nasifik_nevysel
