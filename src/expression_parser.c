@@ -411,6 +411,8 @@ int expressionParserStart(programState *PS)
             //     addLastToQueue(tokenQueue, activeToken);
             // }
 
+            // print token type and its last char
+            printf("Token type: %s, last char: %d\n", getTokenName(activeToken->tokenType), activeToken->lastChar);
             addLastToQueue(tokenQueue, activeToken);
             activeToken = tokenInit();
         }
@@ -424,8 +426,8 @@ int expressionParserStart(programState *PS)
             //     listPushBack(PS->tokenQueue, eol_token);
             // }
 
-            // listPushBack(PS->tokenQueue, activeToken);
-            // activeToken = tokenInit();
+            listPushBack(PS->tokenQueue, activeToken);
+            activeToken = tokenInit();
 
             // adding last token to list
             activeToken->tokenType = T_END;
