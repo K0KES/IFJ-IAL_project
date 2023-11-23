@@ -52,6 +52,7 @@ enum tokenType {
     T_INT, // Integer
     T_DOUBLE, // Double
     T_STRING, // String
+    T_BOOL, // Boolean
     T_MULTILINE_STRING, // """ """
     T_NULLABLE, // ?
 
