@@ -426,6 +426,7 @@ int expressionParserStart(programState *PS)
             if (wasLastTokenEOL)
             {
                 token* eol_token = tokenInit();
+                eol_token->tokenType = T_EOL;
                 listPushBack(PS->tokenQueue, eol_token);
             }
             
