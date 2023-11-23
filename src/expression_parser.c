@@ -389,7 +389,7 @@ int expressionParserStart(programState *PS)
     /// READING LOOP ///
     bool reading = true;
     int bracketsState = 0;
-
+    bool wasLastTokenEOL = false;
     // TO DO posefit mezery
 
     while (reading)
@@ -409,10 +409,13 @@ int expressionParserStart(programState *PS)
 
         if (isTokenTypeAccepted(activeToken) && bracketsState >= 0)
         {
+            wasLastTokenEOL = false;
             if (activeToken->tokenType == T_EOL)
             {
+                wasLastTokenEOL = true;
                 continue;
             }
+
 
             addLastToQueue(tokenQueue, activeToken);
             activeToken = tokenInit();
@@ -420,6 +423,13 @@ int expressionParserStart(programState *PS)
         else
         {
             reading = false;
+            if (wasLastTokenEOL)
+            {
+                token* eol_token = tokenInit();
+                eol_token->tokenType = T_EOL;
+                listPushBack(PS->tokenQueue, eol_token);
+            }
+            
             listPushBack(PS->tokenQueue, activeToken);
             activeToken = tokenInit();
 
@@ -475,31 +485,8 @@ int expressionParserStart(programState *PS)
 
             copyToken(tokenStackGet(tokenStack, 1), tokenStackGet(tokenStack, 2));
 
-            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
-            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
-            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
-
             tokenStackPop(tokenStack, 2);
-            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
-            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
-            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
 
-            // tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
-            // popFirstFromQueue(tokenQueue);
-            // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-            // newRule->description = (char *)malloc(sizeof(char) * 20);
-
-            // newRule->description = "E -> ( E )";
-            // newRule->leftSide.tokenType = T_E;
-            // newRule->rightSideLen = 3;
-            // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-
-            // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-            // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-            // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-            // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-            // tokenStackPop(tokenStack, 2);
-            // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
             break;
         }
 
@@ -513,11 +500,18 @@ int expressionParserStart(programState *PS)
                 printf("E -> i (identifier)\n");
                 // TO DO
 
-                // newIdentifierType = symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
-                // if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING)
-                // {
-                //     /* code */
-                // }
+                newIdentifierType = symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
+                if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING)
+                {
+                    fprintf(stderr, "Error: expression parser spotted potential function!\n");
+                    return 99;
+                }
+
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = newIdentifierType;
+                tokenStackGet(tokenStack, 0)->tokenType = T_E;
+                
+                tokenStackGet(tokenStack, 0)->value->str = concatString(2, symtableGetVariablePrefix(PS->symTable), tokenStackGet(tokenStack, 0)->value->str);
+
 
                 break;
             }
