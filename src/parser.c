@@ -64,9 +64,11 @@ int getNextToken(){
     int getTokenErr = 0;
 
     if (listLength(state->tokenQueue) == 0){
+        printf("Token from scanner\n");
         getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
     }
     else {
+        printf("Token from Queue\n");
         activeToken = listPopFirst(state->tokenQueue);
     }
 
@@ -1259,9 +1261,16 @@ bool argument(){
             break;
         case T_IDENTIFIER:
             // 52) <argument> -> ID <eol> <argWithName>
-            listPushBack(state->tokenQueue,activeToken);
+            printf("?????????Pushuji activeToken %d\n",activeToken->tokenType);
+            token *tempToken = tokenInit();
+            tempToken->tokenType = activeToken->tokenType;
+            tempToken->value = activeToken->value;
+            //listPushBack(state->tokenQueue,activeToken);
             getNextToken();
-            argumentStatus = eol() && argWithName();
+            argumentStatus = eol();
+            listPushBack(state->tokenQueue,tempToken);
+            argumentStatus = argumentStatus && argWithName();
+            tokenFree(tempToken);
             break;
         default:
             printf("Leaving function argument() with %d ...\n",false);
