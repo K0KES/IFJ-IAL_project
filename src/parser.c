@@ -1230,12 +1230,15 @@ bool argument(){
         case T_DOUBLE:
         case T_STRING:
             // 51) <argument> -> <dataType> <eol>
-            argumentStatus = dataType() && eol();
+            //TO DO předělat gramatiku
+            argumentStatus = expression();
+            //argumentStatus = dataType() && eol();
             break;
         case T_IDENTIFIER:
-            // 52) <argument> -> ID <eol> <argWithName> <eol>
+            // 52) <argument> -> ID <eol> <argWithName>
+            listPushBack(state->tokenQueue,activeToken);
             getNextToken();
-            argumentStatus = eol() && argWithName() && eol();
+            argumentStatus = eol() && argWithName();
             break;
         default:
             printf("Leaving function argument() with %d ...\n",false);
@@ -1253,14 +1256,18 @@ bool argWithName(){
     switch(activeToken->tokenType) {
         case T_COLON:
             // 53) <argWithName> -> : <eol> <argumentType>
+            listPopLast(state->tokenQueue);
             getNextToken();
-            argWithNameStatus = eol() && argumentType();
+            argWithNameStatus = eol();
+
+            argWithNameStatus = argWithNameStatus && expression();
             break;
         case T_RIGHT_BRACKET:
         case T_COMMA:
         case T_EOL:
             // 54) <argWithName> -> EPS
-            argWithNameStatus = true;
+            argWithNameStatus = expressionParserStart(state);
+            getNextToken();
             break;
         default:
             printf("Leaving function argWithName() with %d ...\n",false);
@@ -1558,10 +1565,7 @@ bool expression(){
         default:
             generatorPushStringFirstToList(gen->parserStack,"GF@promena");
 
-            printf("---------Lenght: %d\n",listLength(state->tokenQueue));
             listPushBack(state->tokenQueue,activeToken);
-            //printList(state->tokenQueue);
-            printf("---------Lenght: %d\n",listLength(state->tokenQueue));
             expressionStatus = expressionParserStart(state);
 
             // if (activeToken->tokenType == T_LEFT_BRACKET){
@@ -1572,8 +1576,7 @@ bool expression(){
             // }
             
             getNextToken();
-            printf("Leaving function expression() with %d ...\n",true);
-            return true;
+            break;
     }
     printf("Leaving function expression() with %d ...\n",expressionStatus);
     return expressionStatus;
