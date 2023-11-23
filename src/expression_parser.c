@@ -388,18 +388,32 @@ int expressionParserStart(programState *PS)
 
     /// READING LOOP ///
     bool reading = true;
+    int bracketsState = 0;
+
+    // TO DO posefit mezery
+
     while (reading)
     {
         tokenClear(activeToken);
         getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
-        printf("Active token type: %s\n", getTokenName(activeToken->tokenType));
+        printf("Read token type: %s\n", getTokenName(activeToken->tokenType));
 
-        if (isTokenTypeAccepted(activeToken))
+        if (activeToken->tokenType == T_LEFT_BRACKET)
+        {
+            bracketsState++;
+        }
+        else if (activeToken->tokenType == T_RIGHT_BRACKET)
+        {
+            bracketsState--;
+        }
+
+        if (isTokenTypeAccepted(activeToken) && bracketsState >= 0)
         {
             if (activeToken->tokenType == T_EOL)
             {
                 continue;
             }
+
             addLastToQueue(tokenQueue, activeToken);
             activeToken = tokenInit();
         }
@@ -424,7 +438,6 @@ int expressionParserStart(programState *PS)
     }
 
     bool running = true;
-
     symtablePushCode(PS->symTable, "\n#Expression parser start!");
 
     while (running)
@@ -447,6 +460,7 @@ int expressionParserStart(programState *PS)
             printf("Push ) to stack and do reduction\n");
             printf("E -> ( E )\n");
             tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
+            popFirstFromQueue(tokenQueue);
 
             // print 3 tokens from stack
             // printf("Stack: %s %s %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType), getTokenName(tokenStackGet(tokenStack, 1)->tokenType), getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
@@ -455,10 +469,20 @@ int expressionParserStart(programState *PS)
             {
                 raiseError(ERR_SYNTAX);
             }
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
+
             copyToken(tokenStackGet(tokenStack, 1), tokenStackGet(tokenStack, 2));
+
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
+
             tokenStackPop(tokenStack, 2);
-            printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
-            
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
+            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
 
             // tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
             // popFirstFromQueue(tokenQueue);
@@ -494,8 +518,6 @@ int expressionParserStart(programState *PS)
                 // {
                 //     /* code */
                 // }
-                
-
 
                 break;
             }
@@ -531,8 +553,6 @@ int expressionParserStart(programState *PS)
 
                 break;
             }
-
-
 
             case T_DOUBLE:
             {
@@ -585,7 +605,7 @@ int expressionParserStart(programState *PS)
 
                 if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || (tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType != T_DOUBLE))
                 {
-                    fprintf(stderr," %d %d %d\n", tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType, tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT, tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE);
+                    fprintf(stderr, " %d %d %d\n", tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType, tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT, tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE);
                     fprintf(stderr, "Error: invalid token type in expression_parser.c in getIndexInPrecedenceTable()! %s, %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenExpParserType), getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
                     raiseError(ERR_WRONG_TYPE);
                 }
@@ -593,7 +613,6 @@ int expressionParserStart(programState *PS)
                 symtablePushCode(PS->symTable, concatString(6, "MUL ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
                 tokenStackPop(tokenStack, 2);
 
-                
                 break;
             }
 
@@ -807,11 +826,10 @@ int expressionParserStart(programState *PS)
 
         case '0':
             printf("Parsing is done!\n");
-            char *returnAdr =  malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
+            char *returnAdr = malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
             strcpy(returnAdr, tokenStackGet(tokenStack, 0)->value->str);
             generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
             PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
-
 
             tokenFree(activeToken);
             tokenFree(firstToken);
