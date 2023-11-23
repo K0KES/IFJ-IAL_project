@@ -8,7 +8,6 @@ typedef struct generator_h
     list *mainCode; //List of strings that contains whole 
     int counter; //Unique counter
     list *temporary;
-
     list *parserStack; 
 }generator;
 
