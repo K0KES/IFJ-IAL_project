@@ -1264,10 +1264,12 @@ bool argument(){
             printf("?????????Pushuji activeToken %d\n",activeToken->tokenType);
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
-            tempToken->value = activeToken->value;
+            //tempToken->value->length = activeToken->value->length;
+            strcmp(tempToken->value->str, activeToken->value->str);
             //listPushBack(state->tokenQueue,activeToken);
             getNextToken();
             argumentStatus = eol();
+            printf(":::::::: %s \n",activeToken->value->str);
             listPushBack(state->tokenQueue,tempToken);
             argumentStatus = argumentStatus && argWithName();
             tokenFree(tempToken);
@@ -1292,6 +1294,7 @@ bool argWithName(){
             //Symtable
             //TO DO vitek set parameter name default to _
             activeToken = listPopLast(state->tokenQueue);
+            printf("_-------------  %s ??\n",activeToken->value->str);
             symtableFunctionCallSetParameterName(symTable,activeToken->value->str);
             getNextToken();
             argWithNameStatus = eol();
