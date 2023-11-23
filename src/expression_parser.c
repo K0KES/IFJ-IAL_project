@@ -328,8 +328,10 @@ int popFirstFromQueue(struct tokenQueue *tQ)
     return 0;
 }
 
-int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, programState *PS)
+int expressionParserStart(programState *PS)
 {
+    fprintf(stderr,"expressionParserStart()...\n");
+
     // int retunValue = 0;
     struct tokenStack *tokenStack = tokenStackInit();
     token *firstToken = (token *)malloc(sizeof(token));
@@ -347,21 +349,33 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
 
     tokenStackPush(tokenStack, firstToken);
 
+    while (PS->tokenQueue->size > 0){
+        if (isTokenTypeAccepted(listGetFirst(PS->tokenQueue))){
 
-    PS->tokenQueue.
-    if (PROGRAM_STATE->isLastReadTokenValid == true)
-    {
-        if (!isTokenTypeAccepted(PROGRAM_STATE->lastReadToken))
-        {
-            fprintf(stderr, "Error: invalid token type in PROGRAM_STATE! Expression scanner did nothing\n");
-            tokenStackClear(tokenStack);
-            free(tokenQueue);
-            free(firstToken);
-            return 42;
+            addLastToQueue(tokenQueue, listPopFirst(PS->tokenQueue));
         }
-        addLastToQueue(tokenQueue, PROGRAM_STATE->lastReadToken);
-        PROGRAM_STATE->isLastReadTokenValid = false;
+        else{
+            fprintf(stderr,"Error: invalid token type in tokenQueue in expressionParserStart()!\n");
+            return 69;
+            break;
+        }
+        
     }
+    // return 0;
+
+    // if (PROGRAM_STATE->isLastReadTokenValid == true)
+    // {
+    //     if (!isTokenTypeAccepted(PROGRAM_STATE->lastReadToken))
+    //     {
+    //         fprintf(stderr, "Error: invalid token type in PROGRAM_STATE! Expression scanner did nothing\n");
+    //         tokenStackClear(tokenStack);
+    //         free(tokenQueue);
+    //         free(firstToken);
+    //         return 42;
+    //     }
+    //     addLastToQueue(tokenQueue, PROGRAM_STATE->lastReadToken);
+    //     PROGRAM_STATE->isLastReadTokenValid = false;
+    // }
 
     /// activate token for scanner ///
     token *activeToken = (token *)malloc(sizeof(token));
@@ -369,13 +383,14 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
     {
         return 99;
     }
-
     /// READING LOOP ///
     bool reading = true;
     while (reading)
     {
         tokenClear(activeToken);
-        getToken(activeToken, 1, 1);
+        getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
+        printf("Active token type: %d\n", activeToken->tokenType);
+
         if (isTokenTypeAccepted(activeToken))
         {
             if (activeToken->tokenType == T_EOL)
@@ -392,13 +407,13 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
         else
         {
             reading = false;
-            PROGRAM_STATE->isLastReadTokenValid = true;
-            PROGRAM_STATE->lastReadToken = activeToken;
+            listPushBack(PS->tokenQueue, activeToken);
             activeToken = (token *)malloc(sizeof(token));
             if (activeToken == NULL || setUpActiveToken(activeToken) != 0)
             {
                 return 99;
             }
+            // adding last token to list
             activeToken->tokenType = T_END;
             addLastToQueue(tokenQueue, activeToken);
         }
@@ -433,22 +448,22 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
         {
             printf("Push ) to stack and do reduction\n");
             printf("E -> ( E )\n");
-            tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
-            popFirstFromQueue(tokenQueue);
-            struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-            newRule->description = (char *)malloc(sizeof(char) * 20);
+            // tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
+            // popFirstFromQueue(tokenQueue);
+            // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+            // newRule->description = (char *)malloc(sizeof(char) * 20);
 
-            newRule->description = "E -> ( E )";
-            newRule->leftSide.tokenType = T_E;
-            newRule->rightSideLen = 3;
-            newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+            // newRule->description = "E -> ( E )";
+            // newRule->leftSide.tokenType = T_E;
+            // newRule->rightSideLen = 3;
+            // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
 
-            copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-            copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-            copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-            addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-            tokenStackPop(tokenStack, 2);
-            copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+            // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+            // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+            // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+            // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+            // tokenStackPop(tokenStack, 2);
+            // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
             break;
         }
 
@@ -458,47 +473,81 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
 
             case T_IDENTIFIER:
+            {
+                printf("E -> i\n");
+                // TO DO
+
+                break;
+            }
+
+
+
             case T_INT:
+                        {
+                printf("E -> i\n");
+                char *tempVarName = concatString(2,symtableGetVariablePrefix(PS->symTable),generatorGenerateTempVarName(PS->gen));
+                symtablePushCode(PS->symTable,concatString(2,"DEFVAR ",tempVarName));
+                symtablePushCode(PS->symTable,concatString(4,"MOVE ",tempVarName," int@",tokenStackGet(tokenStack, 0)->value->str));
+
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
+                tokenStackGet(tokenStack, 0)->tokenType = T_E;
+                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
+
+                break;
+            }
+
+
             case T_DOUBLE:
             case T_STRING:
             {
                 printf("E -> i\n");
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
 
-                newRule->description = "E -> i";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 1;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 0), newRule->rightSide);
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // newRule->description = "E -> i";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 1;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 0), newRule->rightSide);
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                char *tempVarName = concatString(2,symtableGetVariablePrefix(PS->symTable),generatorGenerateTempVarName(PS->gen));
+                symtablePushCode(PS->symTable,concatString(2,"DEFVAR ",tempVarName));
 
+
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
+                tokenStackGet(tokenStack, 0)->tokenType = T_E;
+                // int a = 4 / 0;
                 break;
             }
             case T_PLUS:
             {
                 printf("E -> E + E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
 
-                newRule->description = "E -> E + E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // newRule->description = "E -> E + E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // char *tempVarName = concatString(2,symtableGetVariablePrefix(PS->symTable),generatorGenerateTempVarName(PS->gen));
+                // symtablePushCode(PS->symTable,concatString(2,"DEFVAR ",tempVarName));
+
+            
+
+
                 break;
             }
 
@@ -506,24 +555,24 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
                 printf("E -> E - E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
 
-                newRule->description = "E -> E - E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // newRule->description = "E -> E - E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -531,24 +580,24 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
                 printf("E -> E * E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
 
-                newRule->description = "E -> E * E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // newRule->description = "E -> E * E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -556,24 +605,24 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
                 printf("E -> E / E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
 
-                newRule->description = "E -> E / E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // newRule->description = "E -> E / E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -581,24 +630,24 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
                 printf("E -> E < E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
 
-                newRule->description = "E -> E < E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // newRule->description = "E -> E < E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -606,23 +655,23 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
                 printf("E -> E <= E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
-                newRule->description = "E -> E <= E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
+                // newRule->description = "E -> E <= E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -630,23 +679,23 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
                 printf("E -> E > E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
-                newRule->description = "E -> E > E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
+                // newRule->description = "E -> E > E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -654,23 +703,23 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
                 printf("E -> E >= E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
-                newRule->description = "E -> E >= E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
+                // newRule->description = "E -> E >= E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -678,23 +727,23 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
                 printf("E -> E == E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
-                newRule->description = "E -> E == E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
+                // newRule->description = "E -> E == E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -702,23 +751,23 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
                 printf("E -> E != E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
-                newRule->description = "E -> E != E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
+                // newRule->description = "E -> E != E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -726,24 +775,24 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             {
                 printf("E -> E ?? E\n");
 
-                if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                {
-                    return checkTokensOnTopOfTheStack(tokenStack);
-                }
+                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
+                // {
+                //     return checkTokensOnTopOfTheStack(tokenStack);
+                // }
 
-                struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                newRule->description = (char *)malloc(sizeof(char) * 20);
-                newRule->description = "E -> E ?? E";
-                newRule->leftSide.tokenType = T_E;
-                newRule->rightSideLen = 3;
-                newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
+                // newRule->description = (char *)malloc(sizeof(char) * 20);
+                // newRule->description = "E -> E ?? E";
+                // newRule->leftSide.tokenType = T_E;
+                // newRule->rightSideLen = 3;
+                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
+                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
+                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
 
-                copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                tokenStackPop(tokenStack, 2);
-                copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
+                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
+                // tokenStackPop(tokenStack, 2);
+                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
                 break;
             }
 
@@ -777,7 +826,7 @@ int expressionParserStart(struct precedenceRuleList *outputPrecedenceRuleList, p
             break;
         }
 
-        sleep(0.1);
+        sleep(1);
     }
     tokenStackClear(tokenStack);
     free(tokenQueue);

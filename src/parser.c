@@ -1317,6 +1317,7 @@ bool dataType(){
 }
 
 bool expression(){
+    return expressionParserStart(state);
     bool expressionStatus = false;
     printf("Token: %s\n",getTokenName(activeToken->tokenType));
     printf("Entering function expression()...\n");

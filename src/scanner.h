@@ -123,6 +123,7 @@ enum state {
 
 typedef struct {
     enum tokenType tokenType;
+    enum tokenType tokenExpParserType; //only for expression parser
     string *value;
     positionInfo *position;
     char lastChar;
