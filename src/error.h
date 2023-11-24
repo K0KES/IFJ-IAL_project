@@ -2,9 +2,10 @@
 #define ERROR_H
 
 //Odkomentaruj toto pro debug printy
+// A NEZAPOMEN UDELAT make clean !!!!!!!!!!!!
 //#define ENABLE_PRINTF 
 #ifdef ENABLE_PRINTF
-    #define    DEBUG_PRINTF(f,...)    DEBUG_PRINTF(f,##__VA_ARGS__)
+    #define    DEBUG_PRINTF(f,...)    printf(f,##__VA_ARGS__)
 #else
     #define    DEBUG_PRINTF(f,...)
 #endif
@@ -45,5 +46,4 @@ enum errorType
 void raiseError(enum errorType error);
 
 const char* getErrorName(enum errorType tokenType);
-
 #endif
