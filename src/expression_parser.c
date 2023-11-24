@@ -29,6 +29,18 @@ token *tokenStackGet(struct tokenStack *stack, unsigned location)
     return (tSE->tokenOnStack);
 }
 
+bool isTokenTypeOperatorLike(enum tokenType tokenType)
+{
+    if (tokenType == T_PLUS || tokenType == T_MINUS || tokenType == T_MULTIPLICATION || tokenType == T_DIVISION || tokenType == T_LESS || tokenType == T_LESS_EQUAL || tokenType == T_GREATER || tokenType == T_GREATER_EQUAL || tokenType == T_EQUAL || tokenType == T_NOT_EQUAL || tokenType == T_NIL_OP || tokenType == T_LEFT_BRACKET)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack)
 {
     if (stack == NULL || stack->top == NULL || stack->top->tokenOnStack == NULL)
@@ -382,8 +394,7 @@ int expressionParserStart(programState *PS)
 
     /// READING LOOP ///
     bool reading = true;
-    bool wasLastTokenEOL = false;
-    bool wasLastTokenTokenWithValue = false;
+    bool ignoredEOL = false;
     // TO DO posefit mezery
 
     while (reading)
@@ -401,31 +412,22 @@ int expressionParserStart(programState *PS)
             bracketsState--;
         }
 
-        if (isTokenTypeAccepted(activeToken) && bracketsState >= 0)
+        if (isTokenTypeAccepted(activeToken) && bracketsState >= 0 && !ignoredEOL)
         {
-            // wasLastTokenEOL = false;
-            // if (activeToken->tokenType == T_EOL)
-            // {
-            //     activeToken = tokenInit();
-            //     activeToken->tokenType = T_WHITESPACE;
-            //     addLastToQueue(tokenQueue, activeToken);
-            // }
 
-            // print token type and its last char
-            printf("Token type: %s, last char: %d\n", getTokenName(activeToken->tokenType), activeToken->lastChar);
             addLastToQueue(tokenQueue, activeToken);
             activeToken = tokenInit();
         }
+
+
+                
+        
+
         else
         {
             reading = false;
-            // if (wasLastTokenEOL)
-            // {
-            //     token *eol_token = tokenInit();
-            //     eol_token->tokenType = T_EOL;
-            //     listPushBack(PS->tokenQueue, eol_token);
-            // }
 
+            printf("Token type, tah I am pushing: %s\n", getTokenName(activeToken->tokenType));
             listPushBack(PS->tokenQueue, activeToken);
             activeToken = tokenInit();
 
@@ -588,7 +590,7 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E - E\n");
 
-                if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT || tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE)
+                if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || (tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE))
                 {
                     raiseError(ERR_WRONG_TYPE);
                 }
@@ -603,7 +605,7 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E * E\n");
 
-                if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || (tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType != T_DOUBLE))
+                if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || (tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE))
                 {
                     fprintf(stderr, " %d %d %d\n", tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType, tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT, tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE);
                     fprintf(stderr, "Error: invalid token type in expression_parser.c in getIndexInPrecedenceTable()! %s, %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenExpParserType), getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
@@ -620,7 +622,8 @@ int expressionParserStart(programState *PS)
             {
                 printf("E -> E / E\n");
 
-                if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT || tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE)
+                if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || (tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE))
+
                 {
                     raiseError(ERR_WRONG_TYPE);
                 }
