@@ -6,6 +6,7 @@
 #include "custom_data_types/list.h"
 #include "custom_data_types/hashtable.h"
 #include "generator.h"
+#include "error.h"
 
 /**
  * @file sym_table.h

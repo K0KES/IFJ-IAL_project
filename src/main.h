@@ -4,6 +4,8 @@
 #include "generator.h"
 #include "symtable.h"
 #include "./custom_data_types/list.h"
+#include "error.h"
+
 #pragma once
 
 typedef struct {

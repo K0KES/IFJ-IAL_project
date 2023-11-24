@@ -1,6 +1,14 @@
 #ifndef ERROR_H
 #define ERROR_H
 
+//Odkomentaruj toto pro debug printy
+//#define ENABLE_PRINTF 
+#ifdef ENABLE_PRINTF
+    #define    DEBUG_PRINTF(f,...)    DEBUG_PRINTF(f,##__VA_ARGS__)
+#else
+    #define    DEBUG_PRINTF(f,...)
+#endif
+
 enum errorType
 {
     // chyba v programu v rámci lexikální analýzy (chybná struktura aktuálního lexému).

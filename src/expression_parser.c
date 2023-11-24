@@ -22,7 +22,7 @@ token *tokenStackGet(struct tokenStack *stack, unsigned location)
         }
         else
         {
-            printf("Error: stack is too small!\n");
+            DEBUG_PRINTF("Error: stack is too small!\n");
             return (NULL);
         }
     }
@@ -44,7 +44,7 @@ bool isTokenTypeOperatorLike(enum tokenType tokenType)
 enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack)
 {
     if (stack == NULL || stack->top == NULL || stack->top->tokenOnStack == NULL)
-        printf("Segfault in whichTypeIsOnTheStack\n");
+        DEBUG_PRINTF("Segfault in whichTypeIsOnTheStack\n");
 
     if (stack->top->tokenOnStack->tokenType != T_E)
         return stack->top->tokenOnStack->tokenType;
@@ -97,7 +97,7 @@ int tokenStackPush(struct tokenStack *stack, token *tokenIn)
     newElement->tokenOnStack = newToken;
     if (newElement == NULL || newElement->tokenOnStack == NULL)
     {
-        printf("Malloc failed in tokenStackPush\n");
+        DEBUG_PRINTF("Malloc failed in tokenStackPush\n");
         return 99;
     }
     newElement->next = NULL;
@@ -113,7 +113,7 @@ struct tokenStack *tokenStackInit()
     struct tokenStack *tokenStack = (struct tokenStack *)malloc(sizeof(struct tokenStack));
     if (tokenStack == NULL)
     {
-        printf("Malloc failed in tokenStackInit\n");
+        DEBUG_PRINTF("Malloc failed in tokenStackInit\n");
         return NULL;
     }
     tokenStack->top = NULL;
@@ -133,7 +133,7 @@ int tokenStackPop(struct tokenStack *stack, unsigned numberOfPops)
         }
         else
         {
-            printf("Error: stack is empty!\n");
+            DEBUG_PRINTF("Error: stack is empty!\n");
             return 1;
         }
     }
@@ -242,7 +242,7 @@ char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTok
 
 unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
 {
-    // printf ("Token type: %d\n",tokenType);
+    // DEBUG_PRINTF ("Token type: %d\n",tokenType);
     switch (tokenType)
     {
     case T_LEFT_BRACKET:
@@ -345,7 +345,7 @@ int popFirstFromQueue(struct tokenQueue *tQ)
 
 int expressionParserStart(programState *PS)
 {
-    fprintf(stderr, "expressionParserStart()...\n");
+    //fprintf(stderr, "expressionParserStart()...\n");
 
     // int retunValue = 0;
     struct tokenStack *tokenStack = tokenStackInit();
@@ -365,7 +365,7 @@ int expressionParserStart(programState *PS)
     int bracketsState = 0;
 
     tokenStackPush(tokenStack, firstToken);
-    printf("Token stack size: %d\n", PS->tokenQueue->size);
+    DEBUG_PRINTF("Token stack size: %d\n", PS->tokenQueue->size);
     while (PS->tokenQueue->size > 0)
     {
         if (isTokenTypeAccepted(listGetFirst(PS->tokenQueue)))
@@ -401,7 +401,7 @@ int expressionParserStart(programState *PS)
     {
         tokenClear(activeToken);
         getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
-        printf("Read token type: %s\n", getTokenName(activeToken->tokenType));
+        DEBUG_PRINTF("Read token type: %s\n", getTokenName(activeToken->tokenType));
 
         if (activeToken->tokenType == T_LEFT_BRACKET)
         {
@@ -427,7 +427,7 @@ int expressionParserStart(programState *PS)
         {
             reading = false;
 
-            printf("Token type, tah I am pushing: %s\n", getTokenName(activeToken->tokenType));
+            DEBUG_PRINTF("Token type, tah I am pushing: %s\n", getTokenName(activeToken->tokenType));
             listPushBack(PS->tokenQueue, activeToken);
             activeToken = tokenInit();
 
@@ -441,7 +441,7 @@ int expressionParserStart(programState *PS)
     struct tokenQueueElement *tQE = tokenQueue->first;
     while (tQE != NULL)
     {
-        printf("Token type in queue: %s\n", getTokenName(tQE->tokenInQueue->tokenType));
+        DEBUG_PRINTF("Token type in queue: %s\n", getTokenName(tQE->tokenInQueue->tokenType));
         tQE = tQE->next;
     }
 
@@ -451,13 +451,13 @@ int expressionParserStart(programState *PS)
     while (running)
     {
         // print token type
-        printf("\nTop of stack: %s, top of queue %s\n", getTokenName(whichTypeIsOnTheStack(tokenStack)), getTokenName(getFirstFromQueue(tokenQueue)->tokenType));
+        DEBUG_PRINTF("\nTop of stack: %s, top of queue %s\n", getTokenName(whichTypeIsOnTheStack(tokenStack)), getTokenName(getFirstFromQueue(tokenQueue)->tokenType));
         /// print tokens precedence
 
         switch (getPrecedence(whichTypeIsOnTheStack(tokenStack), getFirstFromQueue(tokenQueue)->tokenType, *precedenceTable))
         {
         case '<':
-            printf("Push to stack\n");
+            DEBUG_PRINTF("Push to stack\n");
             tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
             popFirstFromQueue(tokenQueue);
             break;
@@ -465,21 +465,21 @@ int expressionParserStart(programState *PS)
         // handeling of E -> ( E ) it's kinda special case
         case '=':
         {
-            printf("Push ) to stack and do reduction\n");
-            printf("E -> ( E )\n");
+            DEBUG_PRINTF("Push ) to stack and do reduction\n");
+            DEBUG_PRINTF("E -> ( E )\n");
             tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
             popFirstFromQueue(tokenQueue);
 
             // print 3 tokens from stack
-            // printf("Stack: %s %s %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType), getTokenName(tokenStackGet(tokenStack, 1)->tokenType), getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+            // DEBUG_PRINTF("Stack: %s %s %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType), getTokenName(tokenStackGet(tokenStack, 1)->tokenType), getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
 
             if (tokenStackGet(tokenStack, 0)->tokenType != T_RIGHT_BRACKET || tokenStackGet(tokenStack, 1)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_LEFT_BRACKET)
             {
                 raiseError(ERR_SYNTAX);
             }
-            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
-            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
-            // printf("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
+            // DEBUG_PRINTF("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+            // DEBUG_PRINTF("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
+            // DEBUG_PRINTF("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
 
             copyToken(tokenStackGet(tokenStack, 1), tokenStackGet(tokenStack, 2));
 
@@ -489,13 +489,13 @@ int expressionParserStart(programState *PS)
         }
 
         case '>':
-            printf("Do reduction\n");
+            DEBUG_PRINTF("Do reduction\n");
             switch (whichTypeIsOnTheStack(tokenStack))
             {
 
             case T_IDENTIFIER:
             {
-                printf("E -> i (identifier)\n");
+                DEBUG_PRINTF("E -> i (identifier)\n");
                 // TO DO
 
                 newIdentifierType = symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
@@ -515,7 +515,7 @@ int expressionParserStart(programState *PS)
 
             case T_INT:
             {
-                printf("E -> i (int)\n");
+                DEBUG_PRINTF("E -> i (int)\n");
                 
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName), tempGeneratedName);
@@ -532,7 +532,7 @@ int expressionParserStart(programState *PS)
 
             case T_STRING:
             {
-                printf("E -> i (string)\n");
+                DEBUG_PRINTF("E -> i (string)\n");
 
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName), tempGeneratedName);
@@ -552,7 +552,7 @@ int expressionParserStart(programState *PS)
 
             case T_DOUBLE:
             {
-                printf("E -> i (float)\n");
+                DEBUG_PRINTF("E -> i (float)\n");
 
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName), tempGeneratedName);
@@ -568,7 +568,7 @@ int expressionParserStart(programState *PS)
             }
             case T_PLUS:
             {
-                printf("E -> E + E\n");
+                DEBUG_PRINTF("E -> E + E\n");
 
                 if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType)
                 {
@@ -591,7 +591,7 @@ int expressionParserStart(programState *PS)
 
             case T_MINUS:
             {
-                printf("E -> E - E\n");
+                DEBUG_PRINTF("E -> E - E\n");
 
                 if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || (tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE))
                 {
@@ -606,7 +606,7 @@ int expressionParserStart(programState *PS)
 
             case T_MULTIPLICATION:
             {
-                printf("E -> E * E\n");
+                DEBUG_PRINTF("E -> E * E\n");
 
                 if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || (tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE))
                 {
@@ -623,7 +623,7 @@ int expressionParserStart(programState *PS)
 
             case T_DIVISION:
             {
-                printf("E -> E / E\n");
+                DEBUG_PRINTF("E -> E / E\n");
 
                 if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || (tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE))
 
@@ -646,7 +646,7 @@ int expressionParserStart(programState *PS)
 
             case T_LESS:
             {
-                printf("E -> E < E\n");
+                DEBUG_PRINTF("E -> E < E\n");
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -667,7 +667,7 @@ int expressionParserStart(programState *PS)
 
             case T_LESS_EQUAL:
             {
-                printf("E -> E <= E\n");
+                DEBUG_PRINTF("E -> E <= E\n");
 
                 char *tempGeneratedName_0 = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName_0), tempGeneratedName_0);
@@ -689,7 +689,7 @@ int expressionParserStart(programState *PS)
 
             case T_GREATER:
             {
-                printf("E -> E > E\n");
+                DEBUG_PRINTF("E -> E > E\n");
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -709,7 +709,7 @@ int expressionParserStart(programState *PS)
 
             case T_GREATER_EQUAL:
             {
-                printf("E -> E >= E\n");
+                DEBUG_PRINTF("E -> E >= E\n");
 
                 char *tempGeneratedName_0 = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName_0), tempGeneratedName_0);
@@ -730,7 +730,7 @@ int expressionParserStart(programState *PS)
 
             case T_EQUAL:
             {
-                printf("E -> E == E\n");
+                DEBUG_PRINTF("E -> E == E\n");
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -750,7 +750,7 @@ int expressionParserStart(programState *PS)
 
             case T_NOT_EQUAL:
             {
-                printf("E -> E != E\n");
+                DEBUG_PRINTF("E -> E != E\n");
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -771,7 +771,7 @@ int expressionParserStart(programState *PS)
 
             case T_NIL_OP:
             {
-                printf("E -> E ?? E\n");
+                DEBUG_PRINTF("E -> E ?? E\n");
 
                 // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
                 // {
@@ -795,13 +795,13 @@ int expressionParserStart(programState *PS)
             }
 
             default:
-                printf("Default state in the second switch: %d\n", whichTypeIsOnTheStack(tokenStack));
+                DEBUG_PRINTF("Default state in the second switch: %d\n", whichTypeIsOnTheStack(tokenStack));
                 break;
             }
             break;
 
         case '1':
-            printf("Error: invalid expression!\n");
+            DEBUG_PRINTF("Error: invalid expression!\n");
             raiseError(ERR_SYNTAX);
             tokenStackClear(tokenStack);
             free(tokenQueue);
@@ -811,7 +811,7 @@ int expressionParserStart(programState *PS)
             break;
 
         case '0':
-            printf("Parsing is done!\n");
+            DEBUG_PRINTF("Parsing is done!\n");
             char *returnAdr = malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
             strcpy(returnAdr, tokenStackGet(tokenStack, 0)->value->str);
             generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
@@ -827,7 +827,7 @@ int expressionParserStart(programState *PS)
             break;
 
         default:
-            printf("Default state in the first switch: ");
+            DEBUG_PRINTF("Default state in the first switch: ");
             break;
         }
 
