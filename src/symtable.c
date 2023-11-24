@@ -27,7 +27,7 @@ symtable* symtableInit(generator *generator)
 }
 
 bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctionItem){
-    printf("[SYMTABLE] Entering scope - %s \n",scope == NULL ? "GLOBAL" : scope);
+    DEBUG_PRINTF("[SYMTABLE] Entering scope - %s \n",scope == NULL ? "GLOBAL" : scope);
     ht_table_t *hashmap;
     ht_init(&hashmap);
     if(hashmap == NULL) return false;
@@ -125,11 +125,11 @@ void symtableExitScope(symtable *table){
             table->currentFunction = NULL;
         }
 
-        printf("[SYMTABLE] Exiting scope - %s \n",scopeString);
+        DEBUG_PRINTF("[SYMTABLE] Exiting scope - %s \n",scopeString);
         free(scopeString);
         listPopFirst(table->scopes);
     }else{
-        printf("[SYMTABLE] Exiting scope - GLOBAL\n");
+        DEBUG_PRINTF("[SYMTABLE] Exiting scope - GLOBAL\n");
     }
 
 }
@@ -151,7 +151,7 @@ void symtableFree(symtable *table){
 }
 
 void symtableInsert(symtable *table, char *varName, bool isFunction){
-    printf("Symtable Inserting.... %d\n",table);
+    DEBUG_PRINTF("Symtable Inserting.... %d\n",table);
     ht_table_t *currentTable = (ht_table_t *)listGetFirst(table->tables);
 
     int stringLength = strlen(varName) + 1;
@@ -178,9 +178,9 @@ void symtableInsert(symtable *table, char *varName, bool isFunction){
 void symtablePrintVariables(symtable *table){
     if(listLength(table->scopes) != 0){
         char *currentScope = (char *)listGetFirst(table->scopes);
-        printf("Variables on scope - %s \n",currentScope);
+        DEBUG_PRINTF("Variables on scope - %s \n",currentScope);
     }else{
-        printf("Variables on scope - GLOBAL \n");
+        DEBUG_PRINTF("Variables on scope - GLOBAL \n");
     }
     
     ht_table_t *currentTable = (ht_table_t *)listGetFirst(table->tables);
@@ -192,25 +192,25 @@ void symtablePrintVariables(symtable *table){
             symtableItem *item = (symtableItem *)(currentItem->data);
             
             if(item->funcData == NULL){
-                printf("- %s (VAR, TYPE: %d) = ",item->name,item->type);
-                if(item->type == DATA_TYPE_NOTSET) printf("NOT SET\n");
-                if(item->type == DATA_TYPE_DOUBLE) printf("%lf\n",*((double *)item->data));
-                if(item->type == DATA_TYPE_INTEGER) printf("%d\n",*((int *)item->data));
-                if(item->type == DATA_TYPE_STRING) printf("%s\n",*((char **)item->data));
+                DEBUG_PRINTF("- %s (VAR, TYPE: %d) = ",item->name,item->type);
+                if(item->type == DATA_TYPE_NOTSET) DEBUG_PRINTF("NOT SET\n");
+                if(item->type == DATA_TYPE_DOUBLE) DEBUG_PRINTF("%lf\n",*((double *)item->data));
+                if(item->type == DATA_TYPE_INTEGER) DEBUG_PRINTF("%d\n",*((int *)item->data));
+                if(item->type == DATA_TYPE_STRING) DEBUG_PRINTF("%s\n",*((char **)item->data));
             }else{
-                printf("- %s (FUNC, RETURN TYPE: %d) - ",item->name,item->funcData->returnType);
+                DEBUG_PRINTF("- %s (FUNC, RETURN TYPE: %d) - ",item->name,item->funcData->returnType);
                 bool noArgs = false;
                 functionArgument *argument = (functionArgument *)listPopFirst(item->funcData->arguments);
                 if(argument == NULL){
-                    printf("NO ARGS\n");
+                    DEBUG_PRINTF("NO ARGS\n");
                     noArgs = true;
                 }
                 while(argument != NULL){
-                    printf("%s (TYPE: %d) ",argument->name,argument->type);
+                    DEBUG_PRINTF("%s (TYPE: %d) ",argument->name,argument->type);
                     argument = (functionArgument *)listPopFirst(item->funcData->arguments);
                 }
                 if(!noArgs){
-                    printf("\n");
+                    DEBUG_PRINTF("\n");
                 }
             }
             
@@ -352,7 +352,7 @@ void symtableFunctionEndOfArguments(symtable *table){
 
     table->activeItem->funcData->endOfArguments = true;
 
-    printf("----------MANUAL ENTER SCOPE-----------\n");
+    DEBUG_PRINTF("----------MANUAL ENTER SCOPE-----------\n");
     symtableEnterScope(table,table->activeItem->name,table->activeItem);   
 
     symtableCreateFunctionStructure(table);
@@ -407,7 +407,7 @@ void symtableCreateFunctionStructure(symtable *table){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
 
-    printf("-------------->>> CREATING STRUCTURE CODE \n");
+    DEBUG_PRINTF("-------------->>> CREATING STRUCTURE CODE \n");
 
     generatorPushStringToList(table->functionCodeHeader,concatString(2,"LABEL $",table->activeItem->name));
     generatorPushStringToList(table->functionCodeHeader,"PUSHFRAME");

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include "error.h"
 #pragma once
 
 #define LEX_ERROR 1

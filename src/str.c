@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "str.h"
 #include <stdio.h>
+#include "error.h"
 #pragma once
 
 #define STR_LEN_INC 8
@@ -40,7 +41,7 @@ int strAddChar(string *s1, char c) {
    {  
       // pamet nestaci, je potreba provest realokaci
       if ((s1->str = (char*) realloc(s1->str, s1->length + STR_LEN_INC)) == NULL) {   
-           printf("\n\nERRORNULL\n");
+           DEBUG_PRINTF("\n\nERRORNULL\n");
          return STR_ERROR;
       }
       s1->allocSize = s1->length + STR_LEN_INC;
@@ -89,7 +90,7 @@ int strGetLength(string *s) {
 void strPrint (string *s) {
    int i = 0;
    while (s->str[i] != '\0') {
-      printf("%c", s->str[i]);
+      DEBUG_PRINTF("%c", s->str[i]);
       i++;
    }
    

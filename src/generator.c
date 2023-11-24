@@ -1,3 +1,4 @@
+#include "error.h"
 #include "generator.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,6 +96,27 @@ void generatorGenerateOutput(generator *gen){
     fclose(fptr);
 }
 
+void generatorGenerateOutputToStdOut(generator *gen){
+    printf(".IFJcode23\n");
+    printf("JUMP $$main\n");
+
+    char* line = (char *)listPopFirst(gen->functions);
+    while(line != NULL){
+        printf("%s\n",line);
+        free(line);
+        line = (char *)listPopFirst(gen->functions);
+    }
+    
+    printf("LABEL $$main\n");
+    
+    line = (char *)listPopFirst(gen->mainCode);
+    while(line != NULL){
+        printf("%s\n",line);
+        free(line);
+        line = (char *)listPopFirst(gen->mainCode);
+    }
+}
+
 /*
 char * concatString(int num_args, ...){
     va_list args;
@@ -186,13 +208,13 @@ char* stringToAssemblyStringFormat(const char* inputString) {
 
 void printList(list *l){
     listNode *currentNode = l->first;
-    printf("LIST PRINT: ");
+    DEBUG_PRINTF("LIST PRINT: ");
     while(currentNode != NULL){
         char* line = (char *)(currentNode->data);
-        printf("%s ",line);
+        DEBUG_PRINTF("%s ",line);
         currentNode = currentNode->next;
     }
-    printf("\n");
+    DEBUG_PRINTF("\n");
 }
 
 void freeContentOfListAndDestroy(list *list){

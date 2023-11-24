@@ -165,7 +165,7 @@ void main(){
     while(my_list->size != 0)
     {
         int* int_ptr = (int *)listPopFirst(&my_list);
-        printf("%d\n",*int_ptr);
+        DEBUG_PRINTF("%d\n",*int_ptr);
     }
 
     listDestroy(my_list);

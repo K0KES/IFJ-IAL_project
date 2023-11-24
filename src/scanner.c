@@ -10,11 +10,11 @@ void tokenClear (token* token) {
 int getToken(token *token, int charNumber, int lineNumber) {
     char c = '\0';
     enum state state = S_START;
-    printf("\n");
+    DEBUG_PRINTF("\n");
     char lastChar = '\0';
     while (c != EOF) {
         c = getc(stdin);
-        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { /*printf("%c\n", c);*/ }
+        if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { /*DEBUG_PRINTF("%c\n", c);*/ }
         switch (state) {
             /////////////////////////  
             //first starting STATE
@@ -34,7 +34,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lineNumber++;
                         charNumber = 0;
                         strAddChar(token->value, c);
-                        //printf("\nEOL\n");
+                        //DEBUG_PRINTF("\nEOL\n");
                         state = S_NEW_LINE;
                         break;
                     /////////////////////////  
@@ -185,7 +185,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\r':
                     lineNumber++;
                     charNumber = 0;
-                    //printf("\nEOL\n"); 
+                    //DEBUG_PRINTF("\nEOL\n"); 
                     lastChar = '\0';
                     break;
                 case ' ':
@@ -432,9 +432,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '}':
                 case '?':
                 case EOF:
-                    //printf("\ncurrent token val='");
+                    //DEBUG_PRINTF("\ncurrent token val='");
                     strPrint(token->value);
-                    printf("\n");
+                    DEBUG_PRINTF("\n");
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
                         ungetc(c, stdin);
@@ -640,7 +640,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case 'e':
                 case 'E':
                 case '.':
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                     return LEX_ERROR;
                     break;
                 case ' ':
@@ -648,7 +648,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\n':
                 case '\r':
                     if (lastChar == 'e' || lastChar == 'E' || lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                         return LEX_ERROR;    
                     }
                     token->tokenType = T_INT;
@@ -665,7 +665,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lastChar = c;
                     }
                     else if (lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                         return LEX_ERROR;
                     }
                     else {
@@ -683,7 +683,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lastChar = c;
                     }
                     else if (lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                         return LEX_ERROR;
                     }
                     else {
@@ -721,7 +721,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case 'e':
                 case 'E':
                 case '.':
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                     return LEX_ERROR;
                     break;
                 case ' ':
@@ -729,7 +729,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\n':
                 case '\r':
                     if (lastChar == 'e' || lastChar == 'E' || lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                         return LEX_ERROR;    
                     }
                     token->tokenType = T_DOUBLE;
@@ -746,7 +746,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lastChar = c;
                     }
                     else if (lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                         return LEX_ERROR;
                     }
                     else {
@@ -764,7 +764,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lastChar = c;
                     }
                     else if (lastChar == '+' || lastChar == '-') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                         return LEX_ERROR;
                     }
                     else {
@@ -797,7 +797,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 default:
                     strAddChar(token->value, lastChar);
                     token->tokenType = T_DIVISION;
-                    //printf("%c", lastChar);
+                    //DEBUG_PRINTF("%c", lastChar);
                     ungetc(c, stdin);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
@@ -821,7 +821,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     state = S_MULTILINE_LINE_STRING_CHECK;
                     break;
                 case EOF:
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                     return LEX_ERROR;
                     break;
                 default:
@@ -854,7 +854,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\r':
                 case '\n':
                 case EOF:
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                     return LEX_ERROR;
                 default:
                     charNumber++;
@@ -879,7 +879,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 //ERROR
                 default:
                     charNumber++;
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                     return LEX_ERROR;
                     break;
                 }
@@ -923,7 +923,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 case '"':
                     if (lastChar != '\n') {
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                         return LEX_ERROR;
                     }
                     strAddChar(token->value, c);
@@ -935,7 +935,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 default:
                     if (lastChar == '"') {
                         charNumber++;
-                        printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                        DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                         return LEX_ERROR;
                     }
 
@@ -964,7 +964,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 default:
                     charNumber++;
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                     return LEX_ERROR;
                     break;
                 }
@@ -986,7 +986,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 //ERROR
                 default:
                     charNumber++;
-                    printf("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                    DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                     return LEX_ERROR;
                     break;
                 }
