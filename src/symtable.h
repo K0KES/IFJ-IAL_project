@@ -110,7 +110,7 @@ void symtableFunctionEndOfArguments(symtable *table);
 void symtableSetFunctionArgumentID(symtable *table, char *id);
 enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table);
 
-char* symtableGetFramePrefix(symtable *table);
+char* symtableGetFramePrefix(symtable *table, char *varName);
 char* symtableGetVariablePrefix(symtable *table, char *varName);
 char* symtableGetScopePrefixName(symtable *table);
 

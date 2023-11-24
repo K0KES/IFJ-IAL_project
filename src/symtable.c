@@ -46,10 +46,25 @@ bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctio
         listPushFirst(table->scopes,string);
     }
 
+    symtableItem *tempItem = table->activeItem;
+    
+
     symtableInsert(table,"$$$prefix$$$",false);
     symtableSetDataType(table,DATA_TYPE_STRING,false);
-    symtableSetVariableValue(table,symtableGetScopePrefixName(table));
-    table->activeItem = NULL;
+
+    if(listLength(table->scopes) != 0){
+        char *scopeString = (char *)listGetFirst(table->scopes);
+
+        char str[64];
+        sprintf(str,"%d",table->gen->counter);
+        
+        symtableSetVariableValue(table,concatString(3,scopeString,str,"_"));
+    }else{
+        symtableSetVariableValue(table,"global_");
+    }
+
+    table->activeItem = tempItem;
+    
 
     table->gen->counter++;
 
@@ -432,16 +447,8 @@ void symtablePushCode(symtable *table, char* code){
 }
 
 char* symtableGetScopePrefixName(symtable *table){
-    if(listLength(table->scopes) != 0){
-        char *scopeString = (char *)listGetFirst(table->scopes);
-
-        char str[64];
-        sprintf(str,"%d",table->gen->counter);
-        
-        return concatString(3,scopeString,str,"_");
-    }else{
-        return "global_";
-    }
+    symtableItem *item = symtableFindSymtableItem(table,"$$$prefix$$$");
+    return (char *)(item->data);
 }
 
 char* symtableGetVariablePrefix(symtable *table, char *varName){
@@ -451,15 +458,18 @@ char* symtableGetVariablePrefix(symtable *table, char *varName){
         ht_item_t *item = ht_search(currentTable,varName);
         if(item != NULL){
             symtableItem *prefixItem = (symtableItem *)(ht_search(currentTable,"$$$prefix$$$")->data);
-            return concatString(2,symtableGetFramePrefix(table),(char *)(prefixItem->data));
+            return concatString(2,symtableGetFramePrefix(table, varName),(char *)(prefixItem->data));
         }
         currentNode = currentNode->next;
     }   
     
-    return concatString(2,symtableGetFramePrefix(table),(char *)(symtableFindSymtableItem(table,"$$$prefix$$$")->data));
+    return concatString(2,symtableGetFramePrefix(table,varName),(char *)(symtableFindSymtableItem(table,"$$$prefix$$$")->data));
 }
 
-char* symtableGetFramePrefix(symtable *table){
+char* symtableGetFramePrefix(symtable *table, char *varName){
+    ht_item_t *item = ht_search(((ht_table_t *)listGetLast(table->tables)),varName);
+    if(item != NULL) return "GF@";
+
     if(listLength(table->scopes) != 0){
         if(table->currentFunction == NULL){
             return "GF@";
