@@ -921,16 +921,28 @@ bool callOrAssign(){
             //Generator
             //TO DO generator zpracovat volání funkce
             symtablePushCode(symTable,"CREATEFRAME");
-            symtablePushCode(symTable,concatString(2,"CALL $",generatorPopFirstStringFromList(gen->parserStack)));
-            
+
+            char *label = generatorPopFirstStringFromList(gen->parserStack);
 
             //Symtable
             symtableFunctionCallStart(symTable,symtableGetActiveItemName(symTable));
 
             getNextToken();
             callOrAssignStatus = arguments();
-
             symtableFunctionCallEnd(symTable);
+
+            int i = 1;
+            static char result[100];
+            while(listLength(gen->parserStack) != 0){
+                snprintf(result, sizeof(result), "%d", i);
+                symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));
+                symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
+                i++;
+            }
+            
+
+            symtablePushCode(symTable,concatString(2,"CALL $",label));
+
             break;
         default:
             DEBUG_PRINTF("Leaving function callOrAssign() with %d ...\n",false);
