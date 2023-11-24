@@ -418,22 +418,10 @@ int expressionParserStart(programState *PS)
             addLastToQueue(tokenQueue, activeToken);
             activeToken = tokenInit();
         }
-        // else if (activeToken->tokenType == T_EOL)
-        // {
-        //     tokenStackGet(tokenStack, 0)->lastChar = ' ';
-        //     ignoredEOL = true;
 
-        //     continue;
-        // }
-        // else if (bracketsState >= 0 && ignoredEOL && isTokenTypeAccepted(activeToken))
-        // {
-        //     ignoredEOL = false;
-        //     if ((tokenStackGet(tokenStack, 0)->tokenType == T_IDENTIFIER || tokenStackGet(tokenStack, 0)->tokenType == T_INT || tokenStackGet(tokenStack, 0)->tokenType == T_DOUBLE || tokenStackGet(tokenStack, 0)->tokenType == T_STRING || tokenStackGet(tokenStack, 0)->tokenType == T_RIGHT_BRACKET) && activeToken->tokenType != T_IDENTIFIER && activeToken->tokenType != T_INT && activeToken->tokenType != T_DOUBLE && activeToken->tokenType != T_STRING && activeToken->tokenType != T_RIGHT_BRACKET)
-        //     {
-        //         addLastToQueue(tokenQueue, activeToken);
-        //         activeToken = tokenInit();
-        //     }
-        // }
+
+                
+        
 
         else
         {
@@ -635,7 +623,7 @@ int expressionParserStart(programState *PS)
                 printf("E -> E / E\n");
 
                 if (tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType || (tokenStackGet(tokenStack, 2)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE))
-                
+
                 {
                     raiseError(ERR_WRONG_TYPE);
                 }
