@@ -196,3 +196,5 @@ void tokenStackClear(struct tokenStack* stack);
 /// @param stack
 /// @return Returns error code
 int checkTokensOnTopOfTheStack (struct tokenStack *stack);
+
+bool isTokenTypeOperatorLike (enum tokenType tokenType);
