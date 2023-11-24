@@ -76,7 +76,7 @@ int checkTokensOnTopOfTheStack(struct tokenStack *stack)
 {
     if (stack == NULL || stack->top == NULL)
     {
-        return 99;
+        raiseError(ERR_INTERNAL);
     }
     if (tokenStackGet(stack, 0)->tokenType != T_E)
     {
@@ -98,7 +98,7 @@ int tokenStackPush(struct tokenStack *stack, token *tokenIn)
     if (newElement == NULL || newElement->tokenOnStack == NULL)
     {
         DEBUG_PRINTF("Malloc failed in tokenStackPush\n");
-        return 99;
+        raiseError(ERR_INTERNAL);
     }
     newElement->next = NULL;
     copyToken(tokenIn, newElement->tokenOnStack);
@@ -148,7 +148,7 @@ int addPrecedenceRuleToList(struct precedenceRuleList *precedenceRuleList, struc
         precedenceRuleList->precedenceRuleList = (struct precedenceRule **)realloc(precedenceRuleList->precedenceRuleList, precedenceRuleList->precedenceRuleListAllocatedLen * sizeof(struct precedenceRule *));
         if (precedenceRuleList->precedenceRuleList == NULL)
         {
-            return 99;
+            raiseError(ERR_INTERNAL);
         }
     }
     precedenceRuleList->precedenceRuleList[precedenceRuleList->precedenceRuleListLen] = precedenceRule;
@@ -172,20 +172,20 @@ int setUpActiveToken(token *T)
 {
     if (T == NULL)
     {
-        return 99;
+        raiseError(ERR_INTERNAL);
     }
 
     T->value = (string *)malloc(sizeof(string));
     if (T->value == NULL)
     {
-        return 99;
+        raiseError(ERR_INTERNAL);
     }
     strInit(T->value);
 
     T->position = (positionInfo *)malloc(sizeof(positionInfo));
     if (T->position == NULL)
     {
-        return 99;
+        raiseError(ERR_INTERNAL);
     }
     return 0;
 }
@@ -302,7 +302,7 @@ int addLastToQueue(struct tokenQueue *tQ, token *tokenIn)
     struct tokenQueueElement *tQE = (struct tokenQueueElement *)malloc(sizeof(struct tokenQueueElement));
     if (tQE == NULL)
     {
-        return 99;
+        raiseError(ERR_INTERNAL);
     }
 
     tQE->tokenInQueue = tokenIn;
@@ -345,7 +345,7 @@ int popFirstFromQueue(struct tokenQueue *tQ)
 
 int expressionParserStart(programState *PS)
 {
-    //fprintf(stderr, "expressionParserStart()...\n");
+    // fprintf(stderr, "expressionParserStart()...\n");
 
     // int retunValue = 0;
     struct tokenStack *tokenStack = tokenStackInit();
@@ -355,7 +355,7 @@ int expressionParserStart(programState *PS)
 
     if (firstToken == NULL || tokenStack == NULL || tokenQueue == NULL)
     {
-        return 99;
+        raiseError(ERR_INTERNAL);
     }
 
     firstToken->tokenType = T_END;
@@ -419,10 +419,6 @@ int expressionParserStart(programState *PS)
             activeToken = tokenInit();
         }
 
-
-                
-        
-
         else
         {
             reading = false;
@@ -446,7 +442,7 @@ int expressionParserStart(programState *PS)
     }
 
     bool running = true;
-    symtablePushCode(PS->symTable, "\n#Expression parser start!");
+    // symtablePushCode(PS->symTable, "\n#Expression parser start!");
 
     while (running)
     {
@@ -502,13 +498,13 @@ int expressionParserStart(programState *PS)
                 if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING)
                 {
                     fprintf(stderr, "Error: expression parser spotted potential function!\n");
-                    return 99;
+                    raiseError(ERR_INTERNAL);
                 }
 
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = newIdentifierType;
                 tokenStackGet(tokenStack, 0)->tokenType = T_E;
 
-                tokenStackGet(tokenStack, 0)->value->str = concatString(2, symtableGetVariablePrefix(PS->symTable,tokenStackGet(tokenStack, 0)->value->str), tokenStackGet(tokenStack, 0)->value->str);
+                tokenStackGet(tokenStack, 0)->value->str = concatString(2, symtableGetVariablePrefix(PS->symTable, tokenStackGet(tokenStack, 0)->value->str), tokenStackGet(tokenStack, 0)->value->str);
 
                 break;
             }
@@ -516,9 +512,9 @@ int expressionParserStart(programState *PS)
             case T_INT:
             {
                 DEBUG_PRINTF("E -> i (int)\n");
-                
+
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName), tempGeneratedName);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " int@", tokenStackGet(tokenStack, 0)->value->str));
 
@@ -535,12 +531,12 @@ int expressionParserStart(programState *PS)
                 DEBUG_PRINTF("E -> i (string)\n");
 
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName), tempGeneratedName);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
                 char *stringWithoutQuote = tokenStackGet(tokenStack, 0)->value->str;
-                stringWithoutQuote++; //Remove first " from input string
-                stringWithoutQuote[strlen(stringWithoutQuote)-1] = 0; //Remove last " from string
+                stringWithoutQuote++;                                   // Remove first " from input string
+                stringWithoutQuote[strlen(stringWithoutQuote) - 1] = 0; // Remove last " from string
 
                 char *stringAssemblyValue = stringToAssemblyStringFormat(stringWithoutQuote);
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " string@", stringAssemblyValue));
@@ -559,9 +555,11 @@ int expressionParserStart(programState *PS)
                 DEBUG_PRINTF("E -> i (float)\n");
 
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName), tempGeneratedName);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-                symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " float@", tokenStackGet(tokenStack, 0)->value->str));
+                char floatString[100];
+                sprintf(floatString, "%a", atof(tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " float@", floatString));
 
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
                 tokenStackGet(tokenStack, 0)->tokenType = T_E;
@@ -658,7 +656,7 @@ int expressionParserStart(programState *PS)
                 }
 
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName), tempGeneratedName);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
                 symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
@@ -674,12 +672,12 @@ int expressionParserStart(programState *PS)
                 DEBUG_PRINTF("E -> E <= E\n");
 
                 char *tempGeneratedName_0 = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName_0), tempGeneratedName_0);
+                char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_0), tempGeneratedName_0);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
                 symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName_0, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
 
                 char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName_1), tempGeneratedName_1);
+                char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
                 symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
 
@@ -701,7 +699,7 @@ int expressionParserStart(programState *PS)
                 }
 
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName), tempGeneratedName);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
                 symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
@@ -716,12 +714,12 @@ int expressionParserStart(programState *PS)
                 DEBUG_PRINTF("E -> E >= E\n");
 
                 char *tempGeneratedName_0 = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName_0), tempGeneratedName_0);
+                char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_0), tempGeneratedName_0);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
                 symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName_0, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
 
                 char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName_1), tempGeneratedName_1);
+                char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
                 symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
 
@@ -742,7 +740,7 @@ int expressionParserStart(programState *PS)
                 }
 
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName), tempGeneratedName);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
                 symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
@@ -762,7 +760,7 @@ int expressionParserStart(programState *PS)
                 }
 
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable,tempGeneratedName), tempGeneratedName);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
                 symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
@@ -825,7 +823,7 @@ int expressionParserStart(programState *PS)
             tokenFree(firstToken);
             tokenStackClear(tokenStack);
             free(tokenQueue);
-            symtablePushCode(PS->symTable, "#Expression parser ended!\n");
+            // symtablePushCode(PS->symTable, "#Expression parser ended!\n");
 
             return 1;
             break;
@@ -842,7 +840,7 @@ int expressionParserStart(programState *PS)
     free(activeToken);
     free(firstToken);
 
-    symtablePushCode(PS->symTable, "#Expression parser ended!");
+    // symtablePushCode(PS->symTable, "#Expression parser ended!");
 
     return 0;
 }

@@ -73,7 +73,7 @@ odevzdani:
 	zip -j xvalao01.zip odevzdani/*
 	rmdir --ignore-fail-on-non-empty test_dir
 	./is_it_ok.sh xvalao01.zip test_dir/
-	sudo $(RM) -r test_dir
+	$(RM) -r test_dir
 	$(RM) -r odevzdani
 
 
