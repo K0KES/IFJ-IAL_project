@@ -714,7 +714,7 @@ bool statement(){
             symtableSetActiveItem(symTable,activeToken->value->str);
 
             //Generator
-            generatorPushStringFirstToList(gen->parserStack,concatString(2,symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));
+            generatorPushStringFirstToList(gen->parserStack,activeToken->value->str);
 
             getNextToken();
             statementStatus = callOrAssign();
@@ -772,7 +772,16 @@ bool statement(){
                 return false;
             }
             getNextToken();
+
+            //Symtable
+            symtableFunctionCallStart(symTable,"write");
+            
             statementStatus = arguments();
+
+            //Generator
+            while (listLength(gen->parserStack) != 0){
+                symtablePushCode(symTable,concatString(2,"WRITE ",generatorPopLastStringFromList(gen->parserStack)));
+            }
             break;
         /*case KW_INT_TO_DOUBLE:
             // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
@@ -911,7 +920,9 @@ bool callOrAssign(){
 
             //Generator
             //TO DO generator zpracovat volání funkce
-            generatorPopFirstStringFromList(gen->parserStack);
+            symtablePushCode(symTable,"CREATEFRAME");
+            symtablePushCode(symTable,concatString(2,"CALL $",generatorPopFirstStringFromList(gen->parserStack)));
+            
 
             //Symtable
             symtableFunctionCallStart(symTable,symtableGetActiveItemName(symTable));
@@ -937,6 +948,7 @@ bool assign(){
     char *var;
     char *tempVarName;
     char *tempGeneratedName;
+    char *tempName;
 
     enum data_type lastVarType = symtableGetActiveItemType(symTable);
     switch(activeToken->tokenType) {
@@ -960,8 +972,10 @@ bool assign(){
             symtableSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
-            var = generatorPopLastStringFromList(gen->parserStack);
-            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            tempGeneratedName = generatorPopFirstStringFromList(gen->parserStack);
+            tempName = generatorPopFirstStringFromList(gen->parserStack);
+            var = concatString(2,symtableGetVariablePrefix(symTable,tempName),tempName);
+            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempGeneratedName));
             //tokenFree(tempToken);
             break;
         case T_INCREMENT:;
@@ -969,7 +983,8 @@ bool assign(){
             if (!symtableIsActiveVariableInitiated(symTable)) { raiseError(ERR_UNDEFINED_VARIABLE); }
 
             //Generator
-            var = generatorPopFirstStringFromList(gen->parserStack);
+            tempName = generatorPopFirstStringFromList(gen->parserStack);
+            var = concatString(2,symtableGetVariablePrefix(symTable,tempName),tempName);
 
             //Parser
             getNextToken();
@@ -1358,7 +1373,7 @@ bool argWithName(){
             else {
                 symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
             }
-            getNextToken();
+            //getNextToken();
             break;
         default:
             DEBUG_PRINTF("Leaving function argWithName() with %d ...\n",false);
@@ -1508,6 +1523,10 @@ bool expression(){
                 return false;
             }
             getNextToken();
+
+            //Symtable
+            symtableFunctionCallStart(symTable,"Int2Double");
+
             expressionStatus = argument();
 
             //Generator
@@ -1532,6 +1551,10 @@ bool expression(){
                 return false;
             }
             getNextToken();
+
+            //Symtable
+            symtableFunctionCallStart(symTable,"Double2Int");
+
             expressionStatus = argument();
 
             //Generator
@@ -1556,6 +1579,10 @@ bool expression(){
                 return false;
             }
             getNextToken();
+
+            //Symtable
+            symtableFunctionCallStart(symTable,"length");
+
             expressionStatus = argument();
 
             //Generator
@@ -1582,6 +1609,10 @@ bool expression(){
                 return false;
             }
             getNextToken();
+
+            //Symtable
+            symtableFunctionCallStart(symTable,"substring");
+
             expressionStatus = argument();
             
             // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>
@@ -1618,6 +1649,10 @@ bool expression(){
                 return false;
             }
             getNextToken();
+
+            //Symtable
+            symtableFunctionCallStart(symTable,"ord");
+
             expressionStatus = argument();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
@@ -1636,6 +1671,10 @@ bool expression(){
                 return false;
             }
             getNextToken();
+
+            //Symtable
+            symtableFunctionCallStart(symTable,"chr");
+
             expressionStatus = argument();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
