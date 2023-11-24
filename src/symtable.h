@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "custom_data_types/list.h"
-#include "custom_data_types/hashtable.h"
+#include "list.h"
+#include "hashtable.h"
 #include "generator.h"
 #include "error.h"
 

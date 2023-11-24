@@ -62,11 +62,28 @@ valgrind_symtable:
 	$(TEST_CC) -o my_gtest_test_symtable $(TEST_DIR)/symtable_tests/main.cpp -lgtest -lgtest_main -g
 	valgrind --leak-check=full --show-leak-kinds=all ./my_gtest_test_symtable
 
-.PHONY: clean
+odevzdani:
+	mkdir -p odevzdani
+	mkdir -p test_dir
+	cp src/* odevzdani/
+	cp Makefile_for_odevzdani odevzdani/Makefile
+	cp rozdeleni odevzdani/rozdeleni
+	cp rozsireni odevzdani/rozsireni
+	cp dokumentace.pdf odevzdani/dokumentace.pdf
+	zip -j xvalao01.zip odevzdani/*
+	rmdir --ignore-fail-on-non-empty test_dir
+	./is_it_ok.sh xvalao01.zip test_dir/
+	sudo $(RM) -r test_dir
+	$(RM) -r odevzdani
+
+
+
+
+.PHONY: clean odevzdani
 
 clean:
 	$(RM) -r $(BUILD_DIR)
 	$(RM) my_gtest_test_*
-
+	$(RM) xvalao01.zip
 
 MKDIR_P ?= mkdir -p

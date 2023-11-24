@@ -3,6 +3,8 @@ build/*
 .vscode/*
 *.exe
 my_gtest_*
+xvalao01/*
+xvalao01.zip
 
 scanner_test.txt
 output

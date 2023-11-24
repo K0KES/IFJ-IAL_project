@@ -3,7 +3,7 @@
 #include "scanner.h"
 #include "generator.h"
 #include "symtable.h"
-#include "./custom_data_types/list.h"
+#include "list.h"
 #include "error.h"
 
 #pragma once

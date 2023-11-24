@@ -1,0 +1,17 @@
+SHELL := /bin/bash
+
+
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99 -O0 
+
+SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+
+TARGET = IFJ_compiler.out
+
+all: $(TARGET)
+
+$(TARGET): *.c
+	$(CC) $(CFLAGS) -o $(TARGET) *.c
+
+clean:
+	rm -f $(TARGET)

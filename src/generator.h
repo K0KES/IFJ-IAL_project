@@ -1,5 +1,6 @@
-#include "custom_data_types/list.h"
-#include "custom_data_types/hashtable.h"
+#include "list.h"
+#include "hashtable.h"
+#include "string.h"
 #pragma once
 
 typedef struct generator_h

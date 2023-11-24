@@ -2,7 +2,7 @@
 #include "symtable.h"
 #include "generator.h"
 #include "main.h"
-#include "custom_data_types/list.h"
+#include "list.h"
 #include "parser.h"
 #include <stdbool.h>
 #include <stdio.h>
