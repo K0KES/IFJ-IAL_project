@@ -276,7 +276,7 @@ void symtableAddFunctionNextArgument(symtable *table){
 
     functionArgument *argument = (functionArgument *)malloc(sizeof(functionArgument));
     argument->type = DATA_TYPE_NOTSET;
-    argument->name = "";
+    argument->name = "_";
     argument->id = "";
     argument->nullable = false;
     
@@ -465,7 +465,7 @@ void symtableFunctionCallNextParameter(symtable *table){
     
     functionArgument *argument = (functionArgument *)malloc(sizeof(functionArgument));
     argument->type = DATA_TYPE_NOTSET;
-    argument->name = "";
+    argument->name = "_";
     argument->id = "";
     argument->nullable = false;
     listPushBack(funcData->arguments,argument);
@@ -502,22 +502,15 @@ void symtableFunctionCallEnd(symtable *table){
         while(true){
             if(callCurrentItem == NULL && funcCurrentItem != NULL) raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             if(callCurrentItem != NULL && funcCurrentItem == NULL) raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
-            if(callCurrentItem == NULL || funcCurrentItem == NULL) break;
+            if(callCurrentItem == NULL && funcCurrentItem == NULL) break;
             functionArgument *callArg = (functionArgument *)(callCurrentItem->data);
             functionArgument *funcArg = (functionArgument *)(funcCurrentItem->data);
-
+            
             if(callArg->type != funcArg->type){
                 raiseError(ERR_WRONG_TYPE);
             }
             if(strcmp(callArg->name,funcArg->name) != 0){
-                if(strcmp(funcArg->name,"_") != 0){
-                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
-                }
-                if(strcmp(callArg->name,"") != 0){
-                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
-                }
-                
-                
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
             if(callArg->nullable != funcArg->nullable){
                 if(!(funcArg->nullable && !callArg->nullable)){
