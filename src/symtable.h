@@ -111,7 +111,7 @@ void symtableSetFunctionArgumentID(symtable *table, char *id);
 enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table);
 
 char* symtableGetFramePrefix(symtable *table);
-char* symtableGetVariablePrefix(symtable *table);
+char* symtableGetVariablePrefix(symtable *table, char *varName);
 char* symtableGetScopePrefixName(symtable *table);
 
 void symtablePushCode(symtable *table, char* code);

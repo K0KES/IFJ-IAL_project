@@ -21,3 +21,7 @@ LABEL $main$if$1$else
 WRITE string@\010zaporne\010
 # konec podminky
 LABEL $main$if$1$end
+
+
+if5_else
+if5_end
