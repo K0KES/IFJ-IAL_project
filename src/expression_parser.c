@@ -29,15 +29,23 @@ token *tokenStackGet(struct tokenStack *stack, unsigned location)
     return (tSE->tokenOnStack);
 }
 
-bool isTokenTypeOperatorLike(enum tokenType tokenType)
+int isTokenTypeOperatorLike(enum tokenType tokenType)
 {
-    if (tokenType == T_PLUS || tokenType == T_MINUS || tokenType == T_MULTIPLICATION || tokenType == T_DIVISION || tokenType == T_LESS || tokenType == T_LESS_EQUAL || tokenType == T_GREATER || tokenType == T_GREATER_EQUAL || tokenType == T_EQUAL || tokenType == T_NOT_EQUAL || tokenType == T_NIL_OP || tokenType == T_LEFT_BRACKET)
+    if (tokenType == T_PLUS || tokenType == T_MINUS || tokenType == T_MULTIPLICATION || tokenType == T_DIVISION || tokenType == T_LESS || tokenType == T_LESS_EQUAL || tokenType == T_GREATER || tokenType == T_GREATER_EQUAL || tokenType == T_EQUAL || tokenType == T_NOT_EQUAL || tokenType == T_NIL_OP)
     {
-        return true;
+        return 1;
+    }
+    else if (tokenType == T_LEFT_BRACKET)
+    {
+        return 2;
+    }
+    else if (tokenType == T_RIGHT_BRACKET)
+    {
+        return 3;
     }
     else
     {
-        return false;
+        return 0;
     }
 }
 
@@ -325,6 +333,11 @@ token *getFirstFromQueue(struct tokenQueue *tQ)
     return tQ->first->tokenInQueue;
 }
 
+token *getLastFromQueue(struct tokenQueue *tQ)
+{
+    return tQ->last->tokenInQueue;
+}
+
 int popFirstFromQueue(struct tokenQueue *tQ)
 {
     struct tokenQueueElement *tQE = tQ->first;
@@ -346,8 +359,8 @@ int popFirstFromQueue(struct tokenQueue *tQ)
 int expressionParserStart(programState *PS)
 {
     // fprintf(stderr, "expressionParserStart()...\n");
-
-    // int retunValue = 0;
+    DEBUG_PRINTF("\n\nEXPRESSION PARSER!\n");
+    // int returnValue = 0;
     struct tokenStack *tokenStack = tokenStackInit();
     token *firstToken = tokenInit();
 
@@ -365,7 +378,8 @@ int expressionParserStart(programState *PS)
     int bracketsState = 0;
 
     tokenStackPush(tokenStack, firstToken);
-    DEBUG_PRINTF("Token stack size: %d\n", PS->tokenQueue->size);
+    // DEBUG_PRINTF("Token stack size: %d\n", PS->tokenQueue->size);
+
     while (PS->tokenQueue->size > 0)
     {
         if (isTokenTypeAccepted(listGetFirst(PS->tokenQueue)))
@@ -395,13 +409,13 @@ int expressionParserStart(programState *PS)
     /// READING LOOP ///
     bool reading = true;
     bool ignoredEOL = false;
-    // TO DO posefit mezery
+    enum tokenType lastValidTokensTypes[] = {T_NO_TOKEN, T_NO_TOKEN};
 
     while (reading)
     {
         tokenClear(activeToken);
+        // printf active token lastchar
         getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
-        DEBUG_PRINTF("Read token type: %s\n", getTokenName(activeToken->tokenType));
 
         if (activeToken->tokenType == T_LEFT_BRACKET)
         {
@@ -414,16 +428,47 @@ int expressionParserStart(programState *PS)
 
         if (isTokenTypeAccepted(activeToken) && bracketsState >= 0 && !ignoredEOL)
         {
+            DEBUG_PRINTF("Active token char %s and it's last char: %d\n", getTokenName(activeToken->tokenType), activeToken->lastChar);
 
-            addLastToQueue(tokenQueue, activeToken);
-            activeToken = tokenInit();
+            if (isTokenTypeOperatorLike(activeToken->tokenType) != 1)
+            {
+                if (lastValidTokensTypes[0] == T_EOL && isTokenTypeOperatorLike(lastValidTokensTypes[1]) != 1)
+                {
+                    token *eol_token = tokenInit();
+                    eol_token->tokenType = T_EOL;
+                    listPushBack(PS->tokenQueue, tokenQueue->last->tokenInQueue);
+                    listPushBack(PS->tokenQueue, activeToken);
+
+                    reading = false;
+                    activeToken = tokenInit();
+
+                    // adding last token to list
+                    activeToken->tokenType = T_END;
+                    addLastToQueue(tokenQueue, activeToken);
+                }
+            }
+
+            if (reading)
+            {
+                lastValidTokensTypes[1] = lastValidTokensTypes[0];
+                lastValidTokensTypes[0] = activeToken->tokenType;
+
+                addLastToQueue(tokenQueue, activeToken);
+                activeToken = tokenInit();
+            }
         }
 
         else
         {
             reading = false;
 
-            DEBUG_PRINTF("Token type, tah I am pushing: %s\n", getTokenName(activeToken->tokenType));
+            DEBUG_PRINTF("Token type, that I am pushing: %s\n", getTokenName(activeToken->tokenType));
+
+            if (tokenQueue->last->tokenInQueue->tokenType == T_EOL)
+            {
+                listPushBack(PS->tokenQueue, tokenQueue->last->tokenInQueue);
+            }
+
             listPushBack(PS->tokenQueue, activeToken);
             activeToken = tokenInit();
 
@@ -432,7 +477,7 @@ int expressionParserStart(programState *PS)
             addLastToQueue(tokenQueue, activeToken);
         }
     }
-
+    // exit(1);
     /// print all token types in queue
     struct tokenQueueElement *tQE = tokenQueue->first;
     while (tQE != NULL)
@@ -448,7 +493,13 @@ int expressionParserStart(programState *PS)
     {
         // print token type
         DEBUG_PRINTF("\nTop of stack: %s, top of queue %s\n", getTokenName(whichTypeIsOnTheStack(tokenStack)), getTokenName(getFirstFromQueue(tokenQueue)->tokenType));
-        /// print tokens precedence
+
+        // Ignore eols
+        if (getFirstFromQueue(tokenQueue)->tokenType == T_EOL)
+        {
+            popFirstFromQueue(tokenQueue);
+            continue;
+        }
 
         switch (getPrecedence(whichTypeIsOnTheStack(tokenStack), getFirstFromQueue(tokenQueue)->tokenType, *precedenceTable))
         {
@@ -458,7 +509,7 @@ int expressionParserStart(programState *PS)
             popFirstFromQueue(tokenQueue);
             break;
 
-        // handeling of E -> ( E ) it's kinda special case
+        // handling of E -> ( E ) it's kinda special case
         case '=':
         {
             DEBUG_PRINTF("Push ) to stack and do reduction\n");
@@ -797,7 +848,7 @@ int expressionParserStart(programState *PS)
             }
 
             default:
-                DEBUG_PRINTF("Default state in the second switch: %d\n", whichTypeIsOnTheStack(tokenStack));
+                DEBUG_PRINTF("Default state in the second switch: %d\n", getTokenName(whichTypeIsOnTheStack(tokenStack)));
                 break;
             }
             break;

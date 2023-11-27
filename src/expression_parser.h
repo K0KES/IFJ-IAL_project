@@ -7,10 +7,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h> 
+#include <unistd.h>
 #include "error.h"
 #pragma once
-
 
 // Length of array of accepted token types
 unsigned int acceptedTokenTypesLength = 18;
@@ -31,11 +30,10 @@ enum tokenType acceptedTokenTypes[] = {
     T_EQUAL,
     T_NOT_EQUAL,
     T_NIL_OP,
-    // T_EOL,
+    T_EOL,
     T_INT,
     T_DOUBLE,
-    T_STRING
-    };
+    T_STRING};
 
 char precedenceTable[9][9] = {
     {'<', '=', '<', '<', '<', '<', '<', '<', '1'},
@@ -47,7 +45,6 @@ char precedenceTable[9][9] = {
     {'<', '>', '<', '<', '>', '<', '<', '<', '>'},
     {'1', '>', '>', '>', '>', '>', '>', '1', '>'},
     {'<', '1', '<', '<', '<', '<', '<', '<', '0'}};
-
 
 /* Precedence rules */
 
@@ -90,31 +87,35 @@ struct tokenStack
 struct tokenQueueElement
 {
     token *tokenInQueue;
-    struct tokenQueueElement* next;
+    struct tokenQueueElement *next;
 };
 
 struct tokenQueue
 {
-    struct tokenQueueElement* first;
-    struct tokenQueueElement* last;
-
+    struct tokenQueueElement *first;
+    struct tokenQueueElement *last;
 };
 
 /// @brief Add token to the end of the queue
 /// @param tQ Pointer to queue
 /// @param tokenIn Pointer to token, that should be added
 /// @return error code
-int addLastToQueue(struct tokenQueue* tQ, token* tokenIn);
+int addLastToQueue(struct tokenQueue *tQ, token *tokenIn);
 
 /// @brief Returns first token from queue
 /// @param tQ Pointer to queue
 /// @return Pointer to token, that is first in queue
-token* getFirstFromQueue(struct tokenQueue* tQ);
+token *getFirstFromQueue(struct tokenQueue *tQ);
+
+/// @brief Returns last token from queue
+/// @param tQ Pointer to queue
+/// @return Pointer to token, that is last in queue
+token *getLastFromQueue(struct tokenQueue *tQ);
 
 /// @brief Remove first token from queue
 /// @param tQ Pointer to queue
 /// @return Error code
-int popFirstFromQueue(struct tokenQueue* tQ);
+int popFirstFromQueue(struct tokenQueue *tQ);
 
 /// @brief Function starts parsing of expression
 /// @param outputPrecedenceRulesList output list of precedence rules
@@ -139,7 +140,7 @@ unsigned int getIndexInPrecedenceTable(enum tokenType tokenType);
 /// @return token from the top of the stack
 int tokenStackPush(struct tokenStack *stack, token *tokenIn);
 
-struct tokenStack* tokenStackInit();
+struct tokenStack *tokenStackInit();
 
 /// @brief Function copt token from t1 to t2
 /// @param t1 source token
@@ -150,52 +151,54 @@ void copyToken(token *t1, token *t2);
 /// @param stack stack of tokens
 void tokenStackClear(struct tokenStack *stack);
 
-/// @brief Function removes token from the top of the stack 
+/// @brief Function removes token from the top of the stack
 /// @param stack Pointer to stack of tokens
 /// @param numberOfPops Nu,ber of tokens that should be removed from the stack
 int tokenStackPop(struct tokenStack *stack, unsigned numberOfPops);
-
 
 /// @brief Get you token onf certain location form stack
 /// @param stack Pointer to stack
 /// @param location Location (first index is 0)
 /// @return REturns pointer on token, that is on the location, in case of failure returns NULL
-token* tokenStackGet(struct tokenStack *stack, unsigned location);
+token *tokenStackGet(struct tokenStack *stack, unsigned location);
 
 /// @brief Function returns type of token on the top of the stack and ignores T_E tokens
 /// @param stack stack of tokens
 /// @return type of token on the top of the stack
 enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack);
 
-/// @brief Function adds precedence rule to the list    
+/// @brief Function adds precedence rule to the list
 /// @param precedenceRuleList list of precedence rules
-/// @param precedenceRule precedence rule to be added  
+/// @param precedenceRule precedence rule to be added
 int addPrecedenceRuleToList(struct precedenceRuleList *precedenceRuleList, struct precedenceRule *precedenceRule);
 
 /// @brief Decides if expression parser can parse this token
 /// @param activeToken Token to decide
 /// @return True if token is accepted
-bool isTokenTypeAccepted (token *activeToken);
+bool isTokenTypeAccepted(token *activeToken);
 
 /// @brief Just adds information to token that are necessary for token scanner
 /// @param T Token to set up
 /// @return Returns 0 if everything is ok, 1 if there is an error
-int setUpActiveToken(token* T);
+int setUpActiveToken(token *T);
 
 /// @brief Inicialize precedence rule list
-struct precedenceRuleList* precedenceRuleListInit();
+struct precedenceRuleList *precedenceRuleListInit();
 
 /// @brief Free all memmory used by precednce rule list and it's rules
 /// @param precedenceRuleList Pointer to precedence rule list
-void precedenceRuleListClear(struct precedenceRuleList* precedenceRuleList);
+void precedenceRuleListClear(struct precedenceRuleList *precedenceRuleList);
 
 /// @brief Free all memmory used by token stack
 /// @param stack Pointer to token stack
-void tokenStackClear(struct tokenStack* stack);
+void tokenStackClear(struct tokenStack *stack);
 
 /// @brief Check is the tokens on the top of the stack are valid
 /// @param stack
 /// @return Returns error code
-int checkTokensOnTopOfTheStack (struct tokenStack *stack);
+int checkTokensOnTopOfTheStack(struct tokenStack *stack);
 
-bool isTokenTypeOperatorLike (enum tokenType tokenType);
+/// @brief FUnction for classification of token types
+/// @param tokenType Input token type
+/// @return Returns 1 if token type is operator, returns 2 if token type is left bracket, return 3 in token type is right_bracket else return 0
+int isTokenTypeOperatorLike(enum tokenType tokenType);
