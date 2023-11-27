@@ -487,7 +487,58 @@ int expressionParserStart(programState *PS)
     }
 
     bool running = true;
-    // symtablePushCode(PS->symTable, "\n#Expression parser start!");
+
+    // check that fucking syntax bullshit
+
+    // remove EOL
+
+    // EOL can ve on the first place in the queue
+    struct tokenQueueElement *tmpQueueElement = tokenQueue->first;
+    struct tokenQueueElement *queueElementToFree;
+    while (tmpQueueElement != NULL)
+    {
+        if (tmpQueueElement->next != NULL)
+        {
+            if (tmpQueueElement->next->tokenInQueue->tokenType == T_EOL)
+            {
+                queueElementToFree = tmpQueueElement->next;
+                tmpQueueElement->next = tmpQueueElement->next->next;
+                if (tmpQueueElement->next->next != NULL)
+                {
+                    tokenFree(queueElementToFree->tokenInQueue);
+                }
+                free(queueElementToFree);
+            }
+        }
+        tmpQueueElement = tmpQueueElement->next;
+    }
+
+    // check syntax errors
+    tmpQueueElement = tokenQueue->first;
+    enum tokenType lastTokenType = T_PLUS;
+    while (tmpQueueElement != NULL)
+    {
+        if (isTokenTypeOperatorLike(tmpQueueElement->tokenInQueue->tokenType) == 1)
+        {
+            if (isTokenTypeOperatorLike(lastTokenType) == 1 || isTokenTypeOperatorLike(lastTokenType) == 2)
+            {
+                raiseError(ERR_SYNTAX);
+            }
+
+            if (tmpQueueElement->next == NULL)
+            {
+                raiseError(ERR_SYNTAX);
+            }
+
+            if (isTokenTypeOperatorLike(tmpQueueElement->next->tokenInQueue->tokenType) == 1 || isTokenTypeOperatorLike(tmpQueueElement->next->tokenInQueue->tokenType) == 3 || tmpQueueElement->next->tokenInQueue->tokenType == T_END)
+            {
+                raiseError(ERR_SYNTAX);
+            }
+        }
+
+        lastTokenType = tmpQueueElement->tokenInQueue->tokenType;
+        tmpQueueElement = tmpQueueElement->next;
+    }
 
     while (running)
     {
@@ -548,7 +599,8 @@ int expressionParserStart(programState *PS)
                 newIdentifierType = symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
                 if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING)
                 {
-                    fprintf(stderr, "Error: expression parser spotted potential function!\n");
+                    DEBUG_PRINTF("Error: expression parser spotted potential function!\n");
+                    // raiseError(ERR_SYNTAX);
                     raiseError(ERR_INTERNAL);
                 }
 
@@ -848,7 +900,7 @@ int expressionParserStart(programState *PS)
             }
 
             default:
-                DEBUG_PRINTF("Default state in the second switch: %d\n", getTokenName(whichTypeIsOnTheStack(tokenStack)));
+                DEBUG_PRINTF("Default state in the second switch: %s\n", getTokenName(whichTypeIsOnTheStack(tokenStack)));
                 break;
             }
             break;
