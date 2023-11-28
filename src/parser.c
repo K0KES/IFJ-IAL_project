@@ -114,6 +114,8 @@ bool start(){
             DEBUG_PRINTF("Leaving function start() with %d ...\n",false);
             return false;
     }
+
+    symtableEndOfFile(symTable);
     DEBUG_PRINTF("Leaving function start() with %d ...\n",startStatus);
     return startStatus;
 }
@@ -712,6 +714,7 @@ bool statement(){
             // 30) <statement> -> ID <callOrAssign>
             //TO DO symtable kontrola symtable jestli je var/func definovaná - setActive prvek
             symtableSetActiveItem(symTable,activeToken->value->str);
+            symtableSetFunctionCallName(symTable,activeToken->value->str);
 
             //Generator
             generatorPushStringFirstToList(gen->parserStack,activeToken->value->str);
@@ -923,23 +926,21 @@ bool callOrAssign(){
             symtablePushCode(symTable,"CREATEFRAME");
 
             char *label = generatorPopFirstStringFromList(gen->parserStack);
-
+            
             //Symtable
-            symtableFunctionCallStart(symTable,symtableGetActiveItemName(symTable));
+            symtableFunctionCallStart(symTable,NULL);
 
             getNextToken();
             callOrAssignStatus = arguments();
-            symtableFunctionCallEnd(symTable);
 
             int i = 1;
-            static char result[100];
+            char *result = concatString(1,"Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
             while(listLength(gen->parserStack) != 0){
                 snprintf(result, sizeof(result), "%d", i);
                 symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));
                 symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
                 i++;
             }
-            
 
             symtablePushCode(symTable,concatString(2,"CALL $",label));
 
@@ -1132,7 +1133,7 @@ bool varDec(){
 
             //Symtable
             symtableInsert(symTable,activeToken->value->str,false);
-
+            
             //Generator
             symtablePushCode(symTable,concatString(3,"DEFVAR ",symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));
             generatorPushStringFirstToList(gen->parserStack,concatString(2,symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));

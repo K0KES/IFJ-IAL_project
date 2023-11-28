@@ -484,11 +484,14 @@ char* symtableGetFramePrefix(symtable *table, char *varName){
 //FUNCTION CALLS ex. foo(par1, par2, par3);
 
 void symtableFunctionCallStart(symtable *table, char *funcName){
-    table->lastFunctionCall = funcName;
+    if(funcName != NULL) table->lastFunctionCall = funcName;
+    DEBUG_PRINTF("[Symtable] - Function call start CALL START %s \n",table->lastFunctionCall);
+    //table->lastFunctionCall = funcName;
     
     functionData *funcData = (functionData *)(malloc(sizeof(functionData)));
     funcData->returnType = DATA_TYPE_NOTSET;
     funcData->arguments = listInit();
+    funcData->callName = concatString(2,table->lastFunctionCall,"");
 
     listPushFirst(table->functionCalls,funcData);
 }
@@ -522,46 +525,64 @@ void symtableFunctionCallSetParameterName(symtable *table, char* name){
     argument->name = string;
 }
 
-void symtableFunctionCallEnd(symtable *table){
-    functionData *funcData = (functionData *)listGetLast(table->functionCalls);
-
-    symtableItem *item = symtableFindSymtableItem(table,table->lastFunctionCall);
-    if(item != NULL){
-        if(item->funcData == NULL) raiseError(ERR_UNDEFINED_FUNCTION);
-
-        listNode *callCurrentItem = funcData->arguments->first;
-        listNode *funcCurrentItem = item->funcData->arguments->first;
-
-        while(true){
-            if(callCurrentItem == NULL && funcCurrentItem != NULL) raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
-            if(callCurrentItem != NULL && funcCurrentItem == NULL) raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
-            if(callCurrentItem == NULL && funcCurrentItem == NULL) break;
-            functionArgument *callArg = (functionArgument *)(callCurrentItem->data);
-            functionArgument *funcArg = (functionArgument *)(funcCurrentItem->data);
-
-            if(callArg->type != funcArg->type){
-                raiseError(ERR_WRONG_TYPE);
+void symtableEndOfFile(symtable *table){
+    while(listLength(table->functionCalls) != 0){
+        functionData *funcData = (functionData *)listGetLast(table->functionCalls);
+        DEBUG_PRINTF("---------- CALL NAME %s \n",funcData->callName);
+        symtableItem *item = symtableFindSymtableItem(table,funcData->callName);
+        if(item != NULL){
+            if(item->funcData == NULL){
+                DEBUG_PRINTF("[Symtable] - In list function calls was normal variable :killemoji:\n");
+                raiseError(ERR_UNDEFINED_FUNCTION);
             }
-            if(strcmp(callArg->name,funcArg->name) != 0){
-                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
-            }
-            if(callArg->nullable != funcArg->nullable){
-                if(!(funcArg->nullable && !callArg->nullable)){
+
+            listNode *callCurrentItem = funcData->arguments->first;
+            listNode *funcCurrentItem = item->funcData->arguments->first;
+
+            while(true){
+                if(callCurrentItem == NULL && funcCurrentItem != NULL){
+                    DEBUG_PRINTF("[Symtable] - Call argument missing\n");
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                if(callCurrentItem != NULL && funcCurrentItem == NULL){
+                    DEBUG_PRINTF("[Symtable] - Func argument missing\n");
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                if(callCurrentItem == NULL && funcCurrentItem == NULL) break;
+                functionArgument *callArg = (functionArgument *)(callCurrentItem->data);
+                functionArgument *funcArg = (functionArgument *)(funcCurrentItem->data);
+
+                if(strcmp(callArg->name,funcArg->name) != 0){
+                    DEBUG_PRINTF("[Symtable] - Call argument name doesn't match fuction argument name (%s != %s)\n",callArg->name,funcArg->name);
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                if(callArg->type != funcArg->type){
+                    DEBUG_PRINTF("[Symtable] - Call argument type doesn't match fuction argument type (%d != %d)\n",callArg->type,funcArg->type);
                     raiseError(ERR_WRONG_TYPE);
                 }
+                
+                if(callArg->nullable != funcArg->nullable){
+                    if(!(funcArg->nullable && !callArg->nullable)){
+                        DEBUG_PRINTF("[Symtable] - Call argument nullable doesn't match fuction argument nullable (%d != %d)\n",callArg->nullable,funcArg->nullable);
+                        raiseError(ERR_WRONG_TYPE);
+                    }
+                }
+
+                callCurrentItem = callCurrentItem->next;
+                funcCurrentItem = funcCurrentItem->next;
             }
 
-            callCurrentItem = callCurrentItem->next;
-            funcCurrentItem = funcCurrentItem->next;
+        }else{
+            DEBUG_PRINTF("[Symtable] - Function %s was not found \n",funcData->callName);
+            raiseError(ERR_UNDEFINED_FUNCTION);
         }
-
-
 
         listDestroy(funcData->arguments);
         free(funcData);
-        funcData = NULL;
-        listPopLast(table->functionCalls);
+        funcData = (functionData *)listPopLast(table->functionCalls);
     }
+
+    DEBUG_PRINTF("[Symtable] - File was ended\n");
 }
 
 void symtableSetActiveItem(symtable *table, char* varName){
@@ -571,16 +592,16 @@ void symtableSetActiveItem(symtable *table, char* varName){
     table->activeItem = item;
 }
 
+void symtableSetFunctionCallName(symtable *table, char* varName){
+    if(table == NULL) return;
+    table->lastFunctionCall = "test";
+    //table->lastFunctionCall = concatString(2,varName,"");
+}
+
 enum data_type symtableGetActiveItemType(symtable *table){
     if(table == NULL) return DATA_TYPE_NOTSET;
     if(table->activeItem == NULL) return DATA_TYPE_NOTSET;
     return table->activeItem->type;
-}
-
-char *symtableGetActiveItemName(symtable *table){
-    if(table == NULL) return NULL;
-    if(table->activeItem == NULL) return NULL;
-    return table->activeItem->name;
 }
 
 void symtableSameTypes(enum data_type type1,enum data_type type2){
