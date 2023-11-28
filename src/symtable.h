@@ -40,6 +40,7 @@ typedef struct{
     bool returnTypeNullable;
     list *arguments;
     bool endOfArguments;
+    char *callName;
 } functionData;
 
 typedef struct{
@@ -105,7 +106,8 @@ void symtableFunctionCallStart(symtable *table, char *funcName);
 void symtableFunctionCallNextParameter(symtable *table);
 void symtableFunctionCallSetParameterType(symtable *table, enum data_type type, bool nullable);
 void symtableFunctionCallSetParameterName(symtable *table, char* name);
-void symtableFunctionCallEnd(symtable *table);
+//void symtableFunctionCallEnd(symtable *table);
+void symtableEndOfFile(symtable *table);
 void symtableCreateFunctionStructure(symtable *table);
 void symtableFunctionEndOfArguments(symtable *table);
 void symtableSetFunctionArgumentID(symtable *table, char *id);
@@ -119,6 +121,8 @@ void symtablePushCode(symtable *table, char* code);
 
 char *symtableGetActiveItemName(symtable *table);
 void symtableSameTypes(enum data_type type1,enum data_type type2);
+
+void symtableSetFunctionCallName(symtable *table, char* varName);
 ///Sets data_type for last argument (Must be called after symtableFunctionNextArgument)
 //void symtableSetFunctionArgumentType(symtable *table, enum data_type type);
 
