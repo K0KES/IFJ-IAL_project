@@ -227,19 +227,6 @@ void precedenceRuleListClear(struct precedenceRuleList *precedenceRuleList)
     precedenceRuleList = NULL;
 }
 
-// void tokenStackClear(struct tokenStack *stack)
-// {
-//     while (stack->top != NULL)
-//     {
-//         struct tokenStackElement *nextElement = stack->top->next;
-//         free(stack->top->tokenOnStack);
-//         free(stack->top);
-//         stack->top = nextElement;
-//     }
-//     free(stack);
-//     stack = NULL;
-// }
-
 char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTokenType, char *precedenceTable)
 {
     unsigned int topOfStackIndex = getIndexInPrecedenceTable(topOfStackTokenType);
@@ -358,32 +345,33 @@ int popFirstFromQueue(struct tokenQueue *tQ)
 
 int expressionParserStart(programState *PS)
 {
-    // fprintf(stderr, "expressionParserStart()...\n");
+
     DEBUG_PRINTF("\n\nEXPRESSION PARSER!\n");
-    // int returnValue = 0;
+    // structures init
     struct tokenStack *tokenStack = tokenStackInit();
     token *firstToken = tokenInit();
-
     struct tokenQueue *tokenQueue = (struct tokenQueue *)malloc(sizeof(struct tokenQueue));
 
+    // check malloc success
     if (firstToken == NULL || tokenStack == NULL || tokenQueue == NULL)
     {
         raiseError(ERR_INTERNAL);
     }
 
+    // add T_END token on the end of the queue
     firstToken->tokenType = T_END;
     tokenQueue->first = NULL;
     tokenQueue->last = NULL;
-
     int bracketsState = 0;
-
     tokenStackPush(tokenStack, firstToken);
     // DEBUG_PRINTF("Token stack size: %d\n", PS->tokenQueue->size);
 
+    // copy tokens from queue shared with scanner to internal queue
     while (PS->tokenQueue->size > 0)
     {
         if (isTokenTypeAccepted(listGetFirst(PS->tokenQueue)))
         {
+            // prevents reading to much brackets
             if (((token *)listGetFirst(PS->tokenQueue))->tokenType == T_LEFT_BRACKET)
             {
                 bracketsState++;
@@ -417,6 +405,7 @@ int expressionParserStart(programState *PS)
         // printf active token lastchar
         getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
 
+        // prevents reading to much brackets
         if (activeToken->tokenType == T_LEFT_BRACKET)
         {
             bracketsState++;
@@ -430,10 +419,12 @@ int expressionParserStart(programState *PS)
         {
             DEBUG_PRINTF("Active token char %s and it's last char: %d\n", getTokenName(activeToken->tokenType), activeToken->lastChar);
 
+            // manages when to stop reading tokens
             if (isTokenTypeOperatorLike(activeToken->tokenType) != 1)
             {
                 if (lastValidTokensTypes[0] == T_EOL && isTokenTypeOperatorLike(lastValidTokensTypes[1]) != 1)
                 {
+                    // pushes last read token tto queue for parser to process it
                     token *eol_token = tokenInit();
                     eol_token->tokenType = T_EOL;
                     listPushBack(PS->tokenQueue, tokenQueue->last->tokenInQueue);
@@ -452,7 +443,7 @@ int expressionParserStart(programState *PS)
             {
                 lastValidTokensTypes[1] = lastValidTokensTypes[0];
                 lastValidTokensTypes[0] = activeToken->tokenType;
-
+                // adds token to internal queue
                 addLastToQueue(tokenQueue, activeToken);
                 activeToken = tokenInit();
             }
@@ -460,6 +451,7 @@ int expressionParserStart(programState *PS)
 
         else
         {
+            // deals with token that can't be handled by expression parser
             reading = false;
 
             DEBUG_PRINTF("Token type, that I am pushing: %s\n", getTokenName(activeToken->tokenType));
@@ -468,7 +460,7 @@ int expressionParserStart(programState *PS)
             {
                 listPushBack(PS->tokenQueue, tokenQueue->last->tokenInQueue);
             }
-
+            // pushes the tokent to queue for parser to process it
             listPushBack(PS->tokenQueue, activeToken);
             activeToken = tokenInit();
 
@@ -488,7 +480,7 @@ int expressionParserStart(programState *PS)
 
     bool running = true;
 
-    // check that fucking syntax bullshit
+    // check syntax around operators
     struct tokenQueueElement *tmpQueueElement = tokenQueue->first;
     enum tokenType lastTokenType = T_NO_TOKEN;
     while (tmpQueueElement != NULL)
@@ -526,8 +518,8 @@ int expressionParserStart(programState *PS)
         tmpQueueElement = tmpQueueElement->next;
     }
 
-    // remove EOL
-    // EOL can ve on the first place in the queue
+    // remove EOL from queue
+    // EOL can be on the first place in the queue
     tmpQueueElement = tokenQueue->first;
     struct tokenQueueElement *queueElementToFree;
     while (tmpQueueElement != NULL)
@@ -575,12 +567,13 @@ int expressionParserStart(programState *PS)
         tmpQueueElement = tmpQueueElement->next;
     }
 
+    // while loop which process tokens from queue
     while (running)
     {
         // print token type
         DEBUG_PRINTF("\nTop of stack: %s, top of queue %s\n", getTokenName(whichTypeIsOnTheStack(tokenStack)), getTokenName(getFirstFromQueue(tokenQueue)->tokenType));
 
-        // Ignore eols
+        // ignore eols
         if (getFirstFromQueue(tokenQueue)->tokenType == T_EOL)
         {
             popFirstFromQueue(tokenQueue);
@@ -589,6 +582,7 @@ int expressionParserStart(programState *PS)
 
         switch (getPrecedence(whichTypeIsOnTheStack(tokenStack), getFirstFromQueue(tokenQueue)->tokenType, *precedenceTable))
         {
+            // push to stack
         case '<':
             DEBUG_PRINTF("Push to stack\n");
             tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
@@ -603,16 +597,10 @@ int expressionParserStart(programState *PS)
             tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
             popFirstFromQueue(tokenQueue);
 
-            // print 3 tokens from stack
-            // DEBUG_PRINTF("Stack: %s %s %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType), getTokenName(tokenStackGet(tokenStack, 1)->tokenType), getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
-
             if (tokenStackGet(tokenStack, 0)->tokenType != T_RIGHT_BRACKET || tokenStackGet(tokenStack, 1)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_LEFT_BRACKET)
             {
                 raiseError(ERR_SYNTAX);
             }
-            // DEBUG_PRINTF("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
-            // DEBUG_PRINTF("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 1)->tokenType));
-            // DEBUG_PRINTF("Stack: %s\n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType));
 
             copyToken(tokenStackGet(tokenStack, 1), tokenStackGet(tokenStack, 2));
 
@@ -621,6 +609,7 @@ int expressionParserStart(programState *PS)
             break;
         }
 
+            // do reduction
         case '>':
             DEBUG_PRINTF("Do reduction\n");
             switch (whichTypeIsOnTheStack(tokenStack))
@@ -629,13 +618,11 @@ int expressionParserStart(programState *PS)
             case T_IDENTIFIER:
             {
                 DEBUG_PRINTF("E -> i (identifier)\n");
-                // TO DO
 
                 newIdentifierType = symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
                 if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING)
                 {
                     DEBUG_PRINTF("Error: expression parser spotted potential function!\n");
-                    // raiseError(ERR_SYNTAX);
                     raiseError(ERR_INTERNAL);
                 }
 
@@ -935,12 +922,15 @@ int expressionParserStart(programState *PS)
             }
 
             default:
+                // it's unexpected behavior so I say it is an error
                 DEBUG_PRINTF("Default state in the second switch: %s\n", getTokenName(whichTypeIsOnTheStack(tokenStack)));
+                raiseError(ERR_SYNTAX);
                 break;
             }
             break;
 
         case '1':
+            // tow tokens that should not follow each other follow each other
             DEBUG_PRINTF("Error: invalid expression!\n");
             raiseError(ERR_SYNTAX);
             tokenStackClear(tokenStack);
@@ -951,12 +941,14 @@ int expressionParserStart(programState *PS)
             break;
 
         case '0':
+        // parsing vas done successfully
             DEBUG_PRINTF("Parsing is done!\n");
             char *returnAdr = malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
             strcpy(returnAdr, tokenStackGet(tokenStack, 0)->value->str);
             generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
             PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
 
+            // clear memory
             tokenFree(activeToken);
             tokenFree(firstToken);
             tokenStackClear(tokenStack);
@@ -967,7 +959,9 @@ int expressionParserStart(programState *PS)
             break;
 
         default:
+            // unexpected state so I raise an error
             DEBUG_PRINTF("Default state in the first switch: ");
+            raiseError(ERR_SYNTAX);
             break;
         }
 
@@ -977,8 +971,6 @@ int expressionParserStart(programState *PS)
     free(tokenQueue);
     free(activeToken);
     free(firstToken);
-
-    // symtablePushCode(PS->symTable, "#Expression parser ended!");
 
     return 0;
 }
