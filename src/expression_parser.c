@@ -183,12 +183,14 @@ int setUpActiveToken(token *T)
         raiseError(ERR_INTERNAL);
     }
 
+    /*
     T->value = (string *)malloc(sizeof(string));
     if (T->value == NULL)
     {
         raiseError(ERR_INTERNAL);
-    }
+    }*/
     strInit(T->value);
+    
 
     T->position = (positionInfo *)malloc(sizeof(positionInfo));
     if (T->position == NULL)
