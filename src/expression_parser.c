@@ -489,11 +489,46 @@ int expressionParserStart(programState *PS)
     bool running = true;
 
     // check that fucking syntax bullshit
+    struct tokenQueueElement *tmpQueueElement = tokenQueue->first;
+    enum tokenType lastTokenType = T_NO_TOKEN;
+    while (tmpQueueElement != NULL)
+    {
+        if (isTokenTypeOperatorLike(tmpQueueElement->tokenInQueue->tokenType) == 1)
+        {
+            // if there is following token in queue
+            if (tmpQueueElement->next != NULL)
+            {
+                // there is NOT space in front of operator
+                if (tmpQueueElement->tokenInQueue->lastChar == 0 && lastTokenType != T_EOL)
+                {
+                    // next token is EOL
+                    if (tmpQueueElement->next->tokenInQueue->tokenType == T_EOL)
+                    {
+                        raiseError(ERR_SYNTAX);
+                    }
+                    // next token  has space in front of him
+                    if (tmpQueueElement->next->tokenInQueue->lastChar == 32)
+                    {
+                        raiseError(ERR_SYNTAX);
+                    }
+                }
+                // there is space in front of operator
+                else if (tmpQueueElement->tokenInQueue->lastChar == 32 || lastTokenType == T_EOL)
+                {
+                    if (tmpQueueElement->next->tokenInQueue->lastChar == 0 && tmpQueueElement->next->tokenInQueue->tokenType != T_EOL)
+                    {
+                        raiseError(ERR_SYNTAX);
+                    }
+                }
+            }
+        }
+        lastTokenType = tmpQueueElement->tokenInQueue->tokenType;
+        tmpQueueElement = tmpQueueElement->next;
+    }
 
     // remove EOL
-
     // EOL can ve on the first place in the queue
-    struct tokenQueueElement *tmpQueueElement = tokenQueue->first;
+    tmpQueueElement = tokenQueue->first;
     struct tokenQueueElement *queueElementToFree;
     while (tmpQueueElement != NULL)
     {
@@ -515,7 +550,7 @@ int expressionParserStart(programState *PS)
 
     // check syntax errors
     tmpQueueElement = tokenQueue->first;
-    enum tokenType lastTokenType = T_PLUS;
+    lastTokenType = T_PLUS;
     while (tmpQueueElement != NULL)
     {
         if (isTokenTypeOperatorLike(tmpQueueElement->tokenInQueue->tokenType) == 1)
