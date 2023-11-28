@@ -1357,12 +1357,9 @@ bool argWithName(){
             //Symtable
             //TO DO vitek set parameter name default to _
             activeToken = listPopLast(state->tokenQueue);
-            DEBUG_PRINTF("_-------------  %s ??\n",activeToken->value->str);
             symtableFunctionCallSetParameterName(symTable,activeToken->value->str);
             getNextToken();
-            argWithNameStatus = eol();
-
-            argWithNameStatus = argWithNameStatus && expression();
+            argWithNameStatus = eol() && expression();
 
             //Symtable
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
