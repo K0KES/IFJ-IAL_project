@@ -975,7 +975,7 @@ bool assign(){
         case T_INCREMENT:;
             // 62) <assign> -> += <expression>
             if (!symtableIsActiveVariableInitiated(symTable)) { 
-                DEBUG_PRINTF("Podrbané to je zde\n");
+                //TO DO tady to nefunguje
                 raiseError(ERR_UNDEFINED_VARIABLE); 
             }
 

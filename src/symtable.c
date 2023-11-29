@@ -27,7 +27,7 @@ symtable* symtableInit(generator *generator)
 }
 
 bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctionItem){
-    DEBUG_PRINTF("[SYMTABLE] Entering scope - %s \n",scope == NULL ? "GLOBAL" : scope);
+    DEBUG_PRINTF("[Symtable] Entering scope - %s \n",scope == NULL ? "GLOBAL" : scope);
     ht_table_t *hashmap;
     ht_init(&hashmap);
     if(hashmap == NULL) return false;
@@ -133,11 +133,11 @@ void symtableExitScope(symtable *table){
             table->currentFunction = NULL;
         }
 
-        DEBUG_PRINTF("[SYMTABLE] Exiting scope - %s \n",scopeString);
+        DEBUG_PRINTF("[Symtable] Exiting scope - %s \n",scopeString);
         free(scopeString);
         listPopFirst(table->scopes);
     }else{
-        DEBUG_PRINTF("[SYMTABLE] Exiting scope - GLOBAL\n");
+        DEBUG_PRINTF("[Symtable] Exiting scope - GLOBAL\n");
     }
 
 }
@@ -163,7 +163,6 @@ void symtableInsert(symtable *table, char *varName, bool isFunction){
         DEBUG_PRINTF("[Symtable] Variable %s was already defined\n");
         raiseError(ERR_UNDEFINED_FUNCTION);
     }
-    DEBUG_PRINTF("Symtable Inserting.... %d\n",table);
     ht_table_t *currentTable = (ht_table_t *)listGetFirst(table->tables);
 
     int stringLength = strlen(varName) + 1;
@@ -191,9 +190,9 @@ void symtableInsert(symtable *table, char *varName, bool isFunction){
 void symtablePrintVariables(symtable *table){
     if(listLength(table->scopes) != 0){
         char *currentScope = (char *)listGetFirst(table->scopes);
-        DEBUG_PRINTF("Variables on scope - %s \n",currentScope);
+        DEBUG_PRINTF("[Symtable] Variables on scope - %s \n",currentScope);
     }else{
-        DEBUG_PRINTF("Variables on scope - GLOBAL \n");
+        DEBUG_PRINTF("[Symtable] Variables on scope - GLOBAL \n");
     }
     
     ht_table_t *currentTable = (ht_table_t *)listGetFirst(table->tables);
@@ -205,10 +204,10 @@ void symtablePrintVariables(symtable *table){
             symtableItem *item = (symtableItem *)(currentItem->data);
             
             if(item->funcData == NULL){
-                DEBUG_PRINTF("- %s (VAR, TYPE: %d) = ",item->name,item->type);
+                DEBUG_PRINTF("[Symtable] %s (VAR, TYPE: %d) = ",item->name,item->type);
                 if(item->type == DATA_TYPE_NOTSET) DEBUG_PRINTF("NOT SET\n");
             }else{
-                DEBUG_PRINTF("- %s (FUNC, RETURN TYPE: %d) - ",item->name,item->funcData->returnType);
+                DEBUG_PRINTF("[Symtable] %s (FUNC, RETURN TYPE: %d) - ",item->name,item->funcData->returnType);
                 bool noArgs = false;
                 functionArgument *argument = (functionArgument *)listPopFirst(item->funcData->arguments);
                 if(argument == NULL){
@@ -438,7 +437,7 @@ void symtableCreateFunctionStructure(symtable *table){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
 
-    DEBUG_PRINTF("-------------->>> CREATING STRUCTURE CODE \n");
+    DEBUG_PRINTF("[Symtable] --->>> CREATING STRUCTURE CODE \n");
 
     generatorPushStringToList(table->functionCodeHeader,concatString(2,"LABEL $",table->activeItem->name));
     generatorPushStringToList(table->functionCodeHeader,"PUSHFRAME");
@@ -486,22 +485,18 @@ char* symtableGetScopePrefixName(symtable *table){
 }
 
 char* symtableGetVariablePrefix(symtable *table, char *varName){
-    printf("GET VAR PREFIX for %s\n",varName);
     if(listLength(table->scopes) == 0){
-        printf("GLOBAL \n");
         return concatString(2,symtableGetFramePrefix(table,varName),symtableGetScopePrefixName(table));
     }else{
         listNode *currentNode = table->tables->first;
         listNode *scopeCurrentNode = table->scopes->first;
         while(currentNode != NULL){
-            printf(" ---------- CURRENT SEARCH SCOPE %d \n",currentNode);
             ht_table_t *currentTable = (ht_table_t *)(currentNode->data);
             ht_item_t *item = ht_search(currentTable,varName);
             if(item != NULL){
                 if(scopeCurrentNode == NULL){
                     return concatString(2,symtableGetFramePrefix(table,varName),"global_");
                 }else{
-                    printf("----------------------- %s was found in %s \n",varName,(char*)(scopeCurrentNode->data));
                     return concatString(3,symtableGetFramePrefix(table,varName),(char*)(scopeCurrentNode->data),"_");
                 }
                 
@@ -513,8 +508,6 @@ char* symtableGetVariablePrefix(symtable *table, char *varName){
             
         }
     }
-
-    printf("----- RETURNING THIS DOG SHIT IDK\n");
     return concatString(1,symtableGetFramePrefix(table,varName));
 }
 
@@ -537,7 +530,7 @@ char* symtableGetFramePrefix(symtable *table, char *varName){
 
 void symtableFunctionCallStart(symtable *table, char *funcName){
     if(funcName != NULL) table->lastFunctionCall = funcName;
-    DEBUG_PRINTF("[Symtable] - Function call start CALL START %s \n",table->lastFunctionCall);
+    DEBUG_PRINTF("[Symtable] Function call start CALL START %s \n",table->lastFunctionCall);
     //table->lastFunctionCall = funcName;
     
     functionData *funcData = (functionData *)(malloc(sizeof(functionData)));
@@ -580,7 +573,7 @@ void symtableFunctionCallSetParameterName(symtable *table, char* name){
 void symtableEndOfFile(symtable *table){
     while(listLength(table->functionCalls) != 0){
         functionData *funcData = (functionData *)listGetFirst(table->functionCalls);
-        DEBUG_PRINTF("---------- CALL NAME %s num of args: %d\n",funcData->callName,listLength(funcData->arguments));
+        DEBUG_PRINTF("[Symtable] ------- CALL NAME %s num of args: %d\n",funcData->callName,listLength(funcData->arguments));
         if(strcmp(funcData->callName,"write") == 0 
             || strcmp(funcData->callName,"readString") == 0 
             || strcmp(funcData->callName,"readInt") == 0
@@ -601,7 +594,7 @@ void symtableEndOfFile(symtable *table){
         symtableItem *item = symtableFindSymtableItem(table,funcData->callName);
         if(item != NULL){
             if(item->funcData == NULL){
-                DEBUG_PRINTF("[Symtable] - In list function calls was normal variable :killemoji:\n");
+                DEBUG_PRINTF("[Symtable] In list function calls was normal variable :killemoji:\n");
                 raiseError(ERR_UNDEFINED_FUNCTION);
             }
 
@@ -610,11 +603,11 @@ void symtableEndOfFile(symtable *table){
 
             while(true){
                 if(callCurrentItem == NULL && funcCurrentItem != NULL){
-                    DEBUG_PRINTF("[Symtable] - Call argument missing\n");
+                    DEBUG_PRINTF("[Symtable] Call argument missing\n");
                     raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
                 }
                 if(callCurrentItem != NULL && funcCurrentItem == NULL){
-                    DEBUG_PRINTF("[Symtable] - Func argument missing\n");
+                    DEBUG_PRINTF("[Symtable] Func argument missing\n");
                     raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
                 }
                 if(callCurrentItem == NULL && funcCurrentItem == NULL) break;
@@ -622,17 +615,17 @@ void symtableEndOfFile(symtable *table){
                 functionArgument *funcArg = (functionArgument *)(funcCurrentItem->data);
 
                 if(strcmp(callArg->name,funcArg->name) != 0){
-                    DEBUG_PRINTF("[Symtable] - Call argument name doesn't match fuction argument name (%s != %s)\n",callArg->name,funcArg->name);
+                    DEBUG_PRINTF("[Symtable] Call argument name doesn't match fuction argument name (%s != %s)\n",callArg->name,funcArg->name);
                     raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
                 }
                 if(callArg->type != funcArg->type){
-                    DEBUG_PRINTF("[Symtable] - Call argument type doesn't match fuction argument type (%d != %d)\n",callArg->type,funcArg->type);
+                    DEBUG_PRINTF("[Symtable] Call argument type doesn't match fuction argument type (%d != %d)\n",callArg->type,funcArg->type);
                     raiseError(ERR_WRONG_TYPE);
                 }
                 
                 if(callArg->nullable != funcArg->nullable){
                     if(!(funcArg->nullable && !callArg->nullable)){
-                        DEBUG_PRINTF("[Symtable] - Call argument nullable doesn't match fuction argument nullable (%d != %d)\n",callArg->nullable,funcArg->nullable);
+                        DEBUG_PRINTF("[Symtable] Call argument nullable doesn't match fuction argument nullable (%d != %d)\n",callArg->nullable,funcArg->nullable);
                         raiseError(ERR_WRONG_TYPE);
                     }
                 }
@@ -642,7 +635,7 @@ void symtableEndOfFile(symtable *table){
             }
 
         }else{
-            DEBUG_PRINTF("[Symtable] - Function %s was not found \n",funcData->callName);
+            DEBUG_PRINTF("[Symtable] Function %s was not found \n",funcData->callName);
             raiseError(ERR_UNDEFINED_FUNCTION);
         }
 
@@ -651,7 +644,7 @@ void symtableEndOfFile(symtable *table){
         funcData = (functionData *)listPopFirst(table->functionCalls);
     }
 
-    DEBUG_PRINTF("[Symtable] - File was ended\n");
+    DEBUG_PRINTF("[Symtable] File was ended\n");
 }
 
 void symtableSetActiveItem(symtable *table, char* varName){

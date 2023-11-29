@@ -1005,7 +1005,7 @@ int expressionParserStart(programState *PS)
             return 0;
             break;
 
-        case '0':
+        case '0':;
             // parsing vas done successfully
             // DEBUG_PRINTF("[Exp parser] Parsing is done!\n");
             char *returnAdr = malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);

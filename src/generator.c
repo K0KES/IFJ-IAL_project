@@ -208,7 +208,7 @@ char* stringToAssemblyStringFormat(const char* inputString) {
 
 void printList(list *l){
     listNode *currentNode = l->first;
-    DEBUG_PRINTF("LIST PRINT: ");
+    DEBUG_PRINTF("[Generator] LIST PRINT: ");
     while(currentNode != NULL){
         char* line = (char *)(currentNode->data);
         DEBUG_PRINTF("%s ",line);
