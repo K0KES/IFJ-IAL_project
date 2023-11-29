@@ -42,7 +42,7 @@ void tokenFree(token *activeToken ){
     return;
 }
 
-int parse(programState *programState){
+void parse(programState *programState){
     state = programState;
     symTable = programState->symTable;
     gen = programState->gen;
@@ -50,7 +50,7 @@ int parse(programState *programState){
     getNextToken();
     if(start()){
         DEBUG_PRINTF("[Parser] Success\n");
-        return 0;
+        return;
     }
     else{
         DEBUG_PRINTF("[Parser] Error\n");
@@ -58,14 +58,13 @@ int parse(programState *programState){
     }
 }
 
-int getNextToken(){
+void getNextToken(){
     typeOfLastToken = activeToken->tokenType;
     tokenClear(activeToken);
-    int getTokenErr = 0;
 
     if (listLength(state->tokenQueue) == 0){
         DEBUG_PRINTF("[Parser] Token from scanner\n");
-        getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
+        getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
     }
     else {
         DEBUG_PRINTF("[Parser] Token from Queue\n");
@@ -73,8 +72,6 @@ int getNextToken(){
     }
 
     DEBUG_PRINTF("[Parser] Got next token: %s\n",getTokenName(activeToken->tokenType));
-    
-    return getTokenErr;
 }
 
 bool start(){
@@ -107,7 +104,7 @@ bool start(){
             break;
         case T_END:
             // 2) <start> -> EPS
-            getNextToken();  //TO DO maybe verify if non token is after END
+            getNextToken();
             startStatus = true;
             break;
         default:  
@@ -325,7 +322,6 @@ bool definition(){
                 return false;
             }
 
-            //Add function to symtable
             symtableInsert(symTable,activeToken->value->str,true);
 
             // verification of: func <eol> ID <eol>
@@ -349,7 +345,6 @@ bool definition(){
 
             // verification of: func <eol> ID <eol> (<functionParams>) <eol> <funcDefMid>
             definitionStatus = definitionStatus && funcDefMid();
-            // debug symtablePrintVariables(symTable);
             symtableExitScope(symTable);
             break;
         default:
@@ -707,7 +702,6 @@ bool statement(){
         case KW_RETURN:
             // 29) <statement> -> return <returnExpression>
             getNextToken();
-            //TO DO expression parser has to check if returnExpression is same type as return type of function
             statementStatus = returnExpression();
             break;
         case T_IDENTIFIER:
@@ -922,7 +916,6 @@ bool callOrAssign(){
             // 37) <callOrAssign> -> (<arguments>)
 
             //Generator
-            //TO DO generator zpracovat volání funkce
             symtablePushCode(symTable,"CREATEFRAME");
 
             char *label = generatorPopFirstStringFromList(gen->parserStack);
@@ -968,19 +961,6 @@ bool assign(){
         case T_ASSIGNMENT:
             // 61) <assign> -> = <expression>
             getNextToken();
-            /*if (activeToken->tokenType == T_IDENTIFIER){
-                token *tempToken = tokenInit();
-                tempToken->tokenType = activeToken->tokenType;
-                int stringLength = strlen(activeToken->value->str) + 1;
-                char *string = (char *)malloc(stringLength);
-                memcpy(string,activeToken->value->str,stringLength);
-                tempToken->value->str = string;
-
-                getNextToken();
-                if(activeToken->tokenType == T_LEFT_BRACKET){
-
-                }
-            }*/
             assignStatus = expression();
             symtableSameTypes(lastVarType,state->expParserReturnType);
 
@@ -989,7 +969,6 @@ bool assign(){
             tempName = generatorPopFirstStringFromList(gen->parserStack);
             var = concatString(2,symtableGetVariablePrefix(symTable,tempName),tempName);
             symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempGeneratedName));
-            //tokenFree(tempToken);
             break;
         case T_INCREMENT:;
             // 62) <assign> -> += <expression>
@@ -1075,10 +1054,10 @@ bool assign(){
             tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
             symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
             
-            if (1 > 0){ //typ oparandu je int
+            if (lastVarType == T_INT){
                 symtablePushCode(symTable,concatString(6, "IDIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             }
-            else{ //typ operandu je float
+            else if (lastVarType == T_DOUBLE){
                 symtablePushCode(symTable,concatString(6, "DIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
             }
             symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempVarName));
@@ -1165,6 +1144,7 @@ bool varDecMid(){
             getNextToken();
             varDecMidStatus = expression();
             //TO DO umí expressionParser vracet nil?? -> nil vracet jako DATA_TYPE_NOTSET
+            //TO DO if nill -> raise error 8
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { raiseError(ERR_MISSING_TYPE); }
             symtableSetDataType(symTable,state->expParserReturnType,false);
 
@@ -1188,7 +1168,6 @@ bool varDef(){
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
             // 42) <varDef> -> EPS
-            //getNextToken();
             varDefStatus = true;
             break;
         case T_ASSIGNMENT:
@@ -1229,7 +1208,6 @@ bool returnExpression(){
         default:
             // 44) <returnExpression> -> <expression>
             returnExpressionStatus = expression();
-            //TO DO vitek je návratový kod funkce void nebo nonset??
             if(symtableGetReturnTypeOfCurrentScope(symTable) == DATA_TYPE_VOID && state->expParserReturnType != DATA_TYPE_NOTSET){
                 raiseError(ERR_WRONG_RETURN_TYPE);
             }
@@ -1309,10 +1287,9 @@ bool argument(){
         case T_INT:
         case T_DOUBLE:
         case T_STRING:
-            // 51) <argument> -> <dataType> <eol>
+            // 51) <argument> -> <expression>
             //TO DO předělat gramatiku
             argumentStatus = expression();
-            //argumentStatus = dataType() && eol();
 
             //Symtable
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
@@ -1333,7 +1310,6 @@ bool argument(){
 
             getNextToken();
             argumentStatus = eol();
-            DEBUG_PRINTF("[Parser] :::::::: %s \n",tempToken->value->str);
             listPushBack(state->tokenQueue,tempToken);
             argumentStatus = argumentStatus && argWithName();
             tokenFree(tempToken);
@@ -1353,10 +1329,9 @@ bool argWithName(){
 
     switch(activeToken->tokenType) {
         case T_COLON:
-            // 53) <argWithName> -> : <eol> <argumentType>
+            // 53) <argWithName> -> : <eol> <expression>
 
             //Symtable
-            //TO DO vitek set parameter name default to _
             activeToken = listPopLast(state->tokenQueue);
             symtableFunctionCallSetParameterName(symTable,activeToken->value->str);
             getNextToken();
@@ -1383,7 +1358,6 @@ bool argWithName(){
             else {
                 symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
             }
-            //getNextToken();
             break;
         default:
             DEBUG_PRINTF("[Parser] Leaving function argWithName() with %d ...\n",false);
@@ -1691,21 +1665,11 @@ bool expression(){
                 return false;
             }
 
-            //Generator
-
             getNextToken();
             break;
         default:
             listPushBack(state->tokenQueue,activeToken);
-            expressionStatus = expressionParserStart(state);
-
-            // if (activeToken->tokenType == T_LEFT_BRACKET){
-            //     while (activeToken->tokenType != T_RIGHT_BRACKET){
-            //         DEBUG_PRINTF("[Parser] getting next\n");
-            //         getNextToken();
-            //     }
-            // }
-            
+            expressionStatus = expressionParserStart(state); 
             getNextToken();
             break;
     }
