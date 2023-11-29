@@ -957,7 +957,7 @@ int expressionParserStart(programState *PS)
             char *returnAdr = malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
             strcpy(returnAdr, tokenStackGet(tokenStack, 0)->value->str);
             generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
-            DEBUG_PRINTF("--Expr Parser return type: %s\n",getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
+            DEBUG_PRINTF("[Exp Parser] return type: %s\n",getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
             PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
 
             tokenFree(activeToken);
