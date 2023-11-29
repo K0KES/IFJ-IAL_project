@@ -121,14 +121,6 @@ bool argWithName();
 
 /// @brief Function of LL grammer
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool argumentType();
-
-/// @brief Function of LL grammer
-/// @return returns true if it was syntactically correct, otherwise returns false
-bool dataType();
-
-/// @brief Function of LL grammer
-/// @return returns true if it was syntactically correct, otherwise returns false
 bool expression();
 
 #endif
