@@ -46,8 +46,9 @@ typedef struct{
 typedef struct{
     enum data_type type;
     bool nullable;
+    bool isConstant;
+    bool valueIsSet;
     char *name;
-    void* data;
     int id;
     functionData *funcData;
 } symtableItem;
@@ -89,7 +90,7 @@ void symtablePrintVariables(symtable *table);
 void symtableSetDataType(symtable *table, enum data_type type, bool nullable);
 
 ///Sets active item variable value (Must be called after symtableSetVariableType)
-void symtableSetVariableValue(symtable *table, void* data);
+void symtableSetVariableValue(symtable *table);
 
 ///Inserts new argument into function arguments list
 void symtableAddFunctionNextArgument(symtable *table);
