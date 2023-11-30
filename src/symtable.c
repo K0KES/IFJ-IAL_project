@@ -286,6 +286,8 @@ void symtableSetVariableValue(symtable *table){
     if(table == NULL) return;
     if(table->activeItem == NULL) return;
 
+    if(table->activeItem->isConstant == true && table->activeItem->valueIsSet == true){raiseError(ERR_SEMANTIC);}
+
     table->activeItem->valueIsSet = true;
 }
 

@@ -1,3 +1,8 @@
+/// @file parser.c
+/// @author Lukáš Prokeš
+/// @brief Parser 
+/// @date 30.11.2023
+
 #include "parser.h"
 
 enum tokenType typeOfLastToken;
@@ -264,6 +269,7 @@ bool type(){
             getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
                 symtableSetDataType(symTable, DATA_TYPE_INTEGER, true);
+                symtableSetVariableValue(symTable);
                 getNextToken();
             }
             else {
@@ -276,6 +282,7 @@ bool type(){
             getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
                 symtableSetDataType(symTable, DATA_TYPE_DOUBLE, true);
+                symtableSetVariableValue(symTable);
                 getNextToken();
             }
             else {
@@ -288,6 +295,7 @@ bool type(){
             getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
                 symtableSetDataType(symTable, DATA_TYPE_STRING, true);
+                symtableSetVariableValue(symTable);
                 getNextToken();
             }
             else {
@@ -706,7 +714,6 @@ bool statement(){
             break;
         case T_IDENTIFIER:
             // 30) <statement> -> ID <callOrAssign>
-            //TO DO symtable kontrola symtable jestli je var/func definovaná - setActive prvek
             symtableSetActiveItem(symTable,activeToken->value->str);
             symtableSetFunctionCallName(symTable,activeToken->value->str);
 
@@ -969,15 +976,15 @@ bool assign(){
             tempVarNameFromExpParser = generatorPopFirstStringFromList(gen->parserStack);
             destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
 
+            if(!symtableIsVariableDefined(symTable,destinationVarName)){raiseError(ERR_UNDEFINED_VARIABLE);}
+            symtableSetVariableValue(symTable);
+
             destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
             symtablePushCode(symTable,concatString(4, "MOVE ", destinationVarNameWithPrefix, " ", tempVarNameFromExpParser));
             break;
         case T_INCREMENT:;
             // 62) <assign> -> += <expression>
-            if (!symtableIsActiveVariableInitiated(symTable)) { 
-                //TO DO tady to nefunguje
-                raiseError(ERR_UNDEFINED_VARIABLE); 
-            }
+            if (!symtableIsActiveVariableInitiated(symTable)) { raiseError(ERR_UNDEFINED_VARIABLE); }
 
             //Generator
             destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
@@ -1099,6 +1106,7 @@ bool varDec(){
 
             //Symtable
             symtableInsert(symTable,activeToken->value->str,false);
+            symtableVariableIsConstant(symTable);
 
             //Generator
             symtablePushCode(symTable,concatString(3,"DEFVAR ", symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));
@@ -1156,6 +1164,7 @@ bool varDecMid(){
             //TO DO if nill -> raise error 8
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { raiseError(ERR_MISSING_TYPE); }
             symtableSetDataType(symTable,state->expParserReturnType,false);
+            symtableSetVariableValue(symTable);
 
             //Generator
             symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
@@ -1186,6 +1195,7 @@ bool varDef(){
 
             varDefStatus = expression();
             symtableSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+            symtableSetVariableValue(symTable);
 
             //Generator
             symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));

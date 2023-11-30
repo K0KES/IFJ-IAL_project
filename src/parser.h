@@ -1,3 +1,8 @@
+/// @file parser.h
+/// @author Lukáš Prokeš
+/// @brief Parser header
+/// @date 30.11.2023
+
 #ifndef PARSER_H
 #define PARSER_H
 
