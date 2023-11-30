@@ -134,6 +134,12 @@ bool symtableIsActiveVariableInitiated(symtable *table);
 /// @return enum data_type
 enum data_type symtableGetVariableType(symtable *table, char *varName);
 
+/// @brief Returns nullable of variable type or nullable of function return type
+/// @param table Pointer to symtable
+/// @param varName Variable name
+/// @return true or false
+bool symtableGetVariableNullable(symtable *table, char *varName)
+
 /// @brief Tells symtable you are about to do function call ex. foo(x)
 /// @param table Pointer to symtable
 /// @param funcName Function name

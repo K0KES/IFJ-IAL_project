@@ -353,6 +353,17 @@ enum data_type symtableGetVariableType(symtable *table, char *varName){
     }
 }
 
+bool symtableGetVariableNullable(symtable *table, char *varName){
+    symtableItem *item = symtableFindSymtableItem(table,varName);
+
+    if(item == NULL) raiseError(ERR_UNDEFINED_VARIABLE);
+    if(item->funcData == NULL){
+        return item->nullable;
+    }else{
+        return item->funcData->returnTypeNullable;
+    }
+}
+
 void symtableCreateFunctionStructure(symtable *table){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
