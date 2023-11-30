@@ -128,4 +128,11 @@ bool argWithName();
 /// @return returns true if it was syntactically correct, otherwise returns false
 bool expression();
 
+/// @brief Function of LL grammer
+/// @return returns true if it was syntactically correct, otherwise returns false
+bool parseBuidInFunctions();
+
+/// @brief Function parse function calls and sets it's return types and values to program state
+void parseFunctionCall();
+
 #endif
