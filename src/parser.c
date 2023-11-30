@@ -852,7 +852,7 @@ bool assign(){
             // 61) <assign> -> = <expression>
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
             tempVarNameFromExpParser = generatorPopFirstStringFromList(gen->parserStack);
@@ -875,7 +875,7 @@ bool assign(){
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
@@ -898,7 +898,7 @@ bool assign(){
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
@@ -921,7 +921,7 @@ bool assign(){
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
@@ -945,7 +945,7 @@ bool assign(){
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
@@ -1076,7 +1076,7 @@ bool varDef(){
             getNextToken();
 
             varDefStatus = expression();
-            symtableSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+            symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
             symtableSetVariableValue(symTable);
 
             //Generator
