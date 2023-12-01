@@ -3,8 +3,7 @@
 #include <stdlib.h>
 #include "../../src/scanner.h"
 
-
-// gcc src/str.c src/scanner.c -o scanner tests/scanner_tests/main.c -o main
+//gcc src/error.c  src/str.c src/scanner.c -o scanner tests/scanner_tests/main.c -o main
 // ./main scanner_test.txt
 
 int main(int argc, char const *argv[])

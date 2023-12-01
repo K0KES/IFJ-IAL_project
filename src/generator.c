@@ -83,7 +83,7 @@ void generatorGenerateOutput(generator *gen){
         line = (char *)listPopFirst(gen->functions);
     }
     
-    fprintf(fptr, "LABEL $$main\n");
+    fprintf(fptr, "\nLABEL $$main\n");
     
     line = (char *)listPopFirst(gen->mainCode);
     while(line != NULL){
@@ -107,7 +107,7 @@ void generatorGenerateOutputToStdOut(generator *gen){
         line = (char *)listPopFirst(gen->functions);
     }
     
-    printf("LABEL $$main\n");
+    printf("\nLABEL $$main\n");
     
     line = (char *)listPopFirst(gen->mainCode);
     while(line != NULL){

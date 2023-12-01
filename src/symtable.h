@@ -138,7 +138,7 @@ enum data_type symtableGetVariableType(symtable *table, char *varName);
 /// @param table Pointer to symtable
 /// @param varName Variable name
 /// @return true or false
-bool symtableGetVariableNullable(symtable *table, char *varName)
+bool symtableGetVariableNullable(symtable *table, char *varName);
 
 /// @brief Tells symtable you are about to do function call ex. foo(x)
 /// @param table Pointer to symtable

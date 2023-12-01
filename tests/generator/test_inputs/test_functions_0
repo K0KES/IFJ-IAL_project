@@ -3,3 +3,29 @@ func test(_ a : Int, s b : Double) -> Int{
 }
 
 test(5+3/5,s : 1.4)
+
+test2(a : "strTest",4)
+
+func test2(a c : String, _ y : Int){
+    var x = 10
+}
+
+
+
+//chyba v exp parseru
+
+func test(_ a : Int, s b : Double) -> Int{
+    var x = 10
+}
+
+/*test(5+3/5,s : 1.4)
+
+test2(a : "strTest",4)*/
+
+var sd = 1233/1
+
+test(sd, s : 2.5)
+
+func test2(a c : String, _ y : Int){
+    var x = 10
+}

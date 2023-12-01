@@ -377,6 +377,8 @@ void symtableCreateFunctionStructure(symtable *table){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
 
+    generatorPushStringToList(table->functionCodeHeader,"");
+    generatorPushStringToList(table->functionCodeHeader,"#Start of function definition");
     generatorPushStringToList(table->functionCodeHeader,concatString(2,"LABEL $",table->activeItem->name));
     generatorPushStringToList(table->functionCodeHeader,"PUSHFRAME");
     generatorPushStringToList(table->functionCodeHeader,"DEFVAR LF@%retval");
@@ -397,6 +399,7 @@ void symtableCreateFunctionStructure(symtable *table){
 
     generatorPushStringToList(table->functionCodeFooter,"POPFRAME");
     generatorPushStringToList(table->functionCodeFooter,"RETURN");
+    generatorPushStringToList(table->functionCodeFooter,"#End of function definition");
 }
 
 void symtablePushCode(symtable *table, char* code){

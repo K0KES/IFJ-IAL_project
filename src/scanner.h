@@ -101,6 +101,7 @@ enum state {
     S_DOUBLE,
     S_EXPONENT_DOUBLE,
     S_STRING,
+    S_STRING_HEXA,
     S_STRING_ESCAPE,
     S_MULTILINE_STRING,
     S_MULTILINE_STRING_ESCAPE,
@@ -134,5 +135,7 @@ typedef struct {
 
 void tokenClear (token* token);
 int getToken(token *token, int charNumber, int lineNumber);
+
+string* multilineStringCheck (string* multiLine, int firtCharPos);
 
 const char* getTokenName(enum tokenType tokenType);
