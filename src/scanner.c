@@ -102,7 +102,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         state = S_MULTILINE_LINE_STRING;
                         break;
                     /////////////////////////    
-                    //EASY chars
+                    //SIMPLE NO STATE chars
                     /////////////////////////  
                     case '(':
                         token->tokenType = T_LEFT_BRACKET;
@@ -169,7 +169,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         //raiseError(ERR_LEXICAL);
                        
                         return LEX_OK;
-                        // sreturn LEX_ERROR;
+                        // return LEX_ERROR;
                         break;
                     /////////////////////////  
                     //ID || KW || INT || DOUBLE
@@ -220,15 +220,15 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     lastChar = '\t';
                     break;
                 case '/':
-                    if (lastChar == '/') { 
-                        ungetc (c, stdin); 
-                        ungetc('/', stdin);
-                        state = S_START; 
+                    if (lastChar == '/') { //we get two forward slashes, 
+                        ungetc (c, stdin); //we unget them and transition to newline 
+                        ungetc('/', stdin); //so we can return only one newline token
+                        state = S_START; //for many newline chars
                         }
                     if (state != S_START) { lastChar = '/'; }
                     break;
                 case '*':
-                    if (lastChar == '/') { 
+                    if (lastChar == '/') { //transition to block comment
                         ungetc (c, stdin); 
                         ungetc('/', stdin);
                         state = S_START; 
@@ -252,7 +252,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
-           
+            /////////////////////////    
+            //TOKEN ++ OR +
+            ///////////////////////// 
             case S_INCREMENT:
                 if (c == '=') { 
                     token->tokenType = T_INCREMENT;
@@ -270,7 +272,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     return LEX_OK;
                 }
                 break;
-
+            /////////////////////////    
+            //TOKEN *= OR *
+            /////////////////////////
             case S_VAR_MUL_VAR:
                 if (c == '=') { 
                     token->tokenType = T_VAR_MUL_VAR;
@@ -288,6 +292,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     return LEX_OK;
                 }
                 break;
+            /////////////////////////    
+            //TOKEN -- OR - OR ->
+            /////////////////////////
             case S_DECREMENT:
                 if (c == '=') { 
                     token->tokenType = T_DECREMENT;
@@ -313,7 +320,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     return LEX_OK;
                 }
                 break;
-
+            /////////////////////////    
+            //TOKEN < OR <=
+            /////////////////////////
             case S_LESS_EQUAL:
                 if (c == '=') { 
                     token->tokenType = T_LESS_EQUAL;
@@ -331,7 +340,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     return LEX_OK;
                 }
                 break;
-
+            /////////////////////////    
+            //TOKEN > OR >=
+            /////////////////////////
             case S_GREATER_EQUAL:
                 if (c == '=') { 
                     token->tokenType = T_GREATER_EQUAL;
@@ -349,7 +360,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     return LEX_OK;
                 }
                 break;
-            
+            /////////////////////////    
+            //TOKEN == OR =
+            /////////////////////////
             case S_EQUAL:
                 if (c == '=') { 
                     token->tokenType = T_EQUAL; 
@@ -367,7 +380,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     return LEX_OK;
                 }
                 break;
-
+            /////////////////////////    
+            //TOKEN ? OR ??
+            /////////////////////////
             case S_NIL_OP:
                 if (c == '?') { 
                     token->tokenType = T_NIL_OP; 
@@ -385,6 +400,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     return LEX_OK;
                 }
                 break;
+            /////////////////////////    
+            //TOKEN != OR !
+            /////////////////////////
             case S_NOT_EQUAL:
                 if (c == '=') { 
                     token->tokenType = T_NOT_EQUAL; 
@@ -402,6 +420,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     return LEX_OK;
                 }
                 break;
+            /////////////////////////    
+            //TOKEN _ OR STATE ID/KW
+            /////////////////////////
             case S_UNDERSCORE_IDENTIFIER:
                 switch (c) {
                     //it is _
@@ -425,6 +446,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         break;
                 }
                 break;
+            /////////////////////////    
+            //TOKEN ID OR KW
+            /////////////////////////
             case S_IDENTIFIER_KW:
                 switch (c) {
                 //KEYWORD
@@ -613,6 +637,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
+            /////////////////////////    
+            //TOKEN INT OR STATE DOUBLE/EXPONENT INT
+            /////////////////////////
             case S_INT:
                 switch (c) {
                 case '.':
@@ -643,6 +670,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
+            /////////////////////////    
+            //TOKEN INT with EXPONENT (2e35)
+            /////////////////////////
             case S_EXPONENT_INT:
                 switch (c) {
                 case 'e':
@@ -655,6 +685,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\t':
                 case '\n':
                 case '\r':
+                case EOF:
                     if (lastChar == 'e' || lastChar == 'E' || lastChar == '+' || lastChar == '-') {
                         // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                          raiseError(ERR_LEXICAL);    
@@ -704,6 +735,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
+            /////////////////////////    
+            //TOKEN DOUBLE (10.17) OR STATE DOUBLE with EXPONENT
+            /////////////////////////
             case S_DOUBLE:
                     if (lastChar == '.' && (c < 48 || c > 57)) { raiseError(ERR_LEXICAL); }
                     if (!isalpha(c) && isalnum(c)) {  
@@ -726,6 +760,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     }
                     break;
                 break;
+            /////////////////////////    
+            //TOKEN DOUBLE OR DOUBLE with EXPONENT (10.45e+78)
+            /////////////////////////
             case S_EXPONENT_DOUBLE:
                 switch (c) {
                 case 'e':
@@ -738,6 +775,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '\t':
                 case '\n':
                 case '\r':
+                case EOF:
                     if (lastChar == 'e' || lastChar == 'E' || lastChar == '+' || lastChar == '-') {
                         // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                          raiseError(ERR_LEXICAL);    
@@ -787,6 +825,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
+            /////////////////////////    
+            //TOKEN / OR /= OR STATE LINE COMMENT OR BLOCK COMMENT
+            /////////////////////////
             case S_BLOCK_LINE_COMMENT:
                 switch (c) {
                 case '/':
@@ -816,9 +857,15 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
+            /////////////////////////    
+            //LINE COMMENT
+            /////////////////////////
             case S_LINE_COMMENT:
-                if (c == '\n') {ungetc(c, stdin); state = S_START; lastChar = '\0'; }
+                if (c == '\n' || c == EOF) {ungetc(c, stdin); state = S_START; lastChar = '\0'; }
                 break;
+            /////////////////////////    
+            //BLOCK COMMENT
+            /////////////////////////
             case S_BLOCK_COMMENT:
                 if (c == '\n' || c == '\r') { lineNumber++; }
                 if (c == '/' && lastChar == '*') {
@@ -830,6 +877,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 lastChar = c;
                 if (multilineExit == 0) lastChar = '\0';
                 break;
+            /////////////////////////    
+            //TOKEN non_empty STRING OR STATE MULTILINE STRING """ """
+            /////////////////////////
             case S_MULTILINE_LINE_STRING:
                 switch (c) {
                 case '"':
@@ -847,6 +897,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
+            /////////////////////////    
+            //TOKEN STRING ""
+            /////////////////////////
             case S_STRING:
                 switch (c) {
                 case '\t':
@@ -855,6 +908,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     charNumber++;
                     strAddChar(token->value, c);
                     break;
+                //its escapable char
                 case '\\':
                     state = S_STRING_ESCAPE;
                     lastChar = c;
@@ -880,6 +934,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
+            /////////////////////////    
+            //ESCAPABLE CHAR
+            /////////////////////////
             case S_STRING_ESCAPE:
                 switch (c) {
                 case 'n':
@@ -893,6 +950,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     charNumber++;
                     state = S_STRING;
                     break;
+                //SPECIAL STATE FOR \u{dd}
                 case 'u':
                     state = S_STRING_HEXA;
                     break;
@@ -904,6 +962,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
+            /////////////////////////    
+            // \u{dd}
+            /////////////////////////
             case S_STRING_HEXA:
                 // printf("%c - > ",c);
                 switch (c) {
@@ -984,12 +1045,16 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 // printf(" %d", stringHexaSecond);
                 // printf(" count:%d\n", stringHexaCount);
                 break;
+            /////////////////////////    
+            //TOKEN empty STRING or STATE MULTILINE STRING
+            /////////////////////////
             case S_MULTILINE_LINE_STRING_CHECK:
                 switch (c) {
                 case '"':
                     charNumber++;
                     strAddChar(token->value, c);
                     state = S_MULTILINE_STRING;
+                    //new string, where we copy full multiline string without entering """ sequence
                     multiLineString = (string*)malloc(sizeof(string));
                     if (multiLineString == NULL) { raiseError(ERR_INTERNAL); }
                     lastChar = c;
@@ -1005,6 +1070,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
+            /////////////////////////    
+            //TOKEN MULTILINE STRING
+            /////////////////////////
             case S_MULTILINE_STRING:
                 switch (c) {
                 case '\t':
@@ -1036,6 +1104,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     strAddChar(multiLineString, c);
                     charNumber++;
                     break;
+                case EOF:
+                    raiseError(LEX_ERROR);
+                    break;
                 case '"':
                     // if (lastChar != '\n') {
                     //     // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
@@ -1063,7 +1134,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 // if (foundFirstChar == 0) printf("\nfirstCount = %d, spaceCount = %d\n", firstCharCount, spaceCounter);
                 if (state != S_MULTILINE_STRING_EXIT) { lastChar = c; } 
                 break;
-            
+            /////////////////////////    
+            //STATE for handeling exit of multiline string
+            /////////////////////////
             case S_MULTILINE_STRING_EXIT:
                 switch (c) {
                 case '"':
@@ -1075,6 +1148,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         // token->position->charNumber = charNumber;
                         // token->position->lineNumber = lineNumber;
 
+                        //call function to handle indent and check for errors
                         string* checkedMultiLineString = multilineStringCheck(multiLineString, firstCharCount-spaceCounter-1);
 
                         charNumber++;
@@ -1092,6 +1166,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     charNumber++;
                     lastChar = c;
                     break;
+                //we have first quote and we get something else than quote => error
                 default:
                     charNumber++;
                     // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
@@ -1099,7 +1174,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
-            
+            /////////////////////////    
+            //STATE for ESCAPE CHARS
+            /////////////////////////
             case S_MULTILINE_STRING_ESCAPE:
                 switch (c) {
                 case 'n':
@@ -1136,10 +1213,13 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
 
 
     string* newString = (string*)malloc(sizeof(string));
+    if (newString == NULL) { raiseError(ERR_INTERNAL); }
+
     strAddChar(newString, '"');
     strAddChar(newString, '"');
     strAddChar(newString, '"');
 
+    //until we meet first newline, we count the indent before exit sequence of """
     while (beforeQuote != '\n') {
         if (beforeQuote == ' ') { indent++; } //counting indent
         else if (beforeQuote != ' ' && beforeQuote != '\n') { raiseError(ERR_LEXICAL); } //there is something else before """ than space or newline => error
@@ -1148,47 +1228,36 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
         i++;
     }
 
-    beforeQuote = multiLine->str[multiLine->length-4-i+1]; //fist \n before quotes
-    int e = 0;
-    while (beforeQuote == '\n') {
-       beforeQuote = multiLine->str[multiLine->length-4-i+1-e];
-       e++;
-    }
-
-    int endOfStringPos = multiLine->length-i-e-3+1;
     // printf("\nEnd of string pos: %d\n", endOfStringPos);
-
     // printf("\n\n INDENT = %d \n\n", indent);
     
     int k = 0;
-
+    int j = -1;
     char newLineStart;
     int currentIndent = 0;
     for (int k = 0; k < multiLine->length; k++) {
         newLineStart = multiLine->str[k];
         // printf("\n znak: '%c'\n", newLineStart);
-        if (k >= firstCharPos && k <= endOfStringPos) {
             if (newLineStart == '\n') {
                 strAddChar(newString, newLineStart);
                 k++;
                 newLineStart = multiLine->str[k];
                 // printf("\n znak: '%c'\n", newLineStart);
                 // printf("\nENTERING NEWLINE\n");
+                
                 while (newLineStart == ' ') {
                     // printf("\n znak: '%c'\n", newLineStart);
                     if (currentIndent == indent) { break; }
                     currentIndent++;
                     k++;
                     newLineStart = multiLine->str[k];
+                    j = k;
                 }
-                if (currentIndent != indent) { raiseError(ERR_LEXICAL); }
+                //indents of lines that starts with something else than \n are not equal => error
+                if (currentIndent != indent && (j == k)) { raiseError(ERR_LEXICAL); }
                 currentIndent = 0;
             }
         strAddChar(newString, newLineStart);
-        }
-        if (k < firstCharPos && k >=0) strAddChar(newString, newLineStart);
-        if (k > multiLine->length-4) strAddChar(newString, newLineStart);
-        if (k == endOfStringPos) { strAddChar(newString, '\n'); }
     }
 
     return newString;
