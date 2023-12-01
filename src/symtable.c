@@ -121,6 +121,15 @@ void symtableExitScope(symtable *table){
             table->currentFunction = NULL;
         }
 
+        if(strstr(scopeString, "while") != NULL) {
+            listNode *node = table->gen->temporary->first;
+            while(node != NULL){
+                generatorPushStringToList(table->gen->mainCode,(char*)node->data);
+                node = node->next;
+            }
+            listClear(table->gen->temporary);
+        }
+
         DEBUG_PRINTF("[Symtable] Exiting scope - %s \n",scopeString);
         free(scopeString);
         listPopFirst(table->scopes);
@@ -397,7 +406,16 @@ void symtablePushCode(symtable *table, char* code){
     }else{
         //Check if we are in function
         if(table->currentFunction == NULL){
-            generatorPushStringToList(table->gen->mainCode,code);
+            char* scope = (char*)listGetFirst(table->scopes);
+            if (strstr(scope, "while") != NULL) {
+                if (strstr(code, "DEFVAR ") != NULL) {
+                    generatorPushStringFirstToList(table->gen->mainCode,code);
+                }else{
+                    generatorPushStringToList(table->gen->temporary,code);
+                }
+            }else{
+                generatorPushStringToList(table->gen->mainCode,code);
+            }
         }else{
             generatorPushStringToList(table->functionCodeBody,code);
         }
