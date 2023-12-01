@@ -46,19 +46,15 @@ bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctio
     }
 
     if(scope != NULL){
-        char *string = NULL;
-        if(strstr(scope, "if") != NULL || strstr(scope, "while") != NULL){
-            int stringLength = strlen(scope) + 1;
-            string = (char *)malloc(stringLength);
-            memcpy(string,scope,stringLength);
-        }else{
-            char *str = concatString(1,"empty_string");
-            sprintf(str,"%d",table->gen->counter);
-            
-            string = concatString(3,scope,str,"_");      
-        }
+        char *str = concatString(1,"empty_string");
+        sprintf(str,"%d",table->gen->counter);
+        char *string = concatString(2,scope,str);
 
-        listPushFirst(table->scopes,string);
+        int stringLength = strlen(string) + 1;
+        char *copied = (char *)malloc(stringLength);
+        memcpy(copied,string,stringLength);
+
+        listPushFirst(table->scopes,copied);
     }
 
     symtableItem *tempItem = table->activeItem;
@@ -86,6 +82,8 @@ void symtableExitScope(symtable *table){
             free(item->name);
             free(item->funcData);
             free(item);
+            item->name = NULL;
+            item->funcData = NULL;
             item = NULL;
             currentItem = currentItem->next;  
         }
@@ -98,7 +96,7 @@ void symtableExitScope(symtable *table){
     if(listLength(table->scopes) != 0){
         char *scopeString = (char *)listGetFirst(table->scopes);
         
-        if(strstr(scopeString, "while") == NULL && strstr(scopeString, "if") == NULL){
+        if(strstr(scopeString, "&while") == NULL && strstr(scopeString, "&if") == NULL){
             char* line = listPopFirst(table->functionCodeHeader);
             
             while(line != NULL){
@@ -121,7 +119,7 @@ void symtableExitScope(symtable *table){
             table->currentFunction = NULL;
         }
 
-        if(strstr(scopeString, "while") != NULL) {
+        if(strstr(scopeString, "&while") != NULL) {
             listNode *node = table->gen->temporary->first;
             while(node != NULL){
                 generatorPushStringToList(table->gen->mainCode,(char*)node->data);
@@ -132,6 +130,7 @@ void symtableExitScope(symtable *table){
 
         DEBUG_PRINTF("[Symtable] Exiting scope - %s \n",scopeString);
         free(scopeString);
+        scopeString = NULL;
         listPopFirst(table->scopes);
     }else{
         DEBUG_PRINTF("[Symtable] Exiting scope - GLOBAL\n");
@@ -410,7 +409,7 @@ void symtablePushCode(symtable *table, char* code){
         //Check if we are in function
         if(table->currentFunction == NULL){
             char* scope = (char*)listGetFirst(table->scopes);
-            if (strstr(scope, "while") != NULL) {
+            if (strstr(scope, "&while") != NULL) {
                 if (strstr(code, "DEFVAR ") != NULL) {
                     generatorPushStringFirstToList(table->gen->mainCode,code);
                 }else{
@@ -430,7 +429,7 @@ char* symtableGetScopePrefixName(symtable *table){
     if(listLength(table->scopes) == 0){
         return concatString(1,"global_");
     }else{
-        return concatString(2,(char *)listGetFirst(table->scopes),"_");
+        return concatString(1,(char *)listGetFirst(table->scopes));
     }
 }
 

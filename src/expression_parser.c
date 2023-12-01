@@ -668,6 +668,7 @@ int expressionParserStart(programState *PS)
                 char *stringAssemblyValue = stringToAssemblyStringFormat(stringWithoutQuote);
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " string@", stringAssemblyValue));
                 free(stringAssemblyValue);
+                stringAssemblyValue = NULL;
 
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
                 tokenStackGet(tokenStack, 0)->tokenType = T_E;

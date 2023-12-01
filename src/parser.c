@@ -634,7 +634,7 @@ bool statement(){
         case KW_IF:
             // 27) <statement> -> if <eol> <expression> <eol> {<statements>} <eol> else <eol> {<statements>}
             
-            symtableEnterScope(symTable,"if",NULL);
+            symtableEnterScope(symTable,"&if",NULL);
             
             getNextToken();
             symtablePushCode(symTable,"");
@@ -665,7 +665,7 @@ bool statement(){
                 DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
             }
-            symtableEnterScope(symTable,"if",NULL);
+            symtableEnterScope(symTable,"&if",NULL);
 
             //Generator
             symtablePushCode(symTable,concatString(3,"JUMP $",
@@ -700,7 +700,7 @@ bool statement(){
         case KW_WHILE:
             // 28) <statement> -> while <eol> <expression> <eol> {<statements>}
             //TO DO defvar předsadit před while
-            symtableEnterScope(symTable,"while",NULL);
+            symtableEnterScope(symTable,"&while",NULL);
 
             symtablePushCode(symTable,"");
             symtablePushCode(symTable,"#Start of while");

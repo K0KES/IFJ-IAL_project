@@ -80,6 +80,7 @@ void generatorGenerateOutput(generator *gen){
         fprintf(fptr, line);
         fprintf(fptr, "\n");
         free(line);
+        line = NULL;
         line = (char *)listPopFirst(gen->functions);
     }
     
@@ -90,6 +91,7 @@ void generatorGenerateOutput(generator *gen){
         fprintf(fptr, line);
         fprintf(fptr, "\n");
         free(line);
+        line = NULL;
         line = (char *)listPopFirst(gen->mainCode);
     }
     
@@ -105,6 +107,7 @@ void generatorGenerateOutputToStdOut(generator *gen){
     while(line != NULL){
         printf("%s\n",line);
         free(line);
+        line = NULL;
         line = (char *)listPopFirst(gen->functions);
     }
     
@@ -114,6 +117,7 @@ void generatorGenerateOutputToStdOut(generator *gen){
     while(line != NULL){
         printf("%s\n",line);
         free(line);
+        line = NULL;
         line = (char *)listPopFirst(gen->mainCode);
     }
 }
@@ -166,6 +170,7 @@ char * concatString(int num_args, ...){
 }
 
 char* generatorGenerateTempVarName(generator *gen){
+    //Posible segfault
     static char result[100];
     snprintf(result, sizeof(result), "temp%d", gen->counter);
     gen->counter++;
@@ -221,7 +226,9 @@ void printList(list *l){
 void freeContentOfListAndDestroy(list *list){
     listNode *node = list->first;
     while(node != NULL){
-        free(node->data);
+        if(node->data != NULL){
+            free(node->data);   
+        }
         node = node->next;
     }
     listDestroy(list);
