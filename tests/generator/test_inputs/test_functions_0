@@ -1,0 +1,5 @@
+func test(_ a : Int, s b : Double) -> Int{
+    var x = 10
+}
+
+test(5+3/5,s : 1.4)

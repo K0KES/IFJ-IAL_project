@@ -1,3 +1,8 @@
+/// @file parser.h
+/// @author Lukáš Prokeš
+/// @brief Parser header
+/// @date 30.11.2023
+
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -18,17 +23,14 @@ token *tokenInit();
 
 /// @brief Function clear memory of a token
 /// @param activeToken pointer to token
-/// @return return
 void tokenFree(token *activeToken );
 
 /// @brief Function that starts the parser
 /// @param programState pointer to programState
-/// @return returns 0 if was parsed succesfully, otherwise returns 2
-int parse(programState *programState);
+void parse(programState *programState);
 
 /// @brief Function gets next token and saves it in activeToken
-/// @return returns 0 if everything went well, otherwise returns 1
-int getNextToken();
+void getNextToken();
 
 /// @brief Function of LL grammer
 /// @return returns true if it was syntactically correct, otherwise returns false
@@ -124,14 +126,13 @@ bool argWithName();
 
 /// @brief Function of LL grammer
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool argumentType();
-
-/// @brief Function of LL grammer
-/// @return returns true if it was syntactically correct, otherwise returns false
-bool dataType();
-
-/// @brief Function of LL grammer
-/// @return returns true if it was syntactically correct, otherwise returns false
 bool expression();
+
+/// @brief Function of LL grammer
+/// @return returns true if it was syntactically correct, otherwise returns false
+bool parseBuidInFunctions();
+
+/// @brief Function parse function calls and sets it's return types and values to program state
+void parseFunctionCall();
 
 #endif

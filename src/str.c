@@ -27,6 +27,7 @@ int strInit(string *s) {
 // funkce uvolni retezec z pameti
 void strFree(string *s) {
    free(s->str);
+   s->str = NULL;
 }
 
 // funkce vymaze obsah retezce

@@ -183,12 +183,14 @@ int setUpActiveToken(token *T)
         raiseError(ERR_INTERNAL);
     }
 
+    /*
     T->value = (string *)malloc(sizeof(string));
     if (T->value == NULL)
     {
         raiseError(ERR_INTERNAL);
-    }
+    }*/
     strInit(T->value);
+    
 
     T->position = (positionInfo *)malloc(sizeof(positionInfo));
     if (T->position == NULL)
@@ -1003,12 +1005,13 @@ int expressionParserStart(programState *PS)
             return 0;
             break;
 
-        case '0':
+        case '0':;
             // parsing vas done successfully
             // DEBUG_PRINTF("[Exp parser] Parsing is done!\n");
             char *returnAdr = malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
             strcpy(returnAdr, tokenStackGet(tokenStack, 0)->value->str);
             generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
+            DEBUG_PRINTF("[Exp Parser] return type: %s\n",getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
             PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
 
             // clear memory

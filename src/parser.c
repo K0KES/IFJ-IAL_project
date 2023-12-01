@@ -1,3 +1,8 @@
+/// @file parser.c
+/// @author Lukáš Prokeš
+/// @brief Parser 
+/// @date 30.11.2023
+
 #include "parser.h"
 
 enum tokenType typeOfLastToken;
@@ -42,45 +47,42 @@ void tokenFree(token *activeToken ){
     return;
 }
 
-int parse(programState *programState){
+void parse(programState *programState){
     state = programState;
     symTable = programState->symTable;
     gen = programState->gen;
     activeToken = programState->activeToken;
     getNextToken();
     if(start()){
-        DEBUG_PRINTF("Success\n");
-        return 0;
+        DEBUG_PRINTF("[Parser] Success\n");
+        return;
     }
     else{
-        DEBUG_PRINTF("Error\n");
+        DEBUG_PRINTF("[Parser] Error\n");
         raiseError(ERR_SYNTAX);
     }
 }
 
-int getNextToken(){
+void getNextToken(){
     typeOfLastToken = activeToken->tokenType;
     tokenClear(activeToken);
-    int getTokenErr = 0;
 
     if (listLength(state->tokenQueue) == 0){
-        DEBUG_PRINTF("Token from scanner\n");
-        getTokenErr = getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
+        DEBUG_PRINTF("[Parser] Token from scanner\n");
+        getToken(activeToken, activeToken->position->charNumber, activeToken->position->lineNumber);
     }
     else {
-        DEBUG_PRINTF("Token from Queue\n");
+        DEBUG_PRINTF("[Parser] Token from Queue\n");
         activeToken = listPopFirst(state->tokenQueue);
     }
 
-    DEBUG_PRINTF("Got next token: %s\n",getTokenName(activeToken->tokenType));
-    
-    return getTokenErr;
+    DEBUG_PRINTF("[Parser] Got next token: %s\n",getTokenName(activeToken->tokenType));
 }
 
 bool start(){
     bool startStatus = false;
-    DEBUG_PRINTF("Start token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function start()...\n");
+    DEBUG_PRINTF("[Parser] Start token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function start()...\n");
 
     switch(activeToken->tokenType) {
         case T_IDENTIFIER:
@@ -107,21 +109,23 @@ bool start(){
             break;
         case T_END:
             // 2) <start> -> EPS
-            getNextToken();  //TO DO maybe verify if non token is after END
+            getNextToken();
             startStatus = true;
             break;
         default:  
-            DEBUG_PRINTF("Leaving function start() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function start() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function start() with %d ...\n",startStatus);
+
+    symtableEndOfFile(symTable);
+    DEBUG_PRINTF("[Parser] Leaving function start() with %d ...\n",startStatus);
     return startStatus;
 }
 
 bool code(){
     bool codeStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function code()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function code()...\n");
 
     switch(activeToken->tokenType) {
         case KW_FUNC:
@@ -130,14 +134,14 @@ bool code(){
 
             // verification of: EOF
             if (activeToken->tokenType == T_EOF){ 
-                DEBUG_PRINTF("Leaving function code() with %d ...\n",codeStatus);
+                DEBUG_PRINTF("[Parser] Leaving function code() with %d ...\n",codeStatus);
                 return codeStatus;
             }
 
             // verification of: EOL
             if (typeOfLastToken != T_EOL){ 
                 if (activeToken->tokenType != T_EOL){ 
-                    DEBUG_PRINTF("Leaving function code() with %d ...\n",false);
+                    DEBUG_PRINTF("[Parser] Leaving function code() with %d ...\n",false);
                     return false;
                 }
                 getNextToken();
@@ -166,14 +170,14 @@ bool code(){
 
             // verification of: EOF
             if (activeToken->tokenType == T_EOF){ 
-                DEBUG_PRINTF("Leaving function code() with %d ...\n",codeStatus);
+                DEBUG_PRINTF("[Parser] Leaving function code() with %d ...\n",codeStatus);
                 return codeStatus;
             }
 
             // verification of: EOL
             if (typeOfLastToken != T_EOL){ 
                 if (activeToken->tokenType != T_EOL){ 
-                    DEBUG_PRINTF("Leaving function code() with %d ...\n",false);
+                    DEBUG_PRINTF("[Parser] Leaving function code() with %d ...\n",false);
                     return false;
                 }
                 getNextToken();
@@ -186,18 +190,18 @@ bool code(){
             codeStatus = true;
             break;
         default:
-            DEBUG_PRINTF("Leaving function code() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function code() with %d ...\n",false);
             return false;
         
     }
-    DEBUG_PRINTF("Leaving function code() with %d ...\n",codeStatus);
+    DEBUG_PRINTF("[Parser] Leaving function code() with %d ...\n",codeStatus);
     return codeStatus;
 }
 
 bool eol(){
     bool eolStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function eol()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function eol()...\n");
 
     switch(activeToken->tokenType) {
         case T_EOL:
@@ -247,17 +251,17 @@ bool eol(){
             eolStatus = true;
             break;
         default:
-            DEBUG_PRINTF("Leaving function eol() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function eol() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function eol() with %d ...\n",eolStatus);
+    DEBUG_PRINTF("[Parser] Leaving function eol() with %d ...\n",eolStatus);
     return eolStatus;
 }
 
 bool type(){
     bool typeStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function type()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function type()...\n");
 
     switch(activeToken->tokenType) {
         case KW_INT:
@@ -265,6 +269,7 @@ bool type(){
             getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
                 symtableSetDataType(symTable, DATA_TYPE_INTEGER, true);
+                symtableSetVariableValue(symTable);
                 getNextToken();
             }
             else {
@@ -277,6 +282,7 @@ bool type(){
             getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
                 symtableSetDataType(symTable, DATA_TYPE_DOUBLE, true);
+                symtableSetVariableValue(symTable);
                 getNextToken();
             }
             else {
@@ -289,6 +295,7 @@ bool type(){
             getNextToken();
             if (activeToken->tokenType == T_NULLABLE){
                 symtableSetDataType(symTable, DATA_TYPE_STRING, true);
+                symtableSetVariableValue(symTable);
                 getNextToken();
             }
             else {
@@ -297,17 +304,17 @@ bool type(){
             typeStatus = true;
             break;
         default: 
-            DEBUG_PRINTF("Leaving function type() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function type() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function type() with %d ...\n",typeStatus);
+    DEBUG_PRINTF("[Parser] Leaving function type() with %d ...\n",typeStatus);
     return typeStatus;
 }
 
 bool definition(){
     bool definitionStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function definition()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function definition()...\n");
 
     switch(activeToken->tokenType) {
         case KW_FUNC:
@@ -319,11 +326,10 @@ bool definition(){
             
             // verification of: func <eol> ID 
             if (activeToken->tokenType != T_IDENTIFIER){ 
-                DEBUG_PRINTF("Leaving function definition() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function definition() with %d ...\n",false);
                 return false;
             }
 
-            //Add function to symtable
             symtableInsert(symTable,activeToken->value->str,true);
 
             // verification of: func <eol> ID <eol>
@@ -332,7 +338,7 @@ bool definition(){
 
             // verification of: func <eol> ID <eol> (
             if (activeToken->tokenType != T_LEFT_BRACKET){ 
-                DEBUG_PRINTF("Leaving function definition() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function definition() with %d ...\n",false);
                 return false;
             }
 
@@ -347,21 +353,20 @@ bool definition(){
 
             // verification of: func <eol> ID <eol> (<functionParams>) <eol> <funcDefMid>
             definitionStatus = definitionStatus && funcDefMid();
-            // debug symtablePrintVariables(symTable);
             symtableExitScope(symTable);
             break;
         default:
-            DEBUG_PRINTF("Leaving function definition() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function definition() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function definition() with %d ...\n",definitionStatus);
+    DEBUG_PRINTF("[Parser] Leaving function definition() with %d ...\n",definitionStatus);
     return definitionStatus;
 }
 
 bool funcDefMid(){
     bool funcDefMidStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function funcDefMid()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function funcDefMid()...\n");
 
     switch(activeToken->tokenType) {
         case T_LEFT_CURLY_BRACKET:
@@ -376,7 +381,7 @@ bool funcDefMid(){
 
             // verification of: left curly bracket
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                DEBUG_PRINTF("Leaving function funcDefMid() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function funcDefMid() with %d ...\n",false);
                 return false;
             }
 
@@ -384,17 +389,17 @@ bool funcDefMid(){
             funcDefMidStatus = funcDefMidStatus && statements();
             break;
         default:
-            DEBUG_PRINTF("Leaving function funcDefMid() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function funcDefMid() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function funcDefMid() with %d ...\n",funcDefMidStatus);
+    DEBUG_PRINTF("[Parser] Leaving function funcDefMid() with %d ...\n",funcDefMidStatus);
     return funcDefMidStatus;
 }
 
 bool functionParams(){
     bool functionParamsStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function functionParams()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function functionParams()...\n");
 
     switch(activeToken->tokenType) {
         case T_RIGHT_BRACKET:
@@ -413,17 +418,17 @@ bool functionParams(){
             functionParamsStatus = functionParam() && functionParamsN() && eol();
             break;
         default:
-            DEBUG_PRINTF("Leaving function functionParams() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function functionParams() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function functionParams() with %d ...\n",functionParamsStatus);
+    DEBUG_PRINTF("[Parser] Leaving function functionParams() with %d ...\n",functionParamsStatus);
     return functionParamsStatus;
 }
 
 bool functionParamsN(){
     bool functionParamsNStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function functionParamsN()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function functionParamsN()...\n");
 
     switch(activeToken->tokenType) {
         case T_COMMA:
@@ -438,17 +443,17 @@ bool functionParamsN(){
             functionParamsNStatus = true;
             break;
         default:
-            DEBUG_PRINTF("Leaving function functionParamsN() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function functionParamsN() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function functionParamsN() with %d ...\n",functionParamsNStatus);
+    DEBUG_PRINTF("[Parser] Leaving function functionParamsN() with %d ...\n",functionParamsNStatus);
     return functionParamsNStatus;
 }
 
 bool functionParam(){
     bool functionParamStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function functionParam()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function functionParam()...\n");
 
     symtableAddFunctionNextArgument(symTable);
 
@@ -464,7 +469,7 @@ bool functionParam(){
 
             // verification of: _ <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
-                DEBUG_PRINTF("Leaving function functionParam() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function functionParam() with %d ...\n",false);
                 return false;
             }
 
@@ -476,7 +481,7 @@ bool functionParam(){
 
             // verification of: _ <eol> ID <eol> :
             if (activeToken->tokenType != T_COLON){
-                DEBUG_PRINTF("Leaving function functionParam() with %d no colon...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function functionParam() with %d no colon...\n",false);
                 return false;
             }
 
@@ -495,7 +500,7 @@ bool functionParam(){
 
             // verification of: ID <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
-                DEBUG_PRINTF("Leaving function functionParam() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function functionParam() with %d ...\n",false);
                 return false;
             }
 
@@ -507,7 +512,7 @@ bool functionParam(){
 
             // verification of: ID <eol> ID <eol> :
             if (activeToken->tokenType != T_COLON){
-                DEBUG_PRINTF("Leaving function functionParam() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function functionParam() with %d ...\n",false);
                 return false;
             }
             // verification of: ID <eol> ID <eol> : <eol> <type> <eol>
@@ -515,17 +520,17 @@ bool functionParam(){
             functionParamStatus = eol() && type() && eol();
             break;
         default:
-            DEBUG_PRINTF("Leaving function functionParam() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function functionParam() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function functionParam() with %d ...\n",functionParamStatus);
+    DEBUG_PRINTF("[Parser] Leaving function functionParam() with %d ...\n",functionParamStatus);
     return functionParamStatus;
 }
 
 bool statements(){
     bool statementsStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function statements()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function statements()...\n");
 
     switch(activeToken->tokenType) {
         case T_IDENTIFIER:
@@ -554,17 +559,17 @@ bool statements(){
             statementsStatus = true;
             break;
         default:
-            DEBUG_PRINTF("Leaving function statements() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function statements() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function statements() with %d ...\n",statementsStatus);
+    DEBUG_PRINTF("[Parser] Leaving function statements() with %d ...\n",statementsStatus);
     return statementsStatus;
 }
 
 bool statementsBlock(){
     bool statementsBlockStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function statementsBlock()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function statementsBlock()...\n");
 
     switch(activeToken->tokenType) {
         case T_IDENTIFIER:
@@ -589,7 +594,7 @@ bool statementsBlock(){
             // verification of: <statement> EOL
             if (typeOfLastToken != T_EOL && activeToken->tokenType != T_RIGHT_CURLY_BRACKET){ 
                 if (activeToken->tokenType != T_EOL){ 
-                    DEBUG_PRINTF("Leaving function statementsBlock() with %d ...\n",false);
+                    DEBUG_PRINTF("[Parser] Leaving function statementsBlock() with %d ...\n",false);
                     return false;
                 }
                 getNextToken();
@@ -604,17 +609,17 @@ bool statementsBlock(){
             statementsBlockStatus = true;
             break;
         default:
-            DEBUG_PRINTF("Leaving function statementsBlock() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function statementsBlock() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function statementsBlock() with %d ...\n",statementsBlockStatus);
+    DEBUG_PRINTF("[Parser] Leaving function statementsBlock() with %d ...\n",statementsBlockStatus);
     return statementsBlockStatus;
 }
 
 bool statement(){
     bool statementStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function statement()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function statement()...\n");
 
     switch(activeToken->tokenType) {
         case KW_LET:
@@ -639,7 +644,7 @@ bool statement(){
 
             // verification of: if <eol>  <expression> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
             }
 
@@ -647,13 +652,18 @@ bool statement(){
             getNextToken();
             statementStatus = statementStatus && statements() && eol();
 
+            symtableExitScope(symTable);
+
             // verification of: if <eol>  <expression> <eol> {<statements>} <eol> else
             if (activeToken->tokenType != KW_ELSE){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
             }
+            symtableEnterScope(symTable,"if",NULL);
 
             //Generator
+            symtablePushCode(symTable,"");
+            symtablePushCode(symTable,concatString(1,"#Start of IF statement"));
             symtablePushCode(symTable,concatString(3,"JUMP $",
                                                     symtableGetScopePrefixName(symTable),
                                                     "end"));
@@ -667,7 +677,7 @@ bool statement(){
 
             // verification of: if <eol>  <expression> <eol> {<statements>} <eol> else <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
             }
 
@@ -679,25 +689,41 @@ bool statement(){
                                                     symtableGetScopePrefixName(symTable),
                                                     "end"));
 
+            symtablePushCode(symTable,concatString(1,"#End of IF statement"));
             symtableExitScope(symTable);
 
             break;
         case KW_WHILE:
             // 28) <statement> -> while <eol> <expression> <eol> {<statements>}
-
+            //TO DO generování kodu
             symtableEnterScope(symTable,"while",NULL);
+
+            symtablePushCode(symTable,"");
+            symtablePushCode(symTable,"#Start of while");
+            symtablePushCode(symTable,concatString(2,"LABEL $",symtableGetScopePrefixName(symTable)));
 
             getNextToken();
             statementStatus = eol() && expression() && eol();
 
+            //Generator
+            symtablePushCode(symTable,concatString(5,"JUMPIFNEQ $",
+                                                    symtableGetScopePrefixName(symTable),
+                                                    "end ",
+                                                    generatorPopFirstStringFromList(gen->parserStack),
+                                                    " bool@true"));
+            symtablePushCode(symTable,"#While body");
+
             // verification of: while <eol>  <expression> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
             }
 
             getNextToken();
             statementStatus = statementStatus && statements();
+            symtablePushCode(symTable,concatString(2,"JUMP $",symtableGetScopePrefixName(symTable)));
+            symtablePushCode(symTable,concatString(3,"LABEL $",symtableGetScopePrefixName(symTable),"end"));
+            symtablePushCode(symTable,"#End of while");
 
             symtableExitScope(symTable);
 
@@ -705,13 +731,12 @@ bool statement(){
         case KW_RETURN:
             // 29) <statement> -> return <returnExpression>
             getNextToken();
-            //TO DO expression parser has to check if returnExpression is same type as return type of function
             statementStatus = returnExpression();
             break;
         case T_IDENTIFIER:
             // 30) <statement> -> ID <callOrAssign>
-            //TO DO symtable kontrola symtable jestli je var/func definovaná - setActive prvek
             symtableSetActiveItem(symTable,activeToken->value->str);
+            symtableSetFunctionCallName(symTable,activeToken->value->str);
 
             //Generator
             generatorPushStringFirstToList(gen->parserStack,activeToken->value->str);
@@ -719,63 +744,18 @@ bool statement(){
             getNextToken();
             statementStatus = callOrAssign();
             break;
-        /*case KW_READSTRING:
-            // 66) <statement> -> KW_VESTAVENA_FUNKC ()
-            getNextToken();
-            if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = true;
-            break;
-        case KW_READINT:
-            // 66) <statement> -> KW_VESTAVENA_FUNKC ()
-            getNextToken();
-            if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = true;
-            break;
-        case KW_READDOUBLE:
-            // 66) <statement> -> KW_VESTAVENA_FUNKC ()
-            getNextToken();
-            if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = true;
-            break;*/
         case KW_WRITE:
             // 66) <statement> -> write(<arguments>)
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
             }
             getNextToken();
 
             //Symtable
             symtableFunctionCallStart(symTable,"write");
-            
+
             statementStatus = arguments();
 
             //Generator
@@ -783,127 +763,33 @@ bool statement(){
                 symtablePushCode(symTable,concatString(2,"WRITE ",generatorPopLastStringFromList(gen->parserStack)));
             }
             break;
-        /*case KW_INT_TO_DOUBLE:
-            // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
-            getNextToken();
-            if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = argument();
-            if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            break;
+        case KW_READSTRING:
+        case KW_READINT:
+        case KW_READDOUBLE:
+        case KW_INT_TO_DOUBLE:
         case KW_DOUBLE_TO_INT:
-            // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
-            getNextToken();
-            if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = argument();
-            if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            break;
         case KW_LENGTH:
-            // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
-            getNextToken();
-            if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = argument();
-            if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            break;
         case KW_SUBSTRING:
-            // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>)
-            // verification of: KW_VESTAVENA_FUNKCE (<argument>
-            getNextToken();
-            if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = argument();
-            
-            // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>
-            if (activeToken->tokenType != T_COMMA){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = statementStatus && argument();
-
-            // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>
-            if (activeToken->tokenType != T_COMMA){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = statementStatus && argument();
-
-            // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>)
-            if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            break;
         case KW_ORD:
-            // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
-            getNextToken();
-            if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = argument();
-            if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            break;
         case KW_CHR:
-            // 66) <statement> -> KW_VESTAVENA_FUNKCE (<argument>)
-            getNextToken();
-            if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            statementStatus = argument();
-            if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
-                return false;
-            }
-            getNextToken();
-            break;*/
+            // 66) <statement> -> <parseBuildInFunctions>
+
+            statementStatus = parseBuidInFunctions();
+
+            generatorPopFirstStringFromList(gen->parserStack);
+            break;
         default:
-            DEBUG_PRINTF("Leaving function statement() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
             return false;  
     }
-    DEBUG_PRINTF("Leaving function statement() with %d ...\n",statementStatus);
+    DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",statementStatus);
     return statementStatus;
 }
 
 bool callOrAssign(){
     bool callOrAssignStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function callOrAssign()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function callOrAssign()...\n");
 
     switch(activeToken->tokenType) {
         case T_ASSIGNMENT:
@@ -919,96 +805,85 @@ bool callOrAssign(){
             // 37) <callOrAssign> -> (<arguments>)
 
             //Generator
-            //TO DO generator zpracovat volání funkce
             symtablePushCode(symTable,"CREATEFRAME");
 
-            char *label = generatorPopFirstStringFromList(gen->parserStack);
-
+            char *functionName = generatorPopFirstStringFromList(gen->parserStack);
+            
             //Symtable
-            symtableFunctionCallStart(symTable,symtableGetActiveItemName(symTable));
+            symtableFunctionCallStart(symTable,NULL);
 
             getNextToken();
             callOrAssignStatus = arguments();
-            symtableFunctionCallEnd(symTable);
 
             int i = 1;
-            static char result[100];
+            char *result = concatString(1,"Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
             while(listLength(gen->parserStack) != 0){
                 snprintf(result, sizeof(result), "%d", i);
                 symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));
                 symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
                 i++;
             }
-            
 
-            symtablePushCode(symTable,concatString(2,"CALL $",label));
+            symtablePushCode(symTable,concatString(2,"CALL $",functionName));
 
             break;
         default:
-            DEBUG_PRINTF("Leaving function callOrAssign() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function callOrAssign() with %d ...\n",callOrAssignStatus);
+    DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",callOrAssignStatus);
     return callOrAssignStatus;
 }
 
 bool assign(){
     bool assignStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function assign()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function assign()...\n");
 
-    char *var;
-    char *tempVarName;
+    char *tempVarNameFromExpParser;
+    char *destinationVarName;
+    char *destinationVarNameWithPrefix;
     char *tempGeneratedName;
-    char *tempName;
+    char *tempNameWithPrefix;
 
     enum data_type lastVarType = symtableGetActiveItemType(symTable);
     switch(activeToken->tokenType) {
         case T_ASSIGNMENT:
             // 61) <assign> -> = <expression>
             getNextToken();
-            /*if (activeToken->tokenType == T_IDENTIFIER){
-                token *tempToken = tokenInit();
-                tempToken->tokenType = activeToken->tokenType;
-                int stringLength = strlen(activeToken->value->str) + 1;
-                char *string = (char *)malloc(stringLength);
-                memcpy(string,activeToken->value->str,stringLength);
-                tempToken->value->str = string;
-
-                getNextToken();
-                if(activeToken->tokenType == T_LEFT_BRACKET){
-
-                }
-            }*/
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
-            tempGeneratedName = generatorPopFirstStringFromList(gen->parserStack);
-            tempName = generatorPopFirstStringFromList(gen->parserStack);
-            var = concatString(2,symtableGetVariablePrefix(symTable,tempName),tempName);
-            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempGeneratedName));
-            //tokenFree(tempToken);
+            tempVarNameFromExpParser = generatorPopFirstStringFromList(gen->parserStack);
+            destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
+
+            if(!symtableIsVariableDefined(symTable,destinationVarName)){raiseError(ERR_UNDEFINED_VARIABLE);}
+            symtableSetVariableValue(symTable);
+
+            destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
+            symtablePushCode(symTable,concatString(4, "MOVE ", destinationVarNameWithPrefix, " ", tempVarNameFromExpParser));
             break;
         case T_INCREMENT:;
             // 62) <assign> -> += <expression>
             if (!symtableIsActiveVariableInitiated(symTable)) { raiseError(ERR_UNDEFINED_VARIABLE); }
 
             //Generator
-            tempName = generatorPopFirstStringFromList(gen->parserStack);
-            var = concatString(2,symtableGetVariablePrefix(symTable,tempName),tempName);
+            destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
+            destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
-            tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
-            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
-            symtablePushCode(symTable,concatString(6, "ADD ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempVarName));
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+            symtablePushCode(symTable,concatString(6, "ADD ", tempNameWithPrefix, " ", destinationVarNameWithPrefix, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4, "MOVE ", destinationVarNameWithPrefix, " ", tempNameWithPrefix));
             break;
         case T_DECREMENT:;
             // 63) <assign> -> -= <expression>
@@ -1017,20 +892,21 @@ bool assign(){
             if (lastVarType == DATA_TYPE_STRING ) { raiseError(ERR_WRONG_TYPE); }
 
             //Generator
-            var = generatorPopFirstStringFromList(gen->parserStack);
+            destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
+            destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
-            tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
-            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
 
-            symtablePushCode(symTable,concatString(6, "SUB ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempVarName));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+            symtablePushCode(symTable,concatString(6, "SUB ", tempNameWithPrefix, " ", destinationVarNameWithPrefix, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4, "MOVE ", destinationVarNameWithPrefix, " ", tempNameWithPrefix));
             break;
         case T_VAR_MUL_VAR:;
             // 64) <assign> -> *= <expression>
@@ -1039,20 +915,21 @@ bool assign(){
             if (lastVarType == DATA_TYPE_STRING ) { raiseError(ERR_WRONG_TYPE); }
 
             //Generator
-            var = generatorPopFirstStringFromList(gen->parserStack);
+            destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
+            destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
-            tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
-            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
 
-            symtablePushCode(symTable,concatString(6, "MUL ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempVarName));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+            symtablePushCode(symTable,concatString(6, "MUL ", tempNameWithPrefix, " ", destinationVarNameWithPrefix, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(4, "MOVE ", destinationVarNameWithPrefix, " ", tempNameWithPrefix));
             break;
         case T_VAR_DIV_VAR:;
             // 65) <assign> -> /= <expression>
@@ -1062,38 +939,39 @@ bool assign(){
             if (lastVarType == DATA_TYPE_STRING ) { raiseError(ERR_WRONG_TYPE); }
 
             //Generator
-            var = generatorPopFirstStringFromList(gen->parserStack);
+            destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
+            destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
             getNextToken();
             assignStatus = expression();
-            symtableSameTypes(lastVarType,state->expParserReturnType);
+            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
-            tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
-            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
             
-            if (1 > 0){ //typ oparandu je int
-                symtablePushCode(symTable,concatString(6, "IDIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+            if (lastVarType == T_INT){
+                symtablePushCode(symTable,concatString(6, "IDIV ", tempNameWithPrefix, " ", destinationVarNameWithPrefix, " ", generatorPopFirstStringFromList(gen->parserStack)));
             }
-            else{ //typ operandu je float
-                symtablePushCode(symTable,concatString(6, "DIV ", tempVarName, " ", var, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            else if (lastVarType == T_DOUBLE){
+                symtablePushCode(symTable,concatString(6, "DIV ", tempNameWithPrefix, " ", destinationVarNameWithPrefix, " ", generatorPopFirstStringFromList(gen->parserStack)));
             }
-            symtablePushCode(symTable,concatString(4, "MOVE ", var, " ", tempVarName));
+            symtablePushCode(symTable,concatString(4, "MOVE ", destinationVarNameWithPrefix, " ", tempNameWithPrefix));
             break;
         default:
-            DEBUG_PRINTF("Leaving function assign() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function assign() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function assign() with %d ...\n",assignStatus);
+    DEBUG_PRINTF("[Parser] Leaving function assign() with %d ...\n",assignStatus);
     return assignStatus;
 }
 
 bool varDec(){
     bool varDecStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function varDec()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function varDec()...\n");
 
     switch(activeToken->tokenType) {
         case KW_LET:
@@ -1104,12 +982,13 @@ bool varDec(){
 
             // verification of: let <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
-                DEBUG_PRINTF("Leaving function varDec() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function varDec() with %d ...\n",false);
                 return false;
             }
 
             //Symtable
             symtableInsert(symTable,activeToken->value->str,false);
+            symtableVariableIsConstant(symTable);
 
             //Generator
             symtablePushCode(symTable,concatString(3,"DEFVAR ", symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));
@@ -1126,13 +1005,13 @@ bool varDec(){
             
             // verification of: var <eol> ID
             if (activeToken->tokenType != T_IDENTIFIER){
-                DEBUG_PRINTF("Leaving function varDec() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function varDec() with %d ...\n",false);
                 return false;
             }
 
             //Symtable
             symtableInsert(symTable,activeToken->value->str,false);
-
+            
             //Generator
             symtablePushCode(symTable,concatString(3,"DEFVAR ",symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));
             generatorPushStringFirstToList(gen->parserStack,concatString(2,symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));
@@ -1141,17 +1020,17 @@ bool varDec(){
             varDecStatus = eol() && varDecMid();
             break;
         default:
-            DEBUG_PRINTF("Leaving function varDec() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function varDec() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function varDec() with %d ...\n",varDecStatus);
+    DEBUG_PRINTF("[Parser] Leaving function varDec() with %d ...\n",varDecStatus);
     return varDecStatus;
 }
 
 bool varDecMid(){
     bool varDecMidStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function varDecMid()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function varDecMid()...\n");
 
     switch(activeToken->tokenType) {
         case T_COLON:
@@ -1164,30 +1043,32 @@ bool varDecMid(){
             getNextToken();
             varDecMidStatus = expression();
             //TO DO umí expressionParser vracet nil?? -> nil vracet jako DATA_TYPE_NOTSET
+            //TO DO if nill -> raise error 8
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { raiseError(ERR_MISSING_TYPE); }
             symtableSetDataType(symTable,state->expParserReturnType,false);
+            symtableSetVariableValue(symTable);
 
             //Generator
             symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
         default:
-            DEBUG_PRINTF("Leaving function varDecMid() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function varDecMid() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function varDecMid() with %d ...\n",varDecMidStatus);
+    DEBUG_PRINTF("[Parser] Leaving function varDecMid() with %d ...\n",varDecMidStatus);
     return varDecMidStatus;
 }
 
 bool varDef(){
     bool varDefStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function varDef()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function varDef()...\n");
 
     switch(activeToken->tokenType) {
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
             // 42) <varDef> -> EPS
-            //getNextToken();
+            generatorPopFirstStringFromList(gen->parserStack);
             varDefStatus = true;
             break;
         case T_ASSIGNMENT:
@@ -1195,7 +1076,8 @@ bool varDef(){
             getNextToken();
 
             varDefStatus = expression();
-            symtableSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+            symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+            symtableSetVariableValue(symTable);
 
             //Generator
             symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
@@ -1203,20 +1085,21 @@ bool varDef(){
         default:
             // verification of: EOL
             if (typeOfLastToken == T_EOL){ 
+                generatorPopFirstStringFromList(gen->parserStack);
                 varDefStatus = true;
                 break;
             }
-            DEBUG_PRINTF("Leaving function varDef() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function varDef() with %d ...\n",false);
             return false; 
     }
-    DEBUG_PRINTF("Leaving function varDef() with %d ...\n",varDefStatus);
+    DEBUG_PRINTF("[Parser] Leaving function varDef() with %d ...\n",varDefStatus);
     return varDefStatus;
 }
 
 bool returnExpression(){
     bool returnExpressionStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function returnExpression()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function returnExpression()...\n");
 
     switch(activeToken->tokenType) {
         case T_RIGHT_CURLY_BRACKET:
@@ -1228,7 +1111,6 @@ bool returnExpression(){
         default:
             // 44) <returnExpression> -> <expression>
             returnExpressionStatus = expression();
-            //TO DO vitek je návratový kod funkce void nebo nonset??
             if(symtableGetReturnTypeOfCurrentScope(symTable) == DATA_TYPE_VOID && state->expParserReturnType != DATA_TYPE_NOTSET){
                 raiseError(ERR_WRONG_RETURN_TYPE);
             }
@@ -1238,14 +1120,14 @@ bool returnExpression(){
             symtablePushCode(symTable,concatString(2,"MOVE LF@%retval ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
     }
-    DEBUG_PRINTF("Leaving function returnExpression() with %d ...\n",returnExpressionStatus);
+    DEBUG_PRINTF("[Parser] Leaving function returnExpression() with %d ...\n",returnExpressionStatus);
     return returnExpressionStatus;
 }
 
 bool arguments(){
     bool argumentsStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function arguments()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function arguments()...\n");
 
     switch(activeToken->tokenType) {
         case T_RIGHT_BRACKET:
@@ -1266,17 +1148,17 @@ bool arguments(){
             argumentsStatus = argument() && argumentsN(); //&& eol()
             break;
         default:
-            DEBUG_PRINTF("Leaving function arguments() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function arguments() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function arguments() with %d ...\n",argumentsStatus);
+    DEBUG_PRINTF("[Parser] Leaving function arguments() with %d ...\n",argumentsStatus);
     return argumentsStatus;
 }
 
 bool argumentsN(){
     bool argumentsNStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function argumentsN()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function argumentsN()...\n");
 
     switch(activeToken->tokenType) {
         case T_COMMA:
@@ -1285,42 +1167,30 @@ bool argumentsN(){
             argumentsNStatus = eol() && argument() && argumentsN();
             break;
         case T_RIGHT_BRACKET:
-        case T_EOL:
             // 50) <argumentsN> -> EPS
             getNextToken();
             argumentsNStatus = true;
             break;
+        case T_EOL:
+            // 50) <argumentsN> -> EPS
+            getNextToken();
+            argumentsNStatus = argumentsN();
+            break;
         default:
-            DEBUG_PRINTF("Leaving function argumentsN() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function argumentsN() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function argumentsN() with %d ...\n",argumentsNStatus);
+    DEBUG_PRINTF("[Parser] Leaving function argumentsN() with %d ...\n",argumentsNStatus);
     return argumentsNStatus;
 }
 
 bool argument(){
     bool argumentStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function argument()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function argument()...\n");
 
     symtableFunctionCallNextParameter(symTable);
     switch(activeToken->tokenType) {
-        case T_INT:
-        case T_DOUBLE:
-        case T_STRING:
-            // 51) <argument> -> <dataType> <eol>
-            //TO DO předělat gramatiku
-            argumentStatus = expression();
-            //argumentStatus = dataType() && eol();
-
-            //Symtable
-            if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
-            }
-            else {
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
-            }
-            break;
         case T_IDENTIFIER:;
             // 52) <argument> -> ID <eol> <argWithName>
             token *tempToken = tokenInit();
@@ -1332,37 +1202,41 @@ bool argument(){
 
             getNextToken();
             argumentStatus = eol();
-            DEBUG_PRINTF(":::::::: %s \n",tempToken->value->str);
             listPushBack(state->tokenQueue,tempToken);
             argumentStatus = argumentStatus && argWithName();
             tokenFree(tempToken);
             break;
         default:
-            DEBUG_PRINTF("Leaving function argument() with %d ...\n",false);
-            return false;
+            // 51) <argument> -> <expression>
+            argumentStatus = expression();
+
+            //Symtable
+            if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
+                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
+            }
+            else {
+                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
+            }
+            break;
     }
-    DEBUG_PRINTF("Leaving function argument() with %d ...\n",argumentStatus);
+    DEBUG_PRINTF("[Parser] Leaving function argument() with %d ...\n",argumentStatus);
     return argumentStatus;
 }
 
 bool argWithName(){
     bool argWithNameStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function argWithName()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function argWithName()...\n");
 
     switch(activeToken->tokenType) {
         case T_COLON:
-            // 53) <argWithName> -> : <eol> <argumentType>
+            // 53) <argWithName> -> : <eol> <expression>
 
             //Symtable
-            //TO DO vitek set parameter name default to _
             activeToken = listPopLast(state->tokenQueue);
-            DEBUG_PRINTF("_-------------  %s ??\n",activeToken->value->str);
             symtableFunctionCallSetParameterName(symTable,activeToken->value->str);
             getNextToken();
-            argWithNameStatus = eol();
-
-            argWithNameStatus = argWithNameStatus && expression();
+            argWithNameStatus = eol() && expression();
 
             //Symtable
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
@@ -1376,6 +1250,7 @@ bool argWithName(){
         case T_COMMA:
         case T_EOL:
             // 54) <argWithName> -> EPS
+            listPushBack(state->tokenQueue,activeToken);
             argWithNameStatus = expressionParserStart(state);
 
             //Symtable
@@ -1385,153 +1260,141 @@ bool argWithName(){
             else {
                 symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
             }
-            //getNextToken();
             break;
         default:
-            DEBUG_PRINTF("Leaving function argWithName() with %d ...\n",false);
+            DEBUG_PRINTF("[Parser] Leaving function argWithName() with %d ...\n",false);
             return false;
     }
-    DEBUG_PRINTF("Leaving function argWithName() with %d ...\n",argWithNameStatus);
+    DEBUG_PRINTF("[Parser] Leaving function argWithName() with %d ...\n",argWithNameStatus);
     return argWithNameStatus;
-}
-
-bool argumentType(){
-    bool argumentTypeStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function argumentType()...\n");
-
-    switch(activeToken->tokenType) {
-        case T_IDENTIFIER:
-            // 55) <argumentType> -> ID
-            getNextToken();
-            argumentTypeStatus = true;
-            break;
-        case T_INT:
-        case T_DOUBLE:
-        case T_STRING:
-            // 56) <argumentType> -> <dataType>
-            argumentTypeStatus = dataType();
-            break;
-        default:
-            DEBUG_PRINTF("Leaving function argumentType() with %d ...\n",false);
-            return false;
-    }
-    DEBUG_PRINTF("Leaving function argumentType() with %d ...\n",argumentTypeStatus);
-    return argumentTypeStatus;
-}
-
-bool dataType(){
-    bool dataTypeStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function dataType()...\n");
-
-    switch(activeToken->tokenType) {
-        case T_INT:
-            // 57) <dataType> -> IntData
-            getNextToken();
-            dataTypeStatus = true;
-            break;
-        case T_STRING:
-            // 58) <dataType> -> StringData
-            getNextToken();
-            dataTypeStatus = true;
-            break;
-        case T_DOUBLE:
-            // 59) <dataType> -> DoubleData
-            getNextToken();
-            dataTypeStatus = true;
-            break;
-        default:
-            return false;
-    }
-    DEBUG_PRINTF("Leaving function dataType() with %d ...\n",dataTypeStatus);
-    return dataTypeStatus;
 }
 
 bool expression(){
     bool expressionStatus = false;
-    DEBUG_PRINTF("Token: %s\n",getTokenName(activeToken->tokenType));
-    DEBUG_PRINTF("Entering function expression()...\n");
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function expression()...\n");
 
-    char *var;
-    char *tempVarName;
+    /*char *tempNameWithPrefix;
     char *tempGeneratedName;
 
     switch(activeToken->tokenType) {
         case KW_READSTRING:
-            // 67) <expression> -> readString()
+        case KW_READINT:
+        case KW_READDOUBLE:
+        case KW_INT_TO_DOUBLE:
+        case KW_DOUBLE_TO_INT:
+        case KW_LENGTH:
+        case KW_SUBSTRING:
+        case KW_ORD:
+        case KW_CHR:
+            //
+            expressionStatus = parseBuidInFunctions();
+            break;
+        default:
+            listPushBack(state->tokenQueue,activeToken);
+            expressionStatus = expressionParserStart(state); 
+            getNextToken();
+            break;
+    }*/
+
+    listPushBack(state->tokenQueue,activeToken);
+    expressionStatus = expressionParserStart(state); 
+    getNextToken();
+    
+    DEBUG_PRINTF("[Parser] Leaving function expression() with %d ...\n",expressionStatus);
+    return expressionStatus;
+}
+
+bool parseBuidInFunctions(){
+    //TO DO přidat do gramatiky když se bude volat ze statement
+    bool parseBuidInFunctionsStatus = false;
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function parseBuidInFunctions()...\n");
+
+    char *tempNameWithPrefix;
+    char *tempGeneratedName;
+
+    switch(activeToken->tokenType) {
+        case KW_READSTRING:
+            // 67) <parseBuidInFunctions> -> readString()
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
-            tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
-            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
-            symtablePushCode(symTable,concatString(3,"READ ",tempVarName, " string"));
-            generatorPushStringFirstToList(gen->parserStack,tempVarName);
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+            symtablePushCode(symTable,concatString(3,"READ ",tempNameWithPrefix, " string"));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
+
+            state->expParserReturnType = T_STRING;
 
             getNextToken();
-            expressionStatus = true;
+            parseBuidInFunctionsStatus = true;
             break;
         case KW_READINT:
-            // 67) <expression> -> readInt()
+            // 67) <parseBuidInFunctions> -> readInt()
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
-            tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
-            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
-            symtablePushCode(symTable,concatString(3,"READ ",tempVarName, " int"));
-            generatorPushStringFirstToList(gen->parserStack,tempVarName);
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+            symtablePushCode(symTable,concatString(3,"READ ",tempNameWithPrefix, " int"));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
+
+            state->expParserReturnType = T_INT;
 
             getNextToken();
-            expressionStatus = true;
+            parseBuidInFunctionsStatus = true;
             break;
         case KW_READDOUBLE:
-            // 67) <expression> -> readDouble()
+            // 67) <parseBuidInFunctions> -> readDouble()
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
-            tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
-            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
-            symtablePushCode(symTable,concatString(3,"READ ",tempVarName, " float"));
-            generatorPushStringFirstToList(gen->parserStack,tempVarName);
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+            symtablePushCode(symTable,concatString(3,"READ ",tempNameWithPrefix, " float"));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
+
+            state->expParserReturnType = T_DOUBLE;
 
             getNextToken();
-            expressionStatus = true;
+            parseBuidInFunctionsStatus = true;
             break;
         case KW_INT_TO_DOUBLE:
-            // 67) <expression> -> Int2Double(term : Int)
+            // 67) <parseBuidInFunctions> -> Int2Double(term : Int)
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
@@ -1539,27 +1402,32 @@ bool expression(){
             //Symtable
             symtableFunctionCallStart(symTable,"Int2Double");
 
-            expressionStatus = argument();
+            parseBuidInFunctionsStatus = argument();
+
+            if(state->expParserReturnType != T_INT){raiseError(ERR_WRONG_TYPE);}
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
-            tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
-            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
 
-            symtablePushCode(symTable,concatString(4, "INT2FLOAT ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            generatorPushStringFirstToList(gen->parserStack,tempVarName);
+            symtablePushCode(symTable,concatString(4, "INT2FLOAT ", tempNameWithPrefix, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
+
+            state->expParserReturnType = T_DOUBLE;
+
             getNextToken();
             break;
         case KW_DOUBLE_TO_INT:
-            // 67) <expression> -> Double2Int(term : Double)
+            // 67) <parseBuidInFunctions> -> Double2Int(term : Double)
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
@@ -1567,27 +1435,32 @@ bool expression(){
             //Symtable
             symtableFunctionCallStart(symTable,"Double2Int");
 
-            expressionStatus = argument();
+            parseBuidInFunctionsStatus = argument();
+
+            if(state->expParserReturnType != T_DOUBLE){raiseError(ERR_WRONG_TYPE);}
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
-            tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
-            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
 
-            symtablePushCode(symTable,concatString(4, "FLOAT2INT ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            generatorPushStringFirstToList(gen->parserStack,tempVarName);
+            symtablePushCode(symTable,concatString(4, "FLOAT2INT ", tempNameWithPrefix, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
+
+            state->expParserReturnType = T_INT;
+
             getNextToken();
             break;
         case KW_LENGTH:
-            // 67) <expression> -> length(s : String)
+            // 67) <parseBuidInFunctions> -> length(s : String)
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
@@ -1595,29 +1468,34 @@ bool expression(){
             //Symtable
             symtableFunctionCallStart(symTable,"length");
 
-            expressionStatus = argument();
+            parseBuidInFunctionsStatus = argument();
+
+            if(state->expParserReturnType != T_STRING){raiseError(ERR_WRONG_TYPE);}
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
-            tempVarName = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
-            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempVarName));
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
 
-            symtablePushCode(symTable,concatString(4, "STRLEN ", tempVarName, " ", generatorPopFirstStringFromList(gen->parserStack)));
-            generatorPushStringFirstToList(gen->parserStack,tempVarName);
+            symtablePushCode(symTable,concatString(4, "STRLEN ", tempNameWithPrefix, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
             
             if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
+
+            state->expParserReturnType = T_INT;
+
             getNextToken();
             break;
         case KW_SUBSTRING:
-            // 67) <expression> -> substring(s : String, start : Int, end : Int)
-            // 67) <expression> -> substring(<argument>,<argument>,<argument>)
+            // 67) <parseBuidInFunctions> -> substring(s : String, start : Int, end : Int)
+            // 67) <parseBuidInFunctions> -> substring(<argument>,<argument>,<argument>)
             // verification of: KW_VESTAVENA_FUNKCE (<argument>
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
@@ -1625,39 +1503,49 @@ bool expression(){
             //Symtable
             symtableFunctionCallStart(symTable,"substring");
 
-            expressionStatus = argument();
+            parseBuidInFunctionsStatus = argument();
+
+            if(state->expParserReturnType != T_INT){raiseError(ERR_WRONG_TYPE);}
             
             // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
-            expressionStatus = expressionStatus && argument();
+            parseBuidInFunctionsStatus = parseBuidInFunctionsStatus && argument();
+
+            if(state->expParserReturnType != T_INT){raiseError(ERR_WRONG_TYPE);}
 
             // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
-            expressionStatus = expressionStatus && argument();
+            parseBuidInFunctionsStatus = parseBuidInFunctionsStatus && argument();
+            
+            if(state->expParserReturnType != T_INT){raiseError(ERR_WRONG_TYPE);}
 
             // verification of: KW_VESTAVENA_FUNKCE (<argument>,<argument>,<argument>)
             if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
 
             //Generator
+            //TO DO
+
+            //TO DO dodělat že je to String?
+            state->expParserReturnType = T_STRING;
 
             getNextToken();
             break;
         case KW_ORD:
-            // 67) <expression> -> ord(s : String)
+            // 67) <parseBuidInFunctions> -> ord(s : String)
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
@@ -1665,21 +1553,27 @@ bool expression(){
             //Symtable
             symtableFunctionCallStart(symTable,"ord");
 
-            expressionStatus = argument();
+            parseBuidInFunctionsStatus = argument();
+
+            if(state->expParserReturnType != T_STRING){raiseError(ERR_WRONG_TYPE);}
+
             if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
 
             //Generator
+            // TO DO
+
+            state->expParserReturnType = T_INT;
 
             getNextToken();
             break;
         case KW_CHR:
-            // 67) <expression> -> chr(i : Int)
+            // 67) <parseBuidInFunctions> -> chr(i : Int)
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
             getNextToken();
@@ -1687,30 +1581,72 @@ bool expression(){
             //Symtable
             symtableFunctionCallStart(symTable,"chr");
 
-            expressionStatus = argument();
+            parseBuidInFunctionsStatus = argument();
+
+            if(state->expParserReturnType != T_INT){raiseError(ERR_WRONG_TYPE);}
+
             if (activeToken->tokenType != T_RIGHT_BRACKET){
-                DEBUG_PRINTF("Leaving function expression() with %d ...\n",false);
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
 
             //Generator
+            // TO DO
+
+            state->expParserReturnType = T_STRING;
 
             getNextToken();
             break;
         default:
-            listPushBack(state->tokenQueue,activeToken);
-            expressionStatus = expressionParserStart(state);
-
-            // if (activeToken->tokenType == T_LEFT_BRACKET){
-            //     while (activeToken->tokenType != T_RIGHT_BRACKET){
-            //         DEBUG_PRINTF("getting next\n");
-            //         getNextToken();
-            //     }
-            // }
-            
-            getNextToken();
-            break;
+            DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+            return false;
     }
-    DEBUG_PRINTF("Leaving function expression() with %d ...\n",expressionStatus);
-    return expressionStatus;
+    DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",parseBuidInFunctionsStatus);
+    return parseBuidInFunctionsStatus;
+}
+
+void parseFunctionCall(){
+    bool parseFunctionCallStatus = false;
+    getNextToken();
+
+    if(activeToken->tokenType == T_IDENTIFIER){
+        char *functionName = activeToken->value->str;
+        symtableSetFunctionCallName(symTable,functionName);
+
+        getNextToken();
+        if(activeToken->tokenType != T_LEFT_BRACKET){ raiseError(ERR_SYNTAX);}
+        getNextToken();
+
+        //Generator
+        symtablePushCode(symTable,"CREATEFRAME");
+
+        //Symtable
+        symtableFunctionCallStart(symTable,NULL);
+
+        parseFunctionCallStatus = arguments();
+
+        int i = 1;
+        char *result = concatString(1,"Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
+        while(listLength(gen->parserStack) != 0){
+            snprintf(result, sizeof(result), "%d", i);
+            symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));
+            symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
+            i++;
+        }
+        //TO DO jak vrátit return value pushnout na gen-parserStack
+        // return type nastavit do program state
+
+        symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+
+    }else{
+        parseFunctionCallStatus = parseBuidInFunctions();
+    }
+
+    listPushBack(state->tokenQueue,activeToken);
+    if (parseFunctionCallStatus){
+        DEBUG_PRINTF("[Parser] Successfully leaving function parseFunctionCall()\n");
+        return;
+    }
+    DEBUG_PRINTF("[Parser] Leaving function parseFunctionCall() with syntax error\n");
+    raiseError(ERR_SYNTAX);
 }
