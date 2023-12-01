@@ -648,6 +648,8 @@ bool statement(){
                                                     generatorPopFirstStringFromList(gen->parserStack),
                                                     " bool@true"));
 
+            char *labelIfScopePrefixName = concatString(1,symtableGetScopePrefixName(symTable));
+
             // verification of: if <eol>  <expression> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
                 DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
@@ -669,10 +671,10 @@ bool statement(){
 
             //Generator
             symtablePushCode(symTable,concatString(3,"JUMP $",
-                                                    symtableGetScopePrefixName(symTable),
+                                                    labelIfScopePrefixName,
                                                     "end"));
             symtablePushCode(symTable,concatString(3,"LABEL $",
-                                                    symtableGetScopePrefixName(symTable),
+                                                    labelIfScopePrefixName,
                                                     "else"));
 
             // verification of: if <eol>  <expression> <eol> {<statements>} <eol> else <eol>
@@ -690,7 +692,7 @@ bool statement(){
 
             //Generator
             symtablePushCode(symTable,concatString(3,"LABEL $",
-                                                    symtableGetScopePrefixName(symTable),
+                                                    labelIfScopePrefixName,
                                                     "end"));
 
             symtablePushCode(symTable,"#End of IF statement");
