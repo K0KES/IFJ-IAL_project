@@ -33,7 +33,22 @@ enum tokenType acceptedTokenTypes[] = {
     T_EOL,
     T_INT,
     T_DOUBLE,
-    T_STRING};
+    T_STRING,
+
+    KW_LET,
+
+    KW_NIL,
+
+    KW_READDOUBLE,
+    KW_READINT,
+    KW_READSTRING,
+    KW_INT_TO_DOUBLE,
+    KW_DOUBLE_TO_INT,
+    KW_LENGTH,
+    KW_SUBSTRING,
+    KW_ORD,
+    KW_CHR
+    };
 
 char precedenceTable[9][9] = {
     {'<', '=', '<', '<', '<', '<', '<', '<', '1'},
