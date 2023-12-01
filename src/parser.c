@@ -209,7 +209,7 @@ bool eol(){
             getNextToken();
             eolStatus = true;
             break;
-        case T_IDENTIFIER:
+        /*case T_IDENTIFIER:
         case T_INT:
         case T_DOUBLE:
         case T_STRING:
@@ -252,7 +252,11 @@ bool eol(){
             break;
         default:
             DEBUG_PRINTF("[Parser] Leaving function eol() with %d ...\n",false);
-            return false;
+            return false;*/
+        default:
+            // 7) <eol> -> EPS
+            eolStatus = true;
+            break;
     }
     DEBUG_PRINTF("[Parser] Leaving function eol() with %d ...\n",eolStatus);
     return eolStatus;
@@ -633,6 +637,8 @@ bool statement(){
             symtableEnterScope(symTable,"if",NULL);
             
             getNextToken();
+            symtablePushCode(symTable,"");
+            symtablePushCode(symTable,"#Start of IF statement");
             statementStatus = eol() && expression() && eol();
 
             //Generator
@@ -662,8 +668,6 @@ bool statement(){
             symtableEnterScope(symTable,"if",NULL);
 
             //Generator
-            symtablePushCode(symTable,"");
-            symtablePushCode(symTable,concatString(1,"#Start of IF statement"));
             symtablePushCode(symTable,concatString(3,"JUMP $",
                                                     symtableGetScopePrefixName(symTable),
                                                     "end"));
@@ -689,13 +693,13 @@ bool statement(){
                                                     symtableGetScopePrefixName(symTable),
                                                     "end"));
 
-            symtablePushCode(symTable,concatString(1,"#End of IF statement"));
+            symtablePushCode(symTable,"#End of IF statement");
             symtableExitScope(symTable);
 
             break;
         case KW_WHILE:
             // 28) <statement> -> while <eol> <expression> <eol> {<statements>}
-            //TO DO generování kodu
+            //TO DO defvar předsadit před while
             symtableEnterScope(symTable,"while",NULL);
 
             symtablePushCode(symTable,"");
@@ -730,6 +734,7 @@ bool statement(){
             break;
         case KW_RETURN:
             // 29) <statement> -> return <returnExpression>
+            //TO DO check if is in some function scope otherwise raise error - return out of function
             getNextToken();
             statementStatus = returnExpression();
             break;
@@ -760,6 +765,7 @@ bool statement(){
 
             //Generator
             while (listLength(gen->parserStack) != 0){
+                //TO DO převést formát floatu ?? na výpis ve formátu 1.0 
                 symtablePushCode(symTable,concatString(2,"WRITE ",generatorPopLastStringFromList(gen->parserStack)));
             }
             break;
@@ -847,6 +853,7 @@ bool assign(){
     char *tempNameWithPrefix;
 
     enum data_type lastVarType = symtableGetActiveItemType(symTable);
+    //TO DO kontrola mezer u =
     switch(activeToken->tokenType) {
         case T_ASSIGNMENT:
             // 61) <assign> -> = <expression>
@@ -1101,6 +1108,8 @@ bool returnExpression(){
     DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
     DEBUG_PRINTF("[Parser] Entering function returnExpression()...\n");
 
+    //TO DO generování kodu - přidat u returnu jump na konec funkce v případě když by nebyl na jejím konci
+
     switch(activeToken->tokenType) {
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
@@ -1202,6 +1211,7 @@ bool argument(){
 
             getNextToken();
             argumentStatus = eol();
+            DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
             listPushBack(state->tokenQueue,tempToken);
             argumentStatus = argumentStatus && argWithName();
             tokenFree(tempToken);
@@ -1246,10 +1256,11 @@ bool argWithName(){
                 symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
             }
             break;
-        case T_RIGHT_BRACKET:
+        /*case T_RIGHT_BRACKET:
         case T_COMMA:
         case T_EOL:
             // 54) <argWithName> -> EPS
+            DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
             listPushBack(state->tokenQueue,activeToken);
             argWithNameStatus = expressionParserStart(state);
 
@@ -1263,7 +1274,22 @@ bool argWithName(){
             break;
         default:
             DEBUG_PRINTF("[Parser] Leaving function argWithName() with %d ...\n",false);
-            return false;
+            return false;*/
+        default:
+            // 54) <argWithName> -> EPS
+            DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
+            listPushBack(state->tokenQueue,activeToken);
+            argWithNameStatus = expressionParserStart(state);
+
+            //Symtable
+            if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
+                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
+            }
+            else {
+                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
+            }
+            getNextToken();
+            break;
     }
     DEBUG_PRINTF("[Parser] Leaving function argWithName() with %d ...\n",argWithNameStatus);
     return argWithNameStatus;
@@ -1291,12 +1317,13 @@ bool expression(){
             expressionStatus = parseBuidInFunctions();
             break;
         default:
+            DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
             listPushBack(state->tokenQueue,activeToken);
             expressionStatus = expressionParserStart(state); 
             getNextToken();
             break;
     }*/
-
+    DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
     listPushBack(state->tokenQueue,activeToken);
     expressionStatus = expressionParserStart(state); 
     getNextToken();
@@ -1642,6 +1669,7 @@ void parseFunctionCall(){
         parseFunctionCallStatus = parseBuidInFunctions();
     }
 
+    DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
     listPushBack(state->tokenQueue,activeToken);
     if (parseFunctionCallStatus){
         DEBUG_PRINTF("[Parser] Successfully leaving function parseFunctionCall()\n");
