@@ -339,15 +339,17 @@ bool symtableIsVariableDefined(symtable *table,char *varName){
 }
 
 bool symtableIsVariableInitiated(symtable *table,char *varName){
+    DEBUG_PRINTF("---------------Is %s initieted? \n",varName);
     symtableItem *item = symtableFindSymtableItem(table,varName);
     if(item == NULL) return false;
     return item->valueIsSet;
 }
 
 bool symtableIsActiveVariableInitiated(symtable *table){
+    DEBUG_PRINTF("---------------Is active initieted? \n");
     if(table == NULL) return false;
     if(table->activeItem == NULL) return false;
-    return table->activeItem->valueIsSet;
+    return symtableIsVariableInitiated(table,table->activeItem->name);
 }
 
 enum data_type symtableGetVariableType(symtable *table, char *varName){
