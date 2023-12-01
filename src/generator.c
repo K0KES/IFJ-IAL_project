@@ -94,6 +94,7 @@ void generatorGenerateOutput(generator *gen){
     }
     
     fclose(fptr);
+    fptr = NULL;
 }
 
 void generatorGenerateOutputToStdOut(generator *gen){

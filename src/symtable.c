@@ -47,7 +47,7 @@ bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctio
 
     if(scope != NULL){
         char *string = NULL;
-        if(strcmp(scope,"if") == 0 || strcmp(scope,"while")){
+        if(strstr(scope, "if") != NULL || strstr(scope, "while") != NULL){
             int stringLength = strlen(scope) + 1;
             string = (char *)malloc(stringLength);
             memcpy(string,scope,stringLength);
@@ -97,8 +97,8 @@ void symtableExitScope(symtable *table){
     
     if(listLength(table->scopes) != 0){
         char *scopeString = (char *)listGetFirst(table->scopes);
-
-        if(strcmp(scopeString,"while") != 0 && strcmp(scopeString,"if") != 0){
+        
+        if(strstr(scopeString, "while") == NULL && strstr(scopeString, "if") == NULL){
             char* line = listPopFirst(table->functionCodeHeader);
             
             while(line != NULL){
