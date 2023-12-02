@@ -1892,7 +1892,7 @@ void parseFunctionCall(){
     DEBUG_PRINTF("[Parser] Entering function parseFunctionCall()...\n");
 
     if(activeToken->tokenType == T_IDENTIFIER){
-        char *functionName = strGetStr(activeToken->value);
+        char *functionName = concatString(1,strGetStr(activeToken->value));
         symtableSetFunctionCallName(symTable,functionName);
         state->expParserReturnType = symtableGetVariableType(symTable,functionName);
 
