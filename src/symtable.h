@@ -40,6 +40,7 @@ typedef struct{
     list *arguments;
     bool endOfArguments;
     char *callName;
+    list *overloadFunctions;
 } functionData;
 
 /// @brief Structure of generic symtableItem (function or variable)
@@ -237,3 +238,12 @@ void symtableEndOfFile(symtable *table);
 /// @brief This function sets endOfDefiniton to true
 /// @param table 
 void symtableSetEndOfVariableDefinition(symtable *table);
+
+
+
+
+
+
+
+bool symtableIsVariableDefinedInCurrentScope(symtable *table,char *varName);
+symtableItem *symtableFindSymtableItemInCurrentScope(symtable *table, char *varName);
