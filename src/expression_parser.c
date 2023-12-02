@@ -532,11 +532,13 @@ int expressionParserStart(programState *PS)
                     // next token is EOL
                     if (tmpQueueElement->next->tokenInQueue->tokenType == T_EOL)
                     {
+                        DEBUG_PRINTF("[Exp parser] Error: Checking weird syntax: 1!\n");
                         raiseError(ERR_SYNTAX);
                     }
                     // next token  has space in front of him
                     if (tmpQueueElement->next->tokenInQueue->lastChar == 32)
                     {
+                        DEBUG_PRINTF("[Exp parser] Error: Checking weird syntax: 2!\n");
                         raiseError(ERR_SYNTAX);
                     }
                 }
@@ -545,6 +547,7 @@ int expressionParserStart(programState *PS)
                 {
                     if (tmpQueueElement->next->tokenInQueue->lastChar == 0 && tmpQueueElement->next->tokenInQueue->tokenType != T_EOL)
                     {
+                        DEBUG_PRINTF("[Exp parser] Error: Checking weird syntax: 3!\n");
                         raiseError(ERR_SYNTAX);
                     }
                 }
@@ -585,16 +588,19 @@ int expressionParserStart(programState *PS)
         {
             if (isTokenTypeOperatorLike(lastTokenType) == 1 || isTokenTypeOperatorLike(lastTokenType) == 2)
             {
+                DEBUG_PRINTF("[Exp parser] Error: Checking weird syntax: 4!\n");
                 raiseError(ERR_SYNTAX);
             }
 
             if (tmpQueueElement->next == NULL)
             {
+                DEBUG_PRINTF("[Exp parser] Error: Checking weird syntax: 5!\n");
                 raiseError(ERR_SYNTAX);
             }
 
             if (isTokenTypeOperatorLike(tmpQueueElement->next->tokenInQueue->tokenType) == 1 || isTokenTypeOperatorLike(tmpQueueElement->next->tokenInQueue->tokenType) == 3 || tmpQueueElement->next->tokenInQueue->tokenType == T_END)
             {
+                DEBUG_PRINTF("[Exp parser] Error: Checking weird syntax: 6!\n");
                 raiseError(ERR_SYNTAX);
             }
         }
@@ -898,7 +904,7 @@ int expressionParserStart(programState *PS)
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
                 symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
 
-                symtablePushCode(PS->symTable, concatString(4, "OR ", tempVarName_0, " ", tempVarName_1));
+                symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
                 tokenStackGet(tokenStack, 0)->value->str = tempVarName_0;
@@ -945,7 +951,7 @@ int expressionParserStart(programState *PS)
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
                 symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
 
-                symtablePushCode(PS->symTable, concatString(4, "OR ", tempVarName_0, " ", tempVarName_1));
+                symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
                 tokenStackGet(tokenStack, 0)->value->str = tempVarName_0;
@@ -1020,7 +1026,7 @@ int expressionParserStart(programState *PS)
 
             default:
                 // it's unexpected behavior so I say it is an error
-                // DEBUG_PRINTF("[Exp parser] Default state in the second switch: %s\n", getTokenName(whichTypeIsOnTheStack(tokenStack)));
+                DEBUG_PRINTF("[Exp parser] Default state in the second switch: %s\n", getTokenName(whichTypeIsOnTheStack(tokenStack)));
                 raiseError(ERR_SYNTAX);
                 break;
             }
@@ -1028,7 +1034,36 @@ int expressionParserStart(programState *PS)
 
         case '1':
             // tow tokens that should not follow each other follow each other
-            // DEBUG_PRINTF("[Exp parser] Error: invalid expression!\n");
+            // function in expression
+            if (whichTypeIsOnTheStack(tokenStack) == T_IDENTIFIER && tokenQueue->first->tokenInQueue->tokenType == T_LEFT_BRACKET)
+            {
+                DEBUG_PRINTF("[Exp parser] Function in expression!\n");
+                listPushBack(PS->tokenQueue, tokenStackGet(tokenStack, 0));
+                listPushBack(PS->tokenQueue, getFirstFromQueue(tokenQueue));
+                popFirstFromQueue(tokenQueue);
+                bracketsState = 1;
+                token* copyToken;
+                while (bracketsState != 0 && getFirstFromQueue != NULL)
+                {
+                    copyToken = getFirstFromQueue(tokenQueue);
+                    popFirstFromQueue(tokenQueue);
+                    if (copyToken->tokenType == T_LEFT_BRACKET)
+                    {
+                        bracketsState++;
+                    }
+                    else if (copyToken->tokenType == T_RIGHT_BRACKET)
+                    {
+                        bracketsState--;
+                    }
+                    tokenStackPush(tokenStack, copyToken);
+                }
+                parseFunctionCall();
+                generatorPopFirstStringFromList(PS->gen->parserStack);
+                PS->expParserReturnType;
+            }
+            
+
+            DEBUG_PRINTF("[Exp parser] Error: Two tokens that should not follow each other!\n");
             raiseError(ERR_SYNTAX);
             tokenStackClear(tokenStack);
             free(tokenQueue);
@@ -1044,7 +1079,7 @@ int expressionParserStart(programState *PS)
             {
                 tmpDebugToken = getFirstFromQueue(PS->tokenQueue);
             }
-            
+
             char *returnAdr = malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
             strcpy(returnAdr, tokenStackGet(tokenStack, 0)->value->str);
             generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
@@ -1064,7 +1099,7 @@ int expressionParserStart(programState *PS)
 
         default:
             // unexpected state so I raise an error
-            // DEBUG_PRINTF("[Exp parser] Default state in the first switch: ");
+            DEBUG_PRINTF("[Exp parser] Default state in the first switch: ");
             raiseError(ERR_SYNTAX);
             break;
         }
