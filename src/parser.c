@@ -16,10 +16,7 @@ token *tokenInit(){
     token *activeToken = (token*)malloc(sizeof(token));
     if(activeToken == NULL){ raiseError(ERR_INTERNAL); }
 
-    activeToken->value = (string*)malloc(sizeof(string));
-    if(activeToken->value == NULL){ raiseError(ERR_INTERNAL); }
-
-    strInit(activeToken->value);
+    activeToken->value = strInit();
 
     activeToken->position = (positionInfo*)malloc(sizeof(positionInfo));
     if(activeToken->position == NULL){ raiseError(ERR_INTERNAL); }
@@ -39,7 +36,6 @@ void tokenFree(token *activeToken ){
 
     if(activeToken->value != NULL){
         strFree(activeToken->value);
-        free(activeToken->value);
         activeToken->value = NULL;
     }
     free(activeToken);
@@ -333,7 +329,7 @@ bool definition(){
                 return false;
             }
 
-            symtableInsert(symTable,activeToken->value->str,true);
+            symtableInsert(symTable,strGetStr(activeToken->value),true);
 
             // verification of: func <eol> ID <eol>
             getNextToken();
@@ -476,7 +472,7 @@ bool functionParam(){
                 return false;
             }
 
-            symtableSetFunctionArgumentID(symTable,activeToken->value->str);
+            symtableSetFunctionArgumentID(symTable,strGetStr(activeToken->value));
 
             // verification of: _ <eol> ID <eol>
             getNextToken();
@@ -495,7 +491,7 @@ bool functionParam(){
         case T_IDENTIFIER:
             // 20) <functionParam> -> ID <eol> ID <eol> : <eol> <type> <eol>
 
-            symtableSetFunctionArgumentName(symTable,activeToken->value->str);
+            symtableSetFunctionArgumentName(symTable,strGetStr(activeToken->value));
 
             // verification of: ID <eol>
             getNextToken();
@@ -507,7 +503,7 @@ bool functionParam(){
                 return false;
             }
 
-            symtableSetFunctionArgumentID(symTable,activeToken->value->str);
+            symtableSetFunctionArgumentID(symTable,strGetStr(activeToken->value));
 
             // verification of: ID <eol> ID <eol>
             getNextToken();
@@ -744,11 +740,11 @@ bool statement(){
             break;
         case T_IDENTIFIER:
             // 30) <statement> -> ID <callOrAssign>
-            symtableSetActiveItem(symTable,activeToken->value->str);
-            symtableSetFunctionCallName(symTable,activeToken->value->str);
+            symtableSetActiveItem(symTable,strGetStr(activeToken->value));
+            symtableSetFunctionCallName(symTable,strGetStr(activeToken->value));
 
             //Generator
-            generatorPushStringFirstToList(gen->parserStack,activeToken->value->str);
+            generatorPushStringFirstToList(gen->parserStack,strGetStr(activeToken->value));
 
             getNextToken();
             statementStatus = callOrAssign();
@@ -1030,12 +1026,12 @@ bool varDec(){
             }
 
             //Symtable
-            symtableInsert(symTable,activeToken->value->str,false);
+            symtableInsert(symTable,strGetStr(activeToken->value),false);
             symtableVariableIsConstant(symTable);
 
             //Generator
-            symtablePushCode(symTable,concatString(3,"DEFVAR ", symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));
-            generatorPushStringFirstToList(gen->parserStack,concatString(2, symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));
+            symtablePushCode(symTable,concatString(3,"DEFVAR ", symtableGetVariablePrefix(symTable,strGetStr(activeToken->value)),strGetStr(activeToken->value)));
+            generatorPushStringFirstToList(gen->parserStack,concatString(2, symtableGetVariablePrefix(symTable,strGetStr(activeToken->value)),strGetStr(activeToken->value)));
 
             getNextToken();
             varDecStatus = eol() && varDecMid();
@@ -1054,11 +1050,11 @@ bool varDec(){
             }
 
             //Symtable
-            symtableInsert(symTable,activeToken->value->str,false);
+            symtableInsert(symTable,strGetStr(activeToken->value),false);
             
             //Generator
-            symtablePushCode(symTable,concatString(3,"DEFVAR ",symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));
-            generatorPushStringFirstToList(gen->parserStack,concatString(2,symtableGetVariablePrefix(symTable,activeToken->value->str),activeToken->value->str));
+            symtablePushCode(symTable,concatString(3,"DEFVAR ",symtableGetVariablePrefix(symTable,strGetStr(activeToken->value)),strGetStr(activeToken->value)));
+            generatorPushStringFirstToList(gen->parserStack,concatString(2,symtableGetVariablePrefix(symTable,strGetStr(activeToken->value)),strGetStr(activeToken->value)));
 
             getNextToken();
             varDecStatus = eol() && varDecMid();
@@ -1253,13 +1249,13 @@ bool argument(){
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
             /*
-            int stringLength = strlen(activeToken->value->str) + 1;
+            int stringLength = strlen(strGetStr(activeToken->value)) + 1;
             char *string = (char *)malloc(stringLength);
-            memcpy(string,activeToken->value->str,stringLength);
+            memcpy(string,strGetStr(activeToken->value),stringLength);
             */
 
-            char *string = allocateString(activeToken->value->str);
-            tempToken->value->str = string;
+            char *string = allocateString(strGetStr(activeToken->value));
+            strSetString(tempToken->value,string);
 
             getNextToken();
             argumentStatus = eol();
@@ -1297,7 +1293,7 @@ bool argWithName(){
 
             //Symtable
             activeToken = listPopLast(state->tokenQueue);
-            symtableFunctionCallSetParameterName(symTable,activeToken->value->str);
+            symtableFunctionCallSetParameterName(symTable,strGetStr(activeToken->value));
             getNextToken();
             argWithNameStatus = eol() && expression();
 
@@ -1334,11 +1330,11 @@ bool argWithName(){
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
             /*
-            int stringLength = strlen(activeToken->value->str) + 1;
+            int stringLength = strlen(strGetStr(activeToken->value)) + 1;
             char *string = (char *)malloc(stringLength);
-            memcpy(string,activeToken->value->str,stringLength);*/
-            char *string = allocateString(activeToken->value->str);
-            tempToken->value->str = string;
+            memcpy(string,strGetStr(activeToken->value),stringLength);*/
+            char *string = allocateString(strGetStr(activeToken->value));
+            strSetString(tempToken->value,string);
 
             DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
             //listPushBack(state->tokenQueue,activeToken);
@@ -1390,11 +1386,11 @@ bool expression(){
     token *tempToken = tokenInit();
     tempToken->tokenType = activeToken->tokenType;
     /*
-    int stringLength = strlen(activeToken->value->str) + 1;
+    int stringLength = strlen(strGetStr(activeToken->value)) + 1;
     char *string = (char *)malloc(stringLength);
-    memcpy(string,activeToken->value->str,stringLength);*/
-    char *string = allocateString(activeToken->value->str);
-    tempToken->value->str = string;
+    memcpy(string,strGetStr(activeToken->value),stringLength);*/
+    char *string = allocateString(strGetStr(activeToken->value));
+    strSetString(tempToken->value,string);
 
     DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
     listPushBack(state->tokenQueue,tempToken);
@@ -1761,7 +1757,7 @@ void parseFunctionCall(){
     DEBUG_PRINTF("[Parser] Entering function parseFunctionCall()...\n");
 
     if(activeToken->tokenType == T_IDENTIFIER){
-        char *functionName = activeToken->value->str;
+        char *functionName = strGetStr(activeToken->value);
         symtableSetFunctionCallName(symTable,functionName);
 
         getNextToken();

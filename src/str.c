@@ -15,29 +15,31 @@
 #define STR_SUCCESS 0
 
 // funkce vytvori novy retezec
-int strInit(string *s) {
-   if ((s->str = (char*) malloc(STR_LEN_INC)) == NULL)
-      raiseError(ERR_INTERNAL);
-   s->str[0] = '\0';
-   s->length = 0;
-   s->allocSize = STR_LEN_INC;
-   return STR_SUCCESS;
+string *strInit() {
+   string *s = (string *)malloc(sizeof(string));
+   s->listData = listInit();
+
+   return s;
 }
 
 // funkce uvolni retezec z pameti
 void strFree(string *s) {
-   free(s->str);
-   s->str = NULL;
+   listDestroy(s->listData);
+   s->listData = NULL;
+   free(s);
+   s = NULL;
 }
 
 // funkce vymaze obsah retezce
 void strClear(string *s) {
-   s->str[0] = '\0';
-   s->length = 0;
+   listClear(s->listData);
 }
 
 // prida na konec retezce jeden znak
 int strAddChar(string *s1, char c) {
+   listPushBack(s1->listData,c);
+
+   /*
    if (s1->length +1 >= s1->allocSize)
    {  
       // pamet nestaci, je potreba provest realokaci
@@ -49,12 +51,21 @@ int strAddChar(string *s1, char c) {
    }
    s1->str[s1->length] = c;
    s1->length++;
-   s1->str[s1->length] = '\0';
+   s1->str[s1->length] = '\0';*/
    return STR_SUCCESS;
 }
 
 // prekopiruje retezec s2 do s1
 int strCopyString(string *s1, string *s2) {
+   strClear(s1);
+
+   listNode *node = s2->listData->first;
+   while(node != NULL){
+      strAddChar(s1,(char)node->data);
+      node = node->next;
+   }
+
+   /*
    int newLength = s2->length;
    if (newLength >= s1->allocSize)
    {
@@ -64,40 +75,72 @@ int strCopyString(string *s1, string *s2) {
       s1->allocSize = newLength + 1;
    }
    strcpy(s1->str, s2->str);
-   s1->length = newLength;
+   s1->length = newLength;*/
    return STR_SUCCESS;
+}
+
+char strGetCharOnIndex(string *s1, int index){
+   return (char)listGet(s1->listData,index);
 }
 
 // porovna oba retezce a vrati vysledek
 int strCmpString(string *s1, string *s2) {
-   return strcmp(s1->str, s2->str);
+   char* text1 = strGetStr(s1);
+   char* text2 = strGetStr(s2);
+
+   printf("COMPRAITNG %s = %s \n",text1,text2);
+   return strcmp(text1, text2);
 }
 
 // porovna nas retezec s konstantnim retezcem
 int strCmpConstStr(string *s1, char* s2) {
-   return strcmp(s1->str, s2);
+   char* text1 = strGetStr(s1);
+
+   //printf("COMPRAITNG %s %s = %d \n",text1,s2,strcmp(text1, s2));
+   return strcmp(text1, s2);
+}
+
+void strSetString(string *s, char* text){
+   strClear(s);
+   for (size_t i = 0; text[i] != '\0'; i++)
+   {
+      strAddChar(s,text[i]);
+   }
 }
 
 // vrati textovou cast retezce
 char *strGetStr(string *s) {
-   return s->str;
+   
+   listNode *node = s->listData->first;
+   char * text = (char *)malloc(listLength(s->listData)+1);
+
+   int i = 0;
+   while(node != NULL){
+      text[i] = (char)node->data;
+      node = node->next;
+      i++;
+   }
+
+   text[i] = '\0';
+
+   return text;
 }
 
 // vrati delku daneho retezce
 int strGetLength(string *s) {
-   return s->length;
+   return listLength(s->listData);
 }
 
 void strPrint (string *s) {
+   /*
    int i = 0;
    while (s->str[i] != '\0') {
       DEBUG_PRINTF("%c", s->str[i]);
       i++;
-   }
+   }*/
    
 }
 
 void strpPop (string *s) {
-   s->length--;
-   s->str[s->length-1] = '\0';
+   listPopLast(s->listData);
 }
