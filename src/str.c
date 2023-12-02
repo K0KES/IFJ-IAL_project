@@ -18,6 +18,8 @@
 string *strInit() {
    string *s = (string *)malloc(sizeof(string));
    s->listData = listInit();
+   s->str = NULL;
+   strUpdateStr(s);
 
    return s;
 }
@@ -26,6 +28,8 @@ string *strInit() {
 void strFree(string *s) {
    listDestroy(s->listData);
    s->listData = NULL;
+   free(s->str);
+   s->str = NULL;
    free(s);
    s = NULL;
 }
@@ -33,6 +37,7 @@ void strFree(string *s) {
 // funkce vymaze obsah retezce
 void strClear(string *s) {
    listClear(s->listData);
+   strUpdateStr(s);
 }
 
 // prida na konec retezce jeden znak
@@ -52,6 +57,8 @@ int strAddChar(string *s1, char c) {
    s1->str[s1->length] = c;
    s1->length++;
    s1->str[s1->length] = '\0';*/
+
+   strUpdateStr(s1);
    return STR_SUCCESS;
 }
 
@@ -64,6 +71,8 @@ int strCopyString(string *s1, string *s2) {
       strAddChar(s1,(char)node->data);
       node = node->next;
    }
+
+   strUpdateStr(s1);
 
    /*
    int newLength = s2->length;
@@ -87,8 +96,7 @@ char strGetCharOnIndex(string *s1, int index){
 int strCmpString(string *s1, string *s2) {
    char* text1 = strGetStr(s1);
    char* text2 = strGetStr(s2);
-
-   printf("COMPRAITNG %s = %s \n",text1,text2);
+   
    return strcmp(text1, text2);
 }
 
@@ -101,16 +109,25 @@ int strCmpConstStr(string *s1, char* s2) {
 }
 
 void strSetString(string *s, char* text){
+   if(text == NULL) return;
    strClear(s);
    for (size_t i = 0; text[i] != '\0'; i++)
    {
       strAddChar(s,text[i]);
    }
+
+   strUpdateStr(s);
 }
 
-// vrati textovou cast retezce
-char *strGetStr(string *s) {
-   
+void strUpdateStr(string *s){
+   if(s->str != NULL){
+      free(s->str);
+      s->str = NULL;
+   }
+   s->str = strCreateStr(s);
+}
+
+char* strCreateStr(string *s){
    listNode *node = s->listData->first;
    char * text = (char *)malloc(listLength(s->listData)+1);
 
@@ -124,6 +141,11 @@ char *strGetStr(string *s) {
    text[i] = '\0';
 
    return text;
+}
+
+// vrati textovou cast retezce
+char *strGetStr(string *s) {
+   return s->str;
 }
 
 // vrati delku daneho retezce
@@ -143,4 +165,6 @@ void strPrint (string *s) {
 
 void strpPop (string *s) {
    listPopLast(s->listData);
+
+   strUpdateStr(s);
 }
