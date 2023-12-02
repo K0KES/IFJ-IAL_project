@@ -1209,10 +1209,31 @@ bool varDecMid(){
             getNextToken();
             varDecMidStatus = eol() && type() && eol() && varDef();
             break;
-        case T_ASSIGNMENT:
+        case T_ASSIGNMENT:;
             // 41) <varDecMid> -> = <expression>
+            int assignTokenLastChar = activeToken->lastChar;
             getNextToken();
-            DEBUG_PRINTF("------ %d \n",listLength(gen->parserStack));
+
+            // there is NOT space in front of operator
+            if (assignTokenLastChar == 0 && typeOfLastToken != T_EOL){
+                // next token is EOL
+                if (activeToken->tokenType == T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+                // next token  has space in front of him
+                if (activeToken->lastChar == 32){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            // there is space in front of operator
+            else if (assignTokenLastChar == 32 || typeOfLastToken == T_EOL){
+                if (activeToken->lastChar == 0 && activeToken->tokenType != T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
 
             varDecMidStatus = expression();
             //TO DO umí expressionParser vracet nil?? -> nil vracet jako DATA_TYPE_NOTSET
@@ -1222,7 +1243,6 @@ bool varDecMid(){
             symtableSetVariableValue(symTable);
 
             //Generator
-            DEBUG_PRINTF("------ %d \n",listLength(gen->parserStack));
             symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
         default:
@@ -1245,9 +1265,31 @@ bool varDef(){
             generatorPopFirstStringFromList(gen->parserStack);
             varDefStatus = true;
             break;
-        case T_ASSIGNMENT:
+        case T_ASSIGNMENT:;
             // 43) <varDef> -> = <expression>
+            int assignTokenLastChar = activeToken->lastChar;
             getNextToken();
+
+            // there is NOT space in front of operator
+            if (assignTokenLastChar == 0 && typeOfLastToken != T_EOL){
+                // next token is EOL
+                if (activeToken->tokenType == T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+                // next token  has space in front of him
+                if (activeToken->lastChar == 32){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            // there is space in front of operator
+            else if (assignTokenLastChar == 32 || typeOfLastToken == T_EOL){
+                if (activeToken->lastChar == 0 && activeToken->tokenType != T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
 
             varDefStatus = expression();
             symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
@@ -1285,8 +1327,8 @@ bool returnExpression(){
         case T_EOL:
             // 45) <returnExpression> -> EPS
             if(symtableGetReturnTypeOfCurrentScope(symTable) != DATA_TYPE_VOID){ 
-                //DEBUG_PRINTF("[Parser] Error function should return value\n");
-                //raiseError(ERR_WRONG_RETURN_TYPE); 
+                DEBUG_PRINTF("[Parser] Error function should return value\n");
+                raiseError(ERR_WRONG_RETURN_TYPE); 
             }
             returnExpressionStatus = true;
             break;
@@ -1295,12 +1337,12 @@ bool returnExpression(){
             returnExpressionStatus = expression();
             //TO DO co vrací exp parser v druhém případe následující podmínky -> zkontrolovat typy
             if(symtableGetReturnTypeOfCurrentScope(symTable) == DATA_TYPE_VOID && state->expParserReturnType != DATA_TYPE_NOTSET){
-                // DEBUG_PRINTF("[Parser] Error function should return void\n");
-                // raiseError(ERR_WRONG_RETURN_TYPE);
+                DEBUG_PRINTF("[Parser] Error function should return void\n");
+                raiseError(ERR_WRONG_RETURN_TYPE);
             }
             if (symtableGetReturnTypeOfCurrentScope(symTable) != state->expParserReturnType) { 
-                // DEBUG_PRINTF("[Parser] Error function wrong return type\n");
-                // raiseError(ERR_WRONG_RETURN_TYPE); 
+                DEBUG_PRINTF("[Parser] Error function wrong return type\n");
+                raiseError(ERR_WRONG_RETURN_TYPE); 
             }
             symtablePushCode(symTable,concatString(2,"MOVE LF@%retval ",generatorPopFirstStringFromList(gen->parserStack)));
             symtablePushCode(symTable,concatString(3,"JUMP $",symTable->currentFunction->name,"_end"));
