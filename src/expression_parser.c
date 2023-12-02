@@ -479,7 +479,7 @@ int expressionParserStart(programState *PS)
             parseFunctionCall();
 
             DEBUG_PRINTF("[Exp parser] Back from parser function\n");
-            DEBUG_PRINTF("[Exp parser] %d \n",listLength(PS->gen->parserStack));
+            // DEBUG_PRINTF("[Exp parser] %d \n",listLength(PS->gen->parserStack));
 
 
             getLastFromQueue(tokenQueue)->tokenType = T_IDENTIFIER;
@@ -491,8 +491,13 @@ int expressionParserStart(programState *PS)
             // fix bracket count
             bracketsState--;
             // raiseError(ERR_INTERNAL);
-            addLastToQueue(tokenQueue, listGetFirst(PS->tokenQueue));
+            tokenToPush = tokenInit();
+
+            copyToken(listGetFirst(PS->tokenQueue), tokenToPush);
             listPopFirst(PS->tokenQueue);
+
+
+            addLastToQueue(tokenQueue, tokenToPush);
 
             // token *tmpDebugToken1 = (token *)listGetFirst(PS->tokenQueue);
         }
@@ -681,7 +686,7 @@ int expressionParserStart(programState *PS)
         {
             // push to stack
         case '<':
-            // DEBUG_PRINTF("[Exp parser] Push to stack\n");
+            DEBUG_PRINTF("[Exp parser] Push to stack\n");
             tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
             popFirstFromQueue(tokenQueue);
             break;
@@ -802,7 +807,7 @@ int expressionParserStart(programState *PS)
             }
             case T_PLUS:
             {
-                // DEBUG_PRINTF("[Exp parser] E -> E + E\n");
+                DEBUG_PRINTF("[Exp parser] E -> E + E\n");
 
                 // concat str
                 if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_STRING && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_STRING)
