@@ -1218,9 +1218,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
 string* multilineStringCheck (string* multiLine, int firstCharPos) {
 
     int indent = 0;
-    if (multiLine->str[0] != '\n') { raiseError(ERR_LEXICAL); }
+    if (strGetCharOnIndex(multiLine,0) != '\n') { raiseError(ERR_LEXICAL); }
 
-    char beforeQuote = multiLine->str[multiLine->length-4]; //first char before ending """ quotes
+    char beforeQuote = strGetCharOnIndex(multiLine,strGetLength(multiLine)-4); //first char before ending """ quotes
     int i = 1;
 
 
@@ -1235,8 +1235,8 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
     while (beforeQuote != '\n') {
         if (beforeQuote == ' ') { indent++; } //counting indent
         else if (beforeQuote != ' ' && beforeQuote != '\n') { raiseError(ERR_LEXICAL); } //there is something else before """ than space or newline => error
-    
-        beforeQuote = multiLine->str[multiLine->length-4-i];
+        
+        beforeQuote = strGetCharOnIndex(multiLine,strGetLength(multiLine)-4-i);
         i++;
     }
 
@@ -1247,13 +1247,13 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
     int j = -1;
     char newLineStart;
     int currentIndent = 0;
-    for (int k = 0; k < multiLine->length; k++) {
-        newLineStart = multiLine->str[k];
+    for (int k = 0; k < strGetLength(multiLine); k++) {
+        newLineStart = strGetCharOnIndex(multiLine,k);
         // printf("\n znak: '%c'\n", newLineStart);
             if (newLineStart == '\n') {
                 strAddChar(newString, newLineStart);
                 k++;
-                newLineStart = multiLine->str[k];
+                newLineStart = strGetCharOnIndex(multiLine,k);
                 // printf("\n znak: '%c'\n", newLineStart);
                 // printf("\nENTERING NEWLINE\n");
                 
@@ -1262,7 +1262,7 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
                     if (currentIndent == indent) { break; }
                     currentIndent++;
                     k++;
-                    newLineStart = multiLine->str[k];
+                    newLineStart = strGetCharOnIndex(multiLine,k);
                     j = k;
                 }
                 //indents of lines that starts with something else than \n are not equal => error

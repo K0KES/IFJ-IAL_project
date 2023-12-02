@@ -139,6 +139,22 @@ void* listGetLast(list *list) {
     return list->last->data;
 }
 
+
+void *listGet(list *list, int index){
+    listNode *node = list->first;
+    int i = 0;
+    while(node != NULL){
+        if(i == index){
+            return node->data;
+        }
+
+        i++;
+        node = node->next;
+    }
+
+    return NULL;
+}
+
 /*
 void main(){
     list *my_list = listInit();

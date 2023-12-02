@@ -122,24 +122,13 @@ void generatorGenerateOutputToStdOut(generator *gen){
     }
 }
 
-/*
-char * concatString(int num_args, ...){
-    va_list args;
-    va_start(args, num_args);
-
-    char* first = va_arg(args, char *);
-    int stringLength = strlen(first) + 1;
-    char *newFirst = (char *)malloc(stringLength);
-    memcpy(newFirst,first,stringLength);
-
-    for(int i = 1; i < num_args; i++) {
-        char* text = va_arg(args, char *);
-        strcat(newFirst,text);
-    }
-
-    va_end(args);
-    return newFirst;
-}*/
+char * allocateString(char * original){
+    char * copy = malloc(strlen(original) + 18); //Why not
+    strcpy(copy, original);
+    
+    listPushBack(allocatedStrings,copy);
+    return copy;
+}
 
 char * concatString(int num_args, ...){
     va_list args;
@@ -164,14 +153,13 @@ char * concatString(int num_args, ...){
     *dest = '\0';
 
     va_end(args);
-
+    
     listPushBack(allocatedStrings,output);
     return output;
 }
 
 char* generatorGenerateTempVarName(generator *gen){
-    //Posible segfault
-    static char result[100];
+    char* result = allocateString("musim_alokovat_takhle_xd");
     snprintf(result, sizeof(result), "temp%d", gen->counter);
     gen->counter++;
     return result;
@@ -225,12 +213,15 @@ void printList(list *l){
 
 void freeContentOfListAndDestroy(list *list){
     listNode *node = list->first;
+
     while(node != NULL){
         if(node->data != NULL){
             free(node->data);   
+            node->data = NULL;
         }
         node = node->next;
     }
+    
     listDestroy(list);
     list = NULL;
 }
