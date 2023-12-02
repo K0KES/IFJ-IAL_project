@@ -472,7 +472,9 @@ int expressionParserStart(programState *PS)
         {
             DEBUG_PRINTF("[Exp parser] Spotted function\n");
             listPushBack(PS->tokenQueue, getLastFromQueue(tokenQueue));
-            listPushBack(PS->tokenQueue, activeToken);
+            token *tokenToPush = tokenInit();
+            copyToken(activeToken, tokenToPush);
+            listPushBack(PS->tokenQueue, tokenToPush);
 
             parseFunctionCall();
 
