@@ -771,7 +771,6 @@ bool statement(){
 
             //Generator
             while (listLength(gen->parserStack) != 0){
-                //TO DO převést formát floatu ?? na výpis ve formátu 1.0 
                 symtablePushCode(symTable,concatString(2,"WRITE ",generatorPopLastStringFromList(gen->parserStack)));
             }
             break;
@@ -820,6 +819,7 @@ bool callOrAssign(){
             symtablePushCode(symTable,"CREATEFRAME");
 
             char *functionName = generatorPopFirstStringFromList(gen->parserStack);
+            state->expParserReturnType = symtableGetVariableType(symTable,functionName);
             
             //Symtable
             symtableFunctionCallStart(symTable,NULL);
@@ -837,7 +837,12 @@ bool callOrAssign(){
             }
 
             symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+            char *tempGeneratedName = generatorGenerateTempVarName(gen);
+            char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
 
+            symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," TF@%retval"));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
             break;
         default:
             DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",false);
@@ -1152,8 +1157,6 @@ bool returnExpression(){
     DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
     DEBUG_PRINTF("[Parser] Entering function returnExpression()...\n");
 
-    //TO DO generování kodu - přidat u returnu jump na konec funkce v případě když by nebyl na jejím konci
-
     switch(activeToken->tokenType) {
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
@@ -1177,6 +1180,7 @@ bool returnExpression(){
                 // raiseError(ERR_WRONG_RETURN_TYPE); 
             }
             symtablePushCode(symTable,concatString(2,"MOVE LF@%retval ",generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(3,"JUMP $",symTable->currentFunction->name,"_end"));
             break;
     }
     DEBUG_PRINTF("[Parser] Leaving function returnExpression() with %d ...\n",returnExpressionStatus);
@@ -1765,6 +1769,7 @@ void parseFunctionCall(){
     if(activeToken->tokenType == T_IDENTIFIER){
         char *functionName = strGetStr(activeToken->value);
         symtableSetFunctionCallName(symTable,functionName);
+        state->expParserReturnType = symtableGetVariableType(symTable,functionName);
 
         getNextToken();
         if(activeToken->tokenType != T_LEFT_BRACKET){ 
@@ -1789,15 +1794,17 @@ void parseFunctionCall(){
             symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
             i++;
         }
-        //TO DO jak vrátit return value pushnout na gen-parserStack
-        // return type nastavit do program state
-
         symtablePushCode(symTable,concatString(2,"CALL $",functionName));
 
+        char *tempGeneratedName = generatorGenerateTempVarName(gen);
+        char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+        symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+
+        symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," TF@%retval"));
+        generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
     }else{
         parseFunctionCallStatus = parseBuidInFunctions();
     }
-    //TO DO check if tokenQueue is empty
     DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
     listPushBack(state->tokenQueue,activeToken);
     if (parseFunctionCallStatus){
