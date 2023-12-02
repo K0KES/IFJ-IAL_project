@@ -158,6 +158,9 @@ void symtableExitScope(symtable *table){
 void symtableFunctionDataFree(functionData *funcData){
     listNode *argNode = funcData->arguments->first;
     while(argNode != NULL){
+        functionArgument *arg = (functionArgument *)argNode->data;
+
+
         free(argNode->data);
         argNode->data = NULL;
         argNode = argNode->next;
@@ -649,15 +652,7 @@ void symtableEndOfFile(symtable *table){
             raiseError(ERR_UNDEFINED_FUNCTION);
         }
 
-        listNode *node = funcData->arguments->first;
-        while(node != NULL){
-            free(node->data);
-            node->data = NULL;
-            node = node->next;
-        }
-
-        listDestroy(funcData->arguments);
-        free(funcData);
+        symtableFunctionDataFree(funcData);
         funcData = (functionData *)listPopFirst(table->functionCalls);
     }
 

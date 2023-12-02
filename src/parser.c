@@ -1252,9 +1252,13 @@ bool argument(){
             // 52) <argument> -> ID <eol> <argWithName>
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
+            /*
             int stringLength = strlen(activeToken->value->str) + 1;
             char *string = (char *)malloc(stringLength);
             memcpy(string,activeToken->value->str,stringLength);
+            */
+
+            char *string = allocateString(activeToken->value->str);
             tempToken->value->str = string;
 
             getNextToken();
@@ -1329,9 +1333,11 @@ bool argWithName(){
             // 54) <argWithName> -> EPS
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
+            /*
             int stringLength = strlen(activeToken->value->str) + 1;
             char *string = (char *)malloc(stringLength);
-            memcpy(string,activeToken->value->str,stringLength);
+            memcpy(string,activeToken->value->str,stringLength);*/
+            char *string = allocateString(activeToken->value->str);
             tempToken->value->str = string;
 
             DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
@@ -1383,9 +1389,11 @@ bool expression(){
     }*/
     token *tempToken = tokenInit();
     tempToken->tokenType = activeToken->tokenType;
+    /*
     int stringLength = strlen(activeToken->value->str) + 1;
     char *string = (char *)malloc(stringLength);
-    memcpy(string,activeToken->value->str,stringLength);
+    memcpy(string,activeToken->value->str,stringLength);*/
+    char *string = allocateString(activeToken->value->str);
     tempToken->value->str = string;
 
     DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
