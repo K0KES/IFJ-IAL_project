@@ -898,7 +898,7 @@ int expressionParserStart(programState *PS)
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
                 symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
 
-                symtablePushCode(PS->symTable, concatString(4, "OR ", tempVarName_0, " ", tempVarName_1));
+                symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
                 tokenStackGet(tokenStack, 0)->value->str = tempVarName_0;
@@ -945,7 +945,7 @@ int expressionParserStart(programState *PS)
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
                 symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
 
-                symtablePushCode(PS->symTable, concatString(4, "OR ", tempVarName_0, " ", tempVarName_1));
+                symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0," ", tempVarName_1));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
                 tokenStackGet(tokenStack, 0)->value->str = tempVarName_0;
