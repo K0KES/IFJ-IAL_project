@@ -9,7 +9,7 @@
 #define LEX_ERROR 1
 #define LEX_OK 0
 
-
+//for debugging purposes only
 typedef struct {
     int lineNumber;
     int charNumber;
@@ -133,9 +133,12 @@ typedef struct {
     char lastChar;
 } token;
 
+//function for cleaning token
 void tokenClear (token* token);
+//function for handeling stdin and creating tokens
 int getToken(token *token, int charNumber, int lineNumber);
 
+//function for checking errors in Multiline string and also check for errors
 string* multilineStringCheck (string* multiLine, int firtCharPos);
 
 const char* getTokenName(enum tokenType tokenType);
