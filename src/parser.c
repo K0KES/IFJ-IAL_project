@@ -1006,6 +1006,7 @@ bool varDec(){
 
             getNextToken();
             varDecStatus = eol() && varDecMid();
+            symtableSetEndOfVariableDefinition(symTable);
             break;
         case KW_VAR:
             // 39) <varDec> -> var <eol> ID <eol> <varDecMid>
@@ -1092,6 +1093,10 @@ bool varDef(){
 
             //Generator
             symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
+            break;
+        case T_EOF:
+            generatorPopFirstStringFromList(gen->parserStack);
+            varDefStatus = true;
             break;
         default:
             // verification of: EOL

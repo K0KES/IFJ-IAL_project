@@ -20,6 +20,7 @@ int listLength(list *list);
 
 void* listGetLast(list *list);
 void* listGetFirst(list *list);
+void *listGet(list *list, int index);
 
 bool listPushFirst(list *list, void *data);
 bool listPushBack(list *list, void *data);

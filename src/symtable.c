@@ -9,6 +9,7 @@
 #include "symtable.h"
 #include <stdio.h>
 #include "error.h"
+#include "generator.h"
 
 symtable* symtableInit(generator *generator)
 {
@@ -79,6 +80,14 @@ void symtableExitScope(symtable *table){
 
         while(currentItem != NULL){
             symtableItem * item = (symtableItem *)(currentItem->data);
+            if(item->funcData != NULL){
+                listNode *argNode = item->funcData->arguments->first;
+                while(argNode != NULL){
+                    free(argNode->data);
+                    argNode->data = NULL;
+                    argNode = argNode->next;
+                }
+            }
             free(item->name);
             free(item->funcData);
             free(item);
@@ -122,7 +131,15 @@ void symtableExitScope(symtable *table){
         if(strstr(scopeString, "&while") != NULL) {
             listNode *node = table->gen->temporary->first;
             while(node != NULL){
-                generatorPushStringToList(table->gen->mainCode,(char*)node->data);
+                if(table->currentFunction == NULL){
+                    generatorPushStringToList(table->gen->mainCode,(char*)node->data);
+                    free(node->data);
+                    node->data = NULL;
+                }else{
+                    generatorPushStringToList(table->functionCodeBody,(char*)node->data);
+                    free(node->data);
+                    node->data = NULL;
+                }
                 node = node->next;
             }
             listClear(table->gen->temporary);
@@ -136,6 +153,19 @@ void symtableExitScope(symtable *table){
         DEBUG_PRINTF("[Symtable] Exiting scope - GLOBAL\n");
     }
 
+}
+
+void symtableFunctionDataFree(functionData *funcData){
+    listNode *argNode = funcData->arguments->first;
+    while(argNode != NULL){
+        free(argNode->data);
+        argNode->data = NULL;
+        argNode = argNode->next;
+    }
+
+    listDestroy(funcData->arguments);
+    free(funcData);
+    funcData = NULL;
 }
 
 void symtableFree(symtable *table){
@@ -255,10 +285,17 @@ void symtableVariableIsConstant(symtable *table){
 void symtableSetVariableValue(symtable *table){
     if(table == NULL) return;
     if(table->activeItem == NULL) return;
-
-    if(table->activeItem->isConstant == true && table->activeItem->valueIsSet == true){raiseError(ERR_SEMANTIC);}
+    
+    if(table->activeItem->isConstant == true){
+        if(table->activeItem->valueIsSet){
+            if(table->activeItem->endOfDefinition == true){
+                raiseError(ERR_SEMANTIC);
+            }
+        }
+    }
 
     table->activeItem->valueIsSet = true;
+    
 }
 
 void symtableAddFunctionNextArgument(symtable *table){
@@ -431,7 +468,19 @@ void symtablePushCode(symtable *table, char* code){
                 generatorPushStringToList(table->gen->mainCode,code);
             }
         }else{
-            generatorPushStringToList(table->functionCodeBody,code);
+            char* scope = (char*)listGetFirst(table->scopes);
+            if (strstr(scope, "&while") != NULL) {
+                if (strstr(code, "DEFVAR ") != NULL) {
+                    generatorPushStringFirstToList(table->functionCodeBody,code);
+                }else{
+                    generatorPushStringToList(table->gen->temporary,code);
+                }
+            }else{
+                generatorPushStringToList(table->functionCodeBody,code);
+            }
+
+
+            //generatorPushStringToList(table->functionCodeBody,code);
         }
     }
     
@@ -439,9 +488,9 @@ void symtablePushCode(symtable *table, char* code){
 
 char* symtableGetScopePrefixName(symtable *table){
     if(listLength(table->scopes) == 0){
-        return concatString(1,"global_");
+        return allocateString("global_");
     }else{
-        return concatString(1,(char *)listGetFirst(table->scopes));
+        return allocateString((char *)listGetFirst(table->scopes));
     }
 }
 
@@ -544,9 +593,8 @@ void symtableEndOfFile(symtable *table){
             || strcmp(funcData->callName,"substring") == 0
             || strcmp(funcData->callName,"ord") == 0
             || strcmp(funcData->callName,"chr") == 0){
-            
-            listDestroy(funcData->arguments);
-            free(funcData);
+
+            symtableFunctionDataFree(funcData);
             funcData = (functionData *)listPopFirst(table->functionCalls);
             continue;
         }
@@ -599,6 +647,13 @@ void symtableEndOfFile(symtable *table){
             raiseError(ERR_UNDEFINED_FUNCTION);
         }
 
+        listNode *node = funcData->arguments->first;
+        while(node != NULL){
+            free(node->data);
+            node->data = NULL;
+            node = node->next;
+        }
+
         listDestroy(funcData->arguments);
         free(funcData);
         funcData = (functionData *)listPopFirst(table->functionCalls);
@@ -629,4 +684,11 @@ enum data_type symtableGetActiveItemType(symtable *table){
 void symtableCheckSameTypes(enum data_type type1,enum data_type type2){
     if(type1 == type2) {return;}
     raiseError(ERR_WRONG_TYPE);
+}
+
+void symtableSetEndOfVariableDefinition(symtable *table){
+    if(table == NULL) return;
+    if(table->activeItem == NULL) return;
+
+    table->activeItem->endOfDefinition = true;
 }

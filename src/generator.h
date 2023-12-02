@@ -40,6 +40,7 @@ char * concatString(int num_args, ...);
 void printList(list *l);
 
 char* stringToAssemblyStringFormat(const char* inputString);
+char * allocateString(char * string);
 
 /*
 
