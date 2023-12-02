@@ -980,7 +980,30 @@ bool assign(){
             destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
+            assignTokenLastChar = activeToken->lastChar;
             getNextToken();
+
+            // there is NOT space in front of operator
+            if (assignTokenLastChar == 0 && typeOfLastToken != T_EOL){
+                // next token is EOL
+                if (activeToken->tokenType == T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+                // next token  has space in front of him
+                if (activeToken->lastChar == 32){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            // there is space in front of operator
+            else if (assignTokenLastChar == 32 || typeOfLastToken == T_EOL){
+                if (activeToken->lastChar == 0 && activeToken->tokenType != T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
@@ -1011,7 +1034,30 @@ bool assign(){
             destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
+            assignTokenLastChar = activeToken->lastChar;
             getNextToken();
+
+            // there is NOT space in front of operator
+            if (assignTokenLastChar == 0 && typeOfLastToken != T_EOL){
+                // next token is EOL
+                if (activeToken->tokenType == T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+                // next token  has space in front of him
+                if (activeToken->lastChar == 32){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            // there is space in front of operator
+            else if (assignTokenLastChar == 32 || typeOfLastToken == T_EOL){
+                if (activeToken->lastChar == 0 && activeToken->tokenType != T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
@@ -1042,7 +1088,30 @@ bool assign(){
             destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
+            assignTokenLastChar = activeToken->lastChar;
             getNextToken();
+
+            // there is NOT space in front of operator
+            if (assignTokenLastChar == 0 && typeOfLastToken != T_EOL){
+                // next token is EOL
+                if (activeToken->tokenType == T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+                // next token  has space in front of him
+                if (activeToken->lastChar == 32){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            // there is space in front of operator
+            else if (assignTokenLastChar == 32 || typeOfLastToken == T_EOL){
+                if (activeToken->lastChar == 0 && activeToken->tokenType != T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
@@ -1823,7 +1892,7 @@ void parseFunctionCall(){
     DEBUG_PRINTF("[Parser] Entering function parseFunctionCall()...\n");
 
     if(activeToken->tokenType == T_IDENTIFIER){
-        char *functionName = strGetStr(activeToken->value);
+        char *functionName = concatString(1,strGetStr(activeToken->value));
         symtableSetFunctionCallName(symTable,functionName);
         state->expParserReturnType = symtableGetVariableType(symTable,functionName);
 
