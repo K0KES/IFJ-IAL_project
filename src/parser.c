@@ -188,6 +188,12 @@ bool code(){
             // 5) <code> -> EOF
             codeStatus = true;
             break;
+            
+        case T_EOL:
+            // 5) <code> -> EOF
+            getNextToken();
+            codeStatus = code();
+            break;
         default:
             DEBUG_PRINTF("[Parser] Leaving function code() with %d ...\n",false);
             return false;

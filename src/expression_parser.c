@@ -8,6 +8,7 @@ void copyToken(token *t1, token *t2)
     t2->tokenExpParserType = t1->tokenExpParserType;
     t2->tokenType = t1->tokenType;
     t2->value = t1->value;
+    t2->is_return_from_func = t1->is_return_from_func;
     strcpy(t2->value->str, t1->value->str);
 }
 
@@ -49,7 +50,7 @@ int isTokenTypeOperatorLike(enum tokenType tokenType)
     }
 }
 
-int isTokenFunction (enum tokenType tokenType)
+int isTokenFunction(enum tokenType tokenType)
 {
     if (tokenType == KW_READDOUBLE || tokenType == KW_READINT || tokenType == KW_READSTRING || tokenType == KW_INT_TO_DOUBLE || tokenType == KW_DOUBLE_TO_INT || tokenType == KW_LENGTH || tokenType == KW_SUBSTRING || tokenType == KW_ORD || tokenType == KW_CHR || tokenType == T_IDENTIFIER)
     {
@@ -471,13 +472,22 @@ int expressionParserStart(programState *PS)
         else if (activeToken->tokenType == T_LEFT_BRACKET && getLastFromQueue(tokenQueue) != NULL && isTokenFunction(getLastFromQueue(tokenQueue)->tokenType))
         {
             DEBUG_PRINTF("[Exp parser] Spotted function\n");
-            listPushBack(PS->tokenQueue,getLastFromQueue(tokenQueue));
-            listPushBack(PS->tokenQueue,activeToken);
+            listPushBack(PS->tokenQueue, getLastFromQueue(tokenQueue));
+            listPushBack(PS->tokenQueue, activeToken);
+
             parseFunctionCall();
-            
-            raiseError(ERR_INTERNAL);
+
+            DEBUG_PRINTF("[Exp parser] Back from parser function\n");
+
+            getLastFromQueue(tokenQueue)->tokenType = T_IDENTIFIER;
+            getLastFromQueue(tokenQueue)->tokenExpParserType = PS->expParserReturnType;
+            getLastFromQueue(tokenQueue)->value->str = generatorPopFirstStringFromList(PS->gen->parserStack);
+            getLastFromQueue(tokenQueue)->is_return_from_func = true;
+            // fix bracket count
+            bracketsState--;
+            // raiseError(ERR_INTERNAL);
+             addLastToQueue(tokenQueue, listPopFirst(PS->tokenQueue));
         }
-        
 
         else if (isTokenTypeAccepted(activeToken) && bracketsState >= 0 && !ignoredEOL)
         {
@@ -683,21 +693,30 @@ int expressionParserStart(programState *PS)
             case T_IDENTIFIER:
             {
                 // DEBUG_PRINTF("[Exp parser] E -> i (identifier)\n");
-
-                newIdentifierType = symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
-                if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING)
+                if (tokenStackGet(tokenStack, 0)->is_return_from_func == true)
                 {
-                    // DEBUG_PRINTF("[Exp parser] Error: expression parser spotted potential function!\n");
-                    DEBUG_PRINTF("[Exp parser] Error internal 9!\n");
-                    raiseError(ERR_INTERNAL);
+                    tokenStackGet(tokenStack, 0)->is_return_from_func = false;
+                    tokenStackGet(tokenStack, 0)->tokenType = T_E;
+                    break;
+                    // raiseError(ERR_INTERNAL);
                 }
+                else
+                {
+                    newIdentifierType = symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
+                    if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING)
+                    {
+                        // DEBUG_PRINTF("[Exp parser] Error: expression parser spotted potential function!\n");
+                        DEBUG_PRINTF("[Exp parser] Error internal 9!\n");
+                        raiseError(ERR_INTERNAL);
+                    }
 
-                tokenStackGet(tokenStack, 0)->tokenExpParserType = newIdentifierType;
-                tokenStackGet(tokenStack, 0)->tokenType = T_E;
+                    tokenStackGet(tokenStack, 0)->tokenExpParserType = newIdentifierType;
+                    tokenStackGet(tokenStack, 0)->tokenType = T_E;
 
-                tokenStackGet(tokenStack, 0)->value->str = concatString(2, symtableGetVariablePrefix(PS->symTable, tokenStackGet(tokenStack, 0)->value->str), tokenStackGet(tokenStack, 0)->value->str);
+                    tokenStackGet(tokenStack, 0)->value->str = concatString(2, symtableGetVariablePrefix(PS->symTable, tokenStackGet(tokenStack, 0)->value->str), tokenStackGet(tokenStack, 0)->value->str);
 
-                break;
+                    break;
+                }
             }
 
             case T_INT:
@@ -790,6 +809,7 @@ int expressionParserStart(programState *PS)
                 // Error
                 else
                 {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 1\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
                 tokenStackPop(tokenStack, 2);
@@ -821,6 +841,7 @@ int expressionParserStart(programState *PS)
                 // Error
                 else
                 {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 2\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
                 tokenStackPop(tokenStack, 2);
@@ -851,6 +872,7 @@ int expressionParserStart(programState *PS)
                 // Error
                 else
                 {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 3\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
                 tokenStackPop(tokenStack, 2);
@@ -881,6 +903,7 @@ int expressionParserStart(programState *PS)
                 // Error
                 else
                 {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 4\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
                 tokenStackPop(tokenStack, 2);
@@ -893,6 +916,7 @@ int expressionParserStart(programState *PS)
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 5\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
 
@@ -914,6 +938,7 @@ int expressionParserStart(programState *PS)
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 6\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
 
@@ -941,6 +966,7 @@ int expressionParserStart(programState *PS)
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 7\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
 
@@ -961,6 +987,7 @@ int expressionParserStart(programState *PS)
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 8\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
 
@@ -987,6 +1014,7 @@ int expressionParserStart(programState *PS)
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
 
@@ -1007,6 +1035,7 @@ int expressionParserStart(programState *PS)
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 10\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
 
@@ -1085,7 +1114,6 @@ int expressionParserStart(programState *PS)
             //     generatorPopFirstStringFromList(PS->gen->parserStack);
             //     PS->expParserReturnType;
             // }
-            
 
             DEBUG_PRINTF("[Exp parser] Error: Two tokens that should not follow each other!\n");
             raiseError(ERR_SYNTAX);
