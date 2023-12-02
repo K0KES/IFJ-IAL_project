@@ -1118,7 +1118,7 @@ bool returnExpression(){
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
             // 45) <returnExpression> -> EPS
-            if(symtableGetReturnTypeOfCurrentScope(symTable) != DATA_TYPE_VOID){ raiseError(ERR_WRONG_RETURN_TYPE); }
+            if(symtableGetReturnTypeOfCurrentScope(symTable) != DATA_TYPE_VOID){  }
             returnExpressionStatus = true;
             break;
         default:
@@ -1126,10 +1126,10 @@ bool returnExpression(){
             returnExpressionStatus = expression();
             //TO DO co vrací exp parser v druhém případe následující podmínky -> zkontrolovat typy
             if(symtableGetReturnTypeOfCurrentScope(symTable) == DATA_TYPE_VOID && state->expParserReturnType != DATA_TYPE_NOTSET){
-                raiseError(ERR_WRONG_RETURN_TYPE);
+                // raiseError(ERR_WRONG_RETURN_TYPE);
             }
             if (symtableGetReturnTypeOfCurrentScope(symTable) != state->expParserReturnType) { 
-                raiseError(ERR_WRONG_RETURN_TYPE); 
+                // raiseError(ERR_WRONG_RETURN_TYPE); 
             }
             symtablePushCode(symTable,concatString(2,"MOVE LF@%retval ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
