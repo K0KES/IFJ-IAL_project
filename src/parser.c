@@ -1586,6 +1586,8 @@ bool parseBuidInFunctions(){
             //Symtable
             symtableFunctionCallStart(symTable,"ord");
 
+            symtablePushCode(symTable,"");
+            symtablePushCode(symTable,"#Start of build in function ord()");
             parseBuidInFunctionsStatus = argument();
 
             if(state->expParserReturnType != T_STRING){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
@@ -1596,7 +1598,26 @@ bool parseBuidInFunctions(){
             }
 
             //Generator
-            // TO DO
+            char *stringLengthVar = generatorGenerateTempVarName(gen);
+            char *stringLengthVarPrefix = concatString(2,symtableGetVariablePrefix(symTable,stringLengthVar),stringLengthVar);
+
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",stringLengthVarPrefix));
+
+            tempGeneratedName = generatorGenerateTempVarName(gen);
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+            symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," int@0"));
+
+            char *argumentString = generatorPopFirstStringFromList(gen->parserStack);
+
+            symtablePushCode(symTable,concatString(4, "STRLEN ", stringLengthVarPrefix, " ", argumentString));
+            //TO DO dodat originálni label na skok 
+            symtablePushCode(symTable,concatString(3, "JUMPIFEQ returnLabel ", stringLengthVarPrefix, " int@0"));
+            symtablePushCode(symTable,concatString(5, "STRI2INT ",tempNameWithPrefix," ",argumentString, " int@0"));
+            symtablePushCode(symTable,concatString(1, "LABEL returnLabel"));
+            symtablePushCode(symTable,"#End of build in function ord()");
+
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_INT;
 
@@ -1624,7 +1645,12 @@ bool parseBuidInFunctions(){
             }
 
             //Generator
-            // TO DO
+            tempGeneratedName = generatorGenerateTempVarName(gen);
+            tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+
+            symtablePushCode(symTable,concatString(4, "INT2CHAR ", tempNameWithPrefix, " ", generatorPopFirstStringFromList(gen->parserStack)));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_STRING;
 
