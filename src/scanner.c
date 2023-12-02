@@ -28,6 +28,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
 
     int firstNewLine = 0;
 
+    int fromNewLineState = 0;
+
     string* multiLineString;
     while (c != EOF) {
         c = getc(stdin);
@@ -168,8 +170,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         strAddChar(token->value, c);
                         //raiseError(ERR_LEXICAL);
                        
-                        return LEX_OK;
-                        // return LEX_ERROR;
+                        // return LEX_OK;
+                        return LEX_ERROR;
                         break;
                     /////////////////////////  
                     //ID || KW || INT || DOUBLE
@@ -221,9 +223,11 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 case '/':
                     if (lastChar == '/') { //we get two forward slashes, 
-                        ungetc (c, stdin); //we unget them and transition to newline 
+                        ungetc (c, stdin); //we unget them and transition to line comment 
                         ungetc('/', stdin); //so we can return only one newline token
                         state = S_START; //for many newline chars
+                        strClear(token->value);
+                        fromNewLineState = 1;
                         }
                     if (state != S_START) { lastChar = '/'; }
                     break;
@@ -232,6 +236,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         ungetc (c, stdin); 
                         ungetc('/', stdin);
                         state = S_START; 
+                        strClear(token->value);
+                        fromNewLineState = 1;
                         }
                     else {
                         token->tokenType = T_EOL;
@@ -870,7 +876,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 if (c == '\n' || c == '\r') { lineNumber++; }
                 if (c == '/' && lastChar == '*') {
                     multilineExit--;
-                    if (multilineExit == 0) { state = S_START; }
+                    if (multilineExit == 0) { if (fromNewLineState == 1) { ungetc('\n', stdin); lineNumber--;} state = S_START; }
                 }
                 if (c == '*' && lastChar == '/') { multilineExit++; }
                 if (c == EOF && multilineExit > 0) {  /*DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);*/  raiseError(ERR_LEXICAL); }
@@ -1200,15 +1206,21 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 break;
         }
     }
-     raiseError(ERR_LEXICAL);
+    token->tokenType = T_EOF;
+    token->lastChar = lastChar;
+    token->position->charNumber = charNumber;
+    token->position->lineNumber = lineNumber;
+    strAddChar(token->value, c);
+    // return LEX_OK;
+    return LEX_ERROR;
 }
 
 string* multilineStringCheck (string* multiLine, int firstCharPos) {
 
     int indent = 0;
-    if (multiLine->str[0] != '\n') { raiseError(ERR_LEXICAL); }
+    if (strGetCharOnIndex(multiLine,0) != '\n') { raiseError(ERR_LEXICAL); }
 
-    char beforeQuote = multiLine->str[multiLine->length-4]; //first char before ending """ quotes
+    char beforeQuote = strGetCharOnIndex(multiLine,strGetLength(multiLine)-4); //first char before ending """ quotes
     int i = 1;
 
 
@@ -1223,8 +1235,8 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
     while (beforeQuote != '\n') {
         if (beforeQuote == ' ') { indent++; } //counting indent
         else if (beforeQuote != ' ' && beforeQuote != '\n') { raiseError(ERR_LEXICAL); } //there is something else before """ than space or newline => error
-    
-        beforeQuote = multiLine->str[multiLine->length-4-i];
+        
+        beforeQuote = strGetCharOnIndex(multiLine,strGetLength(multiLine)-4-i);
         i++;
     }
 
@@ -1235,13 +1247,13 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
     int j = -1;
     char newLineStart;
     int currentIndent = 0;
-    for (int k = 0; k < multiLine->length; k++) {
-        newLineStart = multiLine->str[k];
+    for (int k = 0; k < strGetLength(multiLine); k++) {
+        newLineStart = strGetCharOnIndex(multiLine,k);
         // printf("\n znak: '%c'\n", newLineStart);
             if (newLineStart == '\n') {
                 strAddChar(newString, newLineStart);
                 k++;
-                newLineStart = multiLine->str[k];
+                newLineStart = strGetCharOnIndex(multiLine,k);
                 // printf("\n znak: '%c'\n", newLineStart);
                 // printf("\nENTERING NEWLINE\n");
                 
@@ -1250,7 +1262,7 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
                     if (currentIndent == indent) { break; }
                     currentIndent++;
                     k++;
-                    newLineStart = multiLine->str[k];
+                    newLineStart = strGetCharOnIndex(multiLine,k);
                     j = k;
                 }
                 //indents of lines that starts with something else than \n are not equal => error

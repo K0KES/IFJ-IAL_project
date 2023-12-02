@@ -48,6 +48,7 @@ typedef struct{
     bool nullable;
     bool isConstant;
     bool valueIsSet;
+    bool endOfDefinition;
     char *name;
     int id;
     functionData *funcData;
@@ -232,3 +233,7 @@ void symtableCheckSameTypes(enum data_type type1,enum data_type type2);
 /// @brief This function is called on the end of file and it does sematic checks
 /// @param table Pointer to symtable
 void symtableEndOfFile(symtable *table);
+
+/// @brief This function sets endOfDefiniton to true
+/// @param table 
+void symtableSetEndOfVariableDefinition(symtable *table);

@@ -7,9 +7,8 @@ void copyToken(token *t1, token *t2)
     t2->position->lineNumber = t1->position->lineNumber;
     t2->tokenExpParserType = t1->tokenExpParserType;
     t2->tokenType = t1->tokenType;
-    t2->value = t1->value;
     t2->is_return_from_func = t1->is_return_from_func;
-    strcpy(t2->value->str, t1->value->str);
+    strSetString(t2->value, strGetStr(t1->value));
 }
 
 token *tokenStackGet(struct tokenStack *stack, unsigned location)
@@ -481,7 +480,8 @@ int expressionParserStart(programState *PS)
 
             getLastFromQueue(tokenQueue)->tokenType = T_IDENTIFIER;
             getLastFromQueue(tokenQueue)->tokenExpParserType = PS->expParserReturnType;
-            getLastFromQueue(tokenQueue)->value->str = generatorPopFirstStringFromList(PS->gen->parserStack);
+            // getLastFromQueue(tokenQueue)->value->str = generatorPopFirstStringFromList(PS->gen->parserStack);
+            strSetString(getLastFromQueue(tokenQueue)->value, generatorPopFirstStringFromList(PS->gen->parserStack));
             getLastFromQueue(tokenQueue)->is_return_from_func = true;
             // fix bracket count
             bracketsState--;
@@ -719,7 +719,7 @@ int expressionParserStart(programState *PS)
                 }
                 else
                 {
-                    newIdentifierType = symtableGetVariableType(PS->symTable, tokenStackGet(tokenStack, 0)->value->str);
+                    newIdentifierType = symtableGetVariableType(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value));
                     if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING)
                     {
                         // DEBUG_PRINTF("[Exp parser] Error: expression parser spotted potential function!\n");
@@ -730,11 +730,10 @@ int expressionParserStart(programState *PS)
                     tokenStackGet(tokenStack, 0)->tokenExpParserType = newIdentifierType;
                     tokenStackGet(tokenStack, 0)->tokenType = T_E;
 
-                    tokenStackGet(tokenStack, 0)->value->str = concatString(2, symtableGetVariablePrefix(PS->symTable, tokenStackGet(tokenStack, 0)->value->str), tokenStackGet(tokenStack, 0)->value->str);
-
+                    strSetString(tokenStackGet(tokenStack, 0)->value, concatString(2, symtableGetVariablePrefix(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value)), strGetStr(tokenStackGet(tokenStack, 0)->value)));
                     break;
                 }
-            }
+                }
 
             case T_INT:
             {
@@ -743,12 +742,12 @@ int expressionParserStart(programState *PS)
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-                symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " int@", tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " int@", strGetStr(tokenStackGet(tokenStack, 0)->value)));
 
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
                 tokenStackGet(tokenStack, 0)->tokenType = T_E;
 
-                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
 
                 break;
             }
@@ -761,7 +760,7 @@ int expressionParserStart(programState *PS)
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
-                char *stringWithoutQuote = tokenStackGet(tokenStack, 0)->value->str;
+                char *stringWithoutQuote = strGetStr(tokenStackGet(tokenStack, 0)->value);
                 stringWithoutQuote++;                                   // Remove first " from input string
                 stringWithoutQuote[strlen(stringWithoutQuote) - 1] = 0; // Remove last " from string
 
@@ -773,7 +772,7 @@ int expressionParserStart(programState *PS)
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
                 tokenStackGet(tokenStack, 0)->tokenType = T_E;
 
-                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
 
                 break;
             }
@@ -786,13 +785,13 @@ int expressionParserStart(programState *PS)
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
                 char floatString[100];
-                sprintf(floatString, "%a", atof(tokenStackGet(tokenStack, 0)->value->str));
+                sprintf(floatString, "%a", atof(strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " float@", floatString));
 
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
                 tokenStackGet(tokenStack, 0)->tokenType = T_E;
 
-                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
 
                 break;
             }
@@ -803,25 +802,25 @@ int expressionParserStart(programState *PS)
                 // concat str
                 if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_STRING && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_STRING)
                 {
-                    symtablePushCode(PS->symTable, concatString(6, "CONCAT ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(6, "CONCAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
 
                 // int + int or float + float
                 else if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
-                    symtablePushCode(PS->symTable, concatString(6, "ADD ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // float + int
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
                 {
-                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", tokenStackGet(tokenStack, 0)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
-                    symtablePushCode(PS->symTable, concatString(6, "ADD ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // int + float
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
                 {
-                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str));
-                    symtablePushCode(PS->symTable, concatString(6, "ADD ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // Error
                 else
@@ -841,19 +840,19 @@ int expressionParserStart(programState *PS)
                 // int + int or float + float
                 if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
-                    symtablePushCode(PS->symTable, concatString(6, "SUB ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(6, "SUB ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // float + int
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
                 {
-                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", tokenStackGet(tokenStack, 0)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
-                    symtablePushCode(PS->symTable, concatString(6, "SUB ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "SUB ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // int + float
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
                 {
-                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str));
-                    symtablePushCode(PS->symTable, concatString(6, "SUB ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "SUB ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // Error
                 else
@@ -872,19 +871,19 @@ int expressionParserStart(programState *PS)
 
                 if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
-                    symtablePushCode(PS->symTable, concatString(6, "MUL ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(6, "MUL ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // float + int
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
                 {
-                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", tokenStackGet(tokenStack, 0)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
-                    symtablePushCode(PS->symTable, concatString(6, "MUL ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "MUL ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // int + float
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
                 {
-                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str));
-                    symtablePushCode(PS->symTable, concatString(6, "MUL ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "MUL ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // Error
                 else
@@ -903,19 +902,19 @@ int expressionParserStart(programState *PS)
 
                 if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
-                    symtablePushCode(PS->symTable, concatString(6, "DIV ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(6, "DIV ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // float + int
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
                 {
-                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", tokenStackGet(tokenStack, 0)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
-                    symtablePushCode(PS->symTable, concatString(6, "IDIV ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "IDIV ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // int + float
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
                 {
-                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str));
-                    symtablePushCode(PS->symTable, concatString(6, "IDIV ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "IDIV ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
                 // Error
                 else
@@ -941,10 +940,10 @@ int expressionParserStart(programState *PS)
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
-                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
 
                 break;
             }
@@ -962,18 +961,17 @@ int expressionParserStart(programState *PS)
                 char *tempGeneratedName_0 = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_0), tempGeneratedName_0);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
-                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName_0, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName_0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
 
                 char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
-                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
 
                 symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                tokenStackGet(tokenStack, 0)->value->str = tempVarName_0;
-
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName_0);
                 break;
             }
 
@@ -991,10 +989,10 @@ int expressionParserStart(programState *PS)
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
-                symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 break;
             }
 
@@ -1011,17 +1009,17 @@ int expressionParserStart(programState *PS)
                 char *tempGeneratedName_0 = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_0), tempGeneratedName_0);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
-                symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName_0, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName_0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
 
                 char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
-                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
 
                 symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                tokenStackGet(tokenStack, 0)->value->str = tempVarName_0;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName_0);
                 break;
             }
 
@@ -1039,10 +1037,10 @@ int expressionParserStart(programState *PS)
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
-                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 break;
             }
 
@@ -1060,11 +1058,11 @@ int expressionParserStart(programState *PS)
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
-                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", tokenStackGet(tokenStack, 2)->value->str, " ", tokenStackGet(tokenStack, 0)->value->str));
+                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 symtablePushCode(PS->symTable, concatString(4, "NOT ", tempVarName, " ", tempVarName));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                tokenStackGet(tokenStack, 0)->value->str = tempVarName;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 break;
             }
 
@@ -1101,87 +1099,87 @@ int expressionParserStart(programState *PS)
             }
             break;
 
-        case '1':
-            // tow tokens that should not follow each other follow each other
-            // function in expression
-            // if (whichTypeIsOnTheStack(tokenStack) == T_IDENTIFIER && tokenQueue->first->tokenInQueue->tokenType == T_LEFT_BRACKET)
-            // {
-            //     DEBUG_PRINTF("[Exp parser] Function in expression!\n");
-            //     listPushBack(PS->tokenQueue, tokenStackGet(tokenStack, 0));
-            //     tokenStackPop(tokenStack, 1);
-            //     listPushBack(PS->tokenQueue, getFirstFromQueue(tokenQueue));
-            //     popFirstFromQueue(tokenQueue);
-            //     bracketsState = 1;
-            //     token* copyToken;
-            //     while (bracketsState != 0 && getFirstFromQueue != NULL)
-            //     {
-            //         copyToken = getFirstFromQueue(tokenQueue);
-            //         popFirstFromQueue(tokenQueue);
-            //         if (copyToken->tokenType == T_LEFT_BRACKET)
-            //         {
-            //             bracketsState++;
-            //         }
-            //         else if (copyToken->tokenType == T_RIGHT_BRACKET)
-            //         {
-            //             bracketsState--;
-            //         }
-            //         tokenStackPush(tokenStack, copyToken);
-            //     }
-            //     parseFunctionCall();
-            //     generatorPopFirstStringFromList(PS->gen->parserStack);
-            //     PS->expParserReturnType;
-            // }
+            case '1':
+                // tow tokens that should not follow each other follow each other
+                // function in expression
+                // if (whichTypeIsOnTheStack(tokenStack) == T_IDENTIFIER && tokenQueue->first->tokenInQueue->tokenType == T_LEFT_BRACKET)
+                // {
+                //     DEBUG_PRINTF("[Exp parser] Function in expression!\n");
+                //     listPushBack(PS->tokenQueue, tokenStackGet(tokenStack, 0));
+                //     tokenStackPop(tokenStack, 1);
+                //     listPushBack(PS->tokenQueue, getFirstFromQueue(tokenQueue));
+                //     popFirstFromQueue(tokenQueue);
+                //     bracketsState = 1;
+                //     token* copyToken;
+                //     while (bracketsState != 0 && getFirstFromQueue != NULL)
+                //     {
+                //         copyToken = getFirstFromQueue(tokenQueue);
+                //         popFirstFromQueue(tokenQueue);
+                //         if (copyToken->tokenType == T_LEFT_BRACKET)
+                //         {
+                //             bracketsState++;
+                //         }
+                //         else if (copyToken->tokenType == T_RIGHT_BRACKET)
+                //         {
+                //             bracketsState--;
+                //         }
+                //         tokenStackPush(tokenStack, copyToken);
+                //     }
+                //     parseFunctionCall();
+                //     generatorPopFirstStringFromList(PS->gen->parserStack);
+                //     PS->expParserReturnType;
+                // }
 
-            DEBUG_PRINTF("[Exp parser] Error: Two tokens that should not follow each other!\n");
-            raiseError(ERR_SYNTAX);
-            tokenStackClear(tokenStack);
-            free(tokenQueue);
-            free(activeToken);
-            free(firstToken);
-            return 0;
-            break;
+                DEBUG_PRINTF("[Exp parser] Error: Two tokens that should not follow each other!\n");
+                raiseError(ERR_SYNTAX);
+                tokenStackClear(tokenStack);
+                free(tokenQueue);
+                free(activeToken);
+                free(firstToken);
+                return 0;
+                break;
 
-        case '0':;
-            // parsing vas done successfully
-            // DEBUG_PRINTF("[Exp parser] Parsing is done!\n");
-            if (PS->tokenQueue->size > 0)
-            {
-                tmpDebugToken = getFirstFromQueue(PS->tokenQueue);
+            case '0':;
+                // parsing vas done successfully
+                // DEBUG_PRINTF("[Exp parser] Parsing is done!\n");
+                if (PS->tokenQueue->size > 0)
+                {
+                    tmpDebugToken = getFirstFromQueue(PS->tokenQueue);
+                }
+
+                char *returnAdr = malloc(sizeof(char) * strGetLength(tokenStackGet(tokenStack, 0)->value));
+                strcpy(returnAdr, strGetStr(tokenStackGet(tokenStack, 0)->value));
+                generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
+                DEBUG_PRINTF("[Exp Parser] return type: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
+                PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
+
+                // clear memory
+                tokenFree(activeToken);
+                tokenFree(firstToken);
+                tokenStackClear(tokenStack);
+                free(tokenQueue);
+                tokenQueue = NULL;
+                // symtablePushCode(PS->symTable, "#Expression parser ended!\n");
+
+                return 1;
+                break;
+
+            default:
+                // unexpected state so I raise an error
+                DEBUG_PRINTF("[Exp parser] Default state in the first switch: ");
+                raiseError(ERR_SYNTAX);
+                break;
             }
 
-            char *returnAdr = malloc(sizeof(char) * tokenStackGet(tokenStack, 0)->value->length);
-            strcpy(returnAdr, tokenStackGet(tokenStack, 0)->value->str);
-            generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
-            DEBUG_PRINTF("[Exp Parser] return type: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
-            PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
-
-            // clear memory
-            tokenFree(activeToken);
-            tokenFree(firstToken);
-            tokenStackClear(tokenStack);
-            free(tokenQueue);
-            tokenQueue = NULL;
-            // symtablePushCode(PS->symTable, "#Expression parser ended!\n");
-
-            return 1;
-            break;
-
-        default:
-            // unexpected state so I raise an error
-            DEBUG_PRINTF("[Exp parser] Default state in the first switch: ");
-            raiseError(ERR_SYNTAX);
-            break;
+            // sleep(1);
         }
+        tokenStackClear(tokenStack);
+        free(tokenQueue);
+        free(activeToken);
+        free(firstToken);
+        tokenQueue = NULL;
+        activeToken = NULL;
+        firstToken = NULL;
 
-        // sleep(1);
+        return 0;
     }
-    tokenStackClear(tokenStack);
-    free(tokenQueue);
-    free(activeToken);
-    free(firstToken);
-    tokenQueue = NULL;
-    activeToken = NULL;
-    firstToken = NULL;
-
-    return 0;
-}
