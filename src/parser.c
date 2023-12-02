@@ -647,7 +647,7 @@ bool statement(){
                                                     generatorPopFirstStringFromList(gen->parserStack),
                                                     " bool@true"));
 
-            char *labelIfScopePrefixName = concatString(1,symtableGetScopePrefixName(symTable));
+            char *labelIfScopePrefixName = allocateString(symtableGetScopePrefixName(symTable));
 
             // verification of: if <eol>  <expression> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
@@ -826,7 +826,7 @@ bool callOrAssign(){
             callOrAssignStatus = arguments();
 
             int i = 1;
-            char *result = concatString(1,"Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
+            char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
             while(listLength(gen->parserStack) != 0){
                 snprintf(result, sizeof(result), "%d", i);
                 symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));
@@ -1701,7 +1701,7 @@ bool parseBuidInFunctions(){
             //TO DO dodat originálni label na skok 
             symtablePushCode(symTable,concatString(3, "JUMPIFEQ returnLabel ", stringLengthVarPrefix, " int@0"));
             symtablePushCode(symTable,concatString(5, "STRI2INT ",tempNameWithPrefix," ",argumentString, " int@0"));
-            symtablePushCode(symTable,concatString(1, "LABEL returnLabel"));
+            symtablePushCode(symTable,allocateString( "LABEL returnLabel"));
             symtablePushCode(symTable,"#End of build in function ord()");
 
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
@@ -1780,7 +1780,7 @@ void parseFunctionCall(){
         parseFunctionCallStatus = arguments();
 
         int i = 1;
-        char *result = concatString(1,"Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
+        char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
         while(listLength(gen->parserStack) != 0){
             snprintf(result, sizeof(result), "%d", i);
             symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));

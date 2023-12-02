@@ -159,7 +159,7 @@ char * concatString(int num_args, ...){
 }
 
 char* generatorGenerateTempVarName(generator *gen){
-    char* result = concatString(1,"musim_alokovat_takhle_xd");
+    char* result = allocateString("musim_alokovat_takhle_xd");
     snprintf(result, sizeof(result), "temp%d", gen->counter);
     gen->counter++;
     return result;

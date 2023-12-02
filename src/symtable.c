@@ -47,7 +47,7 @@ bool symtableEnterScope(symtable *table,char* scope,symtableItem *currentFunctio
     }
 
     if(scope != NULL){
-        char *str = concatString(1,"empty_string");
+        char *str = allocateString("empty_string");
         sprintf(str,"%d",table->gen->counter);
         char *string = concatString(2,scope,str);
 
@@ -523,7 +523,7 @@ char* symtableGetVariablePrefix(symtable *table, char *varName){
             
         }
     }
-    return concatString(1,symtableGetFramePrefix(table,varName));
+    return allocateString(symtableGetFramePrefix(table,varName));
 }
 
 char* symtableGetFramePrefix(symtable *table, char *varName){
