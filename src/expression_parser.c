@@ -472,15 +472,20 @@ int expressionParserStart(programState *PS)
         {
             DEBUG_PRINTF("[Exp parser] Spotted function\n");
             listPushBack(PS->tokenQueue, getLastFromQueue(tokenQueue));
-            listPushBack(PS->tokenQueue, activeToken);
+            token *tokenToPush = tokenInit();
+            copyToken(activeToken, tokenToPush);
+            listPushBack(PS->tokenQueue, tokenToPush);
 
             parseFunctionCall();
 
             DEBUG_PRINTF("[Exp parser] Back from parser function\n");
+            DEBUG_PRINTF("[Exp parser] %d \n",listLength(PS->gen->parserStack));
+
 
             getLastFromQueue(tokenQueue)->tokenType = T_IDENTIFIER;
             getLastFromQueue(tokenQueue)->tokenExpParserType = PS->expParserReturnType;
             // getLastFromQueue(tokenQueue)->value->str = generatorPopFirstStringFromList(PS->gen->parserStack);
+            // char *tmpStr = generatorPopFirstStringFromList(PS->gen->parserStack);
             strSetString(getLastFromQueue(tokenQueue)->value, generatorPopFirstStringFromList(PS->gen->parserStack));
             getLastFromQueue(tokenQueue)->is_return_from_func = true;
             // fix bracket count
@@ -1173,6 +1178,8 @@ int expressionParserStart(programState *PS)
 
             // sleep(1);
         }
+        DEBUG_PRINTF("[Exp parser] Error: Expression parser ended unexpectedly!\n");
+        raiseError(ERR_INTERNAL);
         tokenStackClear(tokenStack);
         free(tokenQueue);
         free(activeToken);

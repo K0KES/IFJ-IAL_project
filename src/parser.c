@@ -1212,6 +1212,8 @@ bool varDecMid(){
         case T_ASSIGNMENT:
             // 41) <varDecMid> -> = <expression>
             getNextToken();
+            DEBUG_PRINTF("------ %d \n",listLength(gen->parserStack));
+
             varDecMidStatus = expression();
             //TO DO umí expressionParser vracet nil?? -> nil vracet jako DATA_TYPE_NOTSET
             //TO DO if nill -> raise error 8
@@ -1220,6 +1222,7 @@ bool varDecMid(){
             symtableSetVariableValue(symTable);
 
             //Generator
+            DEBUG_PRINTF("------ %d \n",listLength(gen->parserStack));
             symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
         default:
