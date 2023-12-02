@@ -5,6 +5,7 @@
 
 typedef struct
 {
+  char* str;
   list *listData;
 } string;
 
@@ -19,6 +20,8 @@ int strCmpString(string *s1, string *s2);
 int strCmpConstStr(string *s1, char *s2);
 
 char *strGetStr(string *s);
+void strUpdateStr(string *s);
+char* strCreateStr(string *s);
 void strSetString(string *s, char* text);
 int strGetLength(string *s);
 

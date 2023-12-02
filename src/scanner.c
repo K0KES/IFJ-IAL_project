@@ -170,8 +170,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         strAddChar(token->value, c);
                         //raiseError(ERR_LEXICAL);
                        
-                        // return LEX_OK;
-                        return LEX_ERROR;
+                        return LEX_OK;
+                        // return LEX_ERROR;
                         break;
                     /////////////////////////  
                     //ID || KW || INT || DOUBLE
@@ -1211,8 +1211,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
     token->position->charNumber = charNumber;
     token->position->lineNumber = lineNumber;
     strAddChar(token->value, c);
-    // return LEX_OK;
-    return LEX_ERROR;
+    return LEX_OK;
+    // return LEX_ERROR;
 }
 
 string* multilineStringCheck (string* multiLine, int firstCharPos) {
