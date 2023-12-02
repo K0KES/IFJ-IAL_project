@@ -473,6 +473,7 @@ int expressionParserStart(programState *PS)
             DEBUG_PRINTF("[Exp parser] Spotted function\n");
             listPushBack(PS->tokenQueue, getLastFromQueue(tokenQueue));
             token *tokenToPush = tokenInit();
+            char lastCharBackup = getLastFromQueue(tokenQueue)->lastChar;
             copyToken(activeToken, tokenToPush);
             listPushBack(PS->tokenQueue, tokenToPush);
 
@@ -481,9 +482,9 @@ int expressionParserStart(programState *PS)
             DEBUG_PRINTF("[Exp parser] Back from parser function\n");
             // DEBUG_PRINTF("[Exp parser] %d \n",listLength(PS->gen->parserStack));
 
-
             getLastFromQueue(tokenQueue)->tokenType = T_IDENTIFIER;
             getLastFromQueue(tokenQueue)->tokenExpParserType = PS->expParserReturnType;
+            getLastFromQueue(tokenQueue)->lastChar = lastCharBackup;
             // getLastFromQueue(tokenQueue)->value->str = generatorPopFirstStringFromList(PS->gen->parserStack);
             // char *tmpStr = generatorPopFirstStringFromList(PS->gen->parserStack);
             strSetString(getLastFromQueue(tokenQueue)->value, generatorPopFirstStringFromList(PS->gen->parserStack));
@@ -496,10 +497,12 @@ int expressionParserStart(programState *PS)
             copyToken(listGetFirst(PS->tokenQueue), tokenToPush);
             listPopFirst(PS->tokenQueue);
 
-
             addLastToQueue(tokenQueue, tokenToPush);
 
+            DEBUG_PRINTF("[Exp parser] Got token from queue: %s\n", getTokenName(getLastFromQueue(tokenQueue)->tokenType));
             // token *tmpDebugToken1 = (token *)listGetFirst(PS->tokenQueue);
+                lastValidTokensTypes[1] = lastValidTokensTypes[0];
+                lastValidTokensTypes[0] = tokenToPush->tokenType;
         }
 
         else if (isTokenTypeAccepted(activeToken) && bracketsState >= 0 && !ignoredEOL)
@@ -661,7 +664,7 @@ int expressionParserStart(programState *PS)
             if (isTokenTypeOperatorLike(tmpQueueElement->next->tokenInQueue->tokenType) == 1 || isTokenTypeOperatorLike(tmpQueueElement->next->tokenInQueue->tokenType) == 3 || tmpQueueElement->next->tokenInQueue->tokenType == T_END)
             {
                 DEBUG_PRINTF("[Exp parser] Error: Checking weird syntax: 6!\n");
-                raiseError(ERR_SYNTAX);
+                // raiseError(ERR_SYNTAX);
             }
         }
 
@@ -686,7 +689,7 @@ int expressionParserStart(programState *PS)
         {
             // push to stack
         case '<':
-            DEBUG_PRINTF("[Exp parser] Push to stack\n");
+            DEBUG_PRINTF("[Exp parser] Push to stack: %s\n", getTokenName(getFirstFromQueue(tokenQueue)->tokenType));
             tokenStackPush(tokenStack, getFirstFromQueue(tokenQueue));
             popFirstFromQueue(tokenQueue);
             break;
@@ -743,7 +746,7 @@ int expressionParserStart(programState *PS)
                     strSetString(tokenStackGet(tokenStack, 0)->value, concatString(2, symtableGetVariablePrefix(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value)), strGetStr(tokenStackGet(tokenStack, 0)->value)));
                     break;
                 }
-                }
+            }
 
             case T_INT:
             {
@@ -809,6 +812,12 @@ int expressionParserStart(programState *PS)
             {
                 DEBUG_PRINTF("[Exp parser] E -> E + E\n");
 
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
+
                 // concat str
                 if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_STRING && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_STRING)
                 {
@@ -846,7 +855,11 @@ int expressionParserStart(programState *PS)
             case T_MINUS:
             {
                 // DEBUG_PRINTF("[Exp parser] E -> E - E\n");
-
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
                 // int + int or float + float
                 if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
@@ -878,6 +891,11 @@ int expressionParserStart(programState *PS)
             case T_MULTIPLICATION:
             {
                 // DEBUG_PRINTF("[Exp parser] E -> E * E\n");
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
 
                 if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
@@ -909,6 +927,11 @@ int expressionParserStart(programState *PS)
             case T_DIVISION:
             {
                 // DEBUG_PRINTF("[Exp parser] E -> E / E\n");
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
 
                 if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
@@ -939,6 +962,11 @@ int expressionParserStart(programState *PS)
             case T_LESS:
             {
                 // DEBUG_PRINTF("[Exp parser] E -> E < E\n");
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -961,6 +989,11 @@ int expressionParserStart(programState *PS)
             case T_LESS_EQUAL:
             {
                 // DEBUG_PRINTF("[Exp parser] E -> E <= E\n");
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -988,6 +1021,11 @@ int expressionParserStart(programState *PS)
             case T_GREATER:
             {
                 // DEBUG_PRINTF("[Exp parser] E -> E > E\n");
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1009,6 +1047,11 @@ int expressionParserStart(programState *PS)
             case T_GREATER_EQUAL:
             {
                 // DEBUG_PRINTF("[Exp parser] E -> E >= E\n");
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1036,6 +1079,11 @@ int expressionParserStart(programState *PS)
             case T_EQUAL:
             {
                 // DEBUG_PRINTF("[Exp parser] E -> E == E\n");
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1057,6 +1105,11 @@ int expressionParserStart(programState *PS)
             case T_NOT_EQUAL:
             {
                 // i DEBUG_PRINTF("[Exp parser] E -> E != E\n");
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1078,6 +1131,11 @@ int expressionParserStart(programState *PS)
 
             case T_NIL_OP:
             {
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
                 // DEBUG_PRINTF("[Exp parser]  E -> E ?? E\n");
 
                 // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
@@ -1109,89 +1167,89 @@ int expressionParserStart(programState *PS)
             }
             break;
 
-            case '1':
-                // tow tokens that should not follow each other follow each other
-                // function in expression
-                // if (whichTypeIsOnTheStack(tokenStack) == T_IDENTIFIER && tokenQueue->first->tokenInQueue->tokenType == T_LEFT_BRACKET)
-                // {
-                //     DEBUG_PRINTF("[Exp parser] Function in expression!\n");
-                //     listPushBack(PS->tokenQueue, tokenStackGet(tokenStack, 0));
-                //     tokenStackPop(tokenStack, 1);
-                //     listPushBack(PS->tokenQueue, getFirstFromQueue(tokenQueue));
-                //     popFirstFromQueue(tokenQueue);
-                //     bracketsState = 1;
-                //     token* copyToken;
-                //     while (bracketsState != 0 && getFirstFromQueue != NULL)
-                //     {
-                //         copyToken = getFirstFromQueue(tokenQueue);
-                //         popFirstFromQueue(tokenQueue);
-                //         if (copyToken->tokenType == T_LEFT_BRACKET)
-                //         {
-                //             bracketsState++;
-                //         }
-                //         else if (copyToken->tokenType == T_RIGHT_BRACKET)
-                //         {
-                //             bracketsState--;
-                //         }
-                //         tokenStackPush(tokenStack, copyToken);
-                //     }
-                //     parseFunctionCall();
-                //     generatorPopFirstStringFromList(PS->gen->parserStack);
-                //     PS->expParserReturnType;
-                // }
+        case '1':
+            // tow tokens that should not follow each other follow each other
+            // function in expression
+            // if (whichTypeIsOnTheStack(tokenStack) == T_IDENTIFIER && tokenQueue->first->tokenInQueue->tokenType == T_LEFT_BRACKET)
+            // {
+            //     DEBUG_PRINTF("[Exp parser] Function in expression!\n");
+            //     listPushBack(PS->tokenQueue, tokenStackGet(tokenStack, 0));
+            //     tokenStackPop(tokenStack, 1);
+            //     listPushBack(PS->tokenQueue, getFirstFromQueue(tokenQueue));
+            //     popFirstFromQueue(tokenQueue);
+            //     bracketsState = 1;
+            //     token* copyToken;
+            //     while (bracketsState != 0 && getFirstFromQueue != NULL)
+            //     {
+            //         copyToken = getFirstFromQueue(tokenQueue);
+            //         popFirstFromQueue(tokenQueue);
+            //         if (copyToken->tokenType == T_LEFT_BRACKET)
+            //         {
+            //             bracketsState++;
+            //         }
+            //         else if (copyToken->tokenType == T_RIGHT_BRACKET)
+            //         {
+            //             bracketsState--;
+            //         }
+            //         tokenStackPush(tokenStack, copyToken);
+            //     }
+            //     parseFunctionCall();
+            //     generatorPopFirstStringFromList(PS->gen->parserStack);
+            //     PS->expParserReturnType;
+            // }
 
-                DEBUG_PRINTF("[Exp parser] Error: Two tokens that should not follow each other!\n");
-                raiseError(ERR_SYNTAX);
-                tokenStackClear(tokenStack);
-                free(tokenQueue);
-                free(activeToken);
-                free(firstToken);
-                return 0;
-                break;
+            DEBUG_PRINTF("[Exp parser] Error: Two tokens that should not follow each other!\n");
+            raiseError(ERR_SYNTAX);
+            tokenStackClear(tokenStack);
+            free(tokenQueue);
+            free(activeToken);
+            free(firstToken);
+            return 0;
+            break;
 
-            case '0':;
-                // parsing vas done successfully
-                // DEBUG_PRINTF("[Exp parser] Parsing is done!\n");
-                if (PS->tokenQueue->size > 0)
-                {
-                    tmpDebugToken = getFirstFromQueue(PS->tokenQueue);
-                }
-
-                char *returnAdr = malloc(sizeof(char) * strGetLength(tokenStackGet(tokenStack, 0)->value));
-                strcpy(returnAdr, strGetStr(tokenStackGet(tokenStack, 0)->value));
-                generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
-                DEBUG_PRINTF("[Exp Parser] return type: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
-                PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
-
-                // clear memory
-                tokenFree(activeToken);
-                tokenFree(firstToken);
-                tokenStackClear(tokenStack);
-                free(tokenQueue);
-                tokenQueue = NULL;
-                // symtablePushCode(PS->symTable, "#Expression parser ended!\n");
-
-                return 1;
-                break;
-
-            default:
-                // unexpected state so I raise an error
-                DEBUG_PRINTF("[Exp parser] Default state in the first switch: ");
-                raiseError(ERR_SYNTAX);
-                break;
+        case '0':;
+            // parsing vas done successfully
+            // DEBUG_PRINTF("[Exp parser] Parsing is done!\n");
+            if (PS->tokenQueue->size > 0)
+            {
+                tmpDebugToken = getFirstFromQueue(PS->tokenQueue);
             }
 
-            // sleep(1);
-        }
-        DEBUG_PRINTF("[Exp parser] Error: Expression parser ended unexpectedly!\n");
-        raiseError(ERR_INTERNAL);
-        tokenStackClear(tokenStack);
-        free(tokenQueue);
-        free(activeToken);
-        free(firstToken);
-        tokenQueue = NULL;
-        activeToken = NULL;
-        firstToken = NULL;
+            char *returnAdr = malloc(sizeof(char) * strGetLength(tokenStackGet(tokenStack, 0)->value));
+            strcpy(returnAdr, strGetStr(tokenStackGet(tokenStack, 0)->value));
+            generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
+            DEBUG_PRINTF("[Exp Parser] return type: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
+            PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
 
-        return 0;
+            // clear memory
+            tokenFree(activeToken);
+            tokenFree(firstToken);
+            tokenStackClear(tokenStack);
+            free(tokenQueue);
+            tokenQueue = NULL;
+            // symtablePushCode(PS->symTable, "#Expression parser ended!\n");
+
+            return 1;
+            break;
+
+        default:
+            // unexpected state so I raise an error
+            DEBUG_PRINTF("[Exp parser] Default state in the first switch: ");
+            raiseError(ERR_SYNTAX);
+            break;
+        }
+
+        // sleep(1);
     }
+    DEBUG_PRINTF("[Exp parser] Error: Expression parser ended unexpectedly!\n");
+    raiseError(ERR_INTERNAL);
+    tokenStackClear(tokenStack);
+    free(tokenQueue);
+    free(activeToken);
+    free(firstToken);
+    tokenQueue = NULL;
+    activeToken = NULL;
+    firstToken = NULL;
+
+    return 0;
+}
