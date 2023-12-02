@@ -702,7 +702,6 @@ bool statement(){
             break;
         case KW_WHILE:
             // 28) <statement> -> while <eol> <expression> <eol> {<statements>}
-            //TO DO defvar předsadit před while
             symtableEnterScope(symTable,"&while",NULL);
 
             symtablePushCode(symTable,"");
@@ -737,7 +736,8 @@ bool statement(){
             break;
         case KW_RETURN:
             // 29) <statement> -> return <returnExpression>
-            //TO DO check if is in some function scope otherwise raise error - return out of function
+            DEBUG_PRINTF("[Parser] Error return out of function\n");
+            if(symTable->currentFunction == NULL){raiseError(ERR_SYNTAX);}
             getNextToken();
             statementStatus = returnExpression();
             break;
@@ -887,6 +887,8 @@ bool assign(){
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
+            symtableSetVariableValue(symTable);
+
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
             tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
@@ -909,6 +911,8 @@ bool assign(){
             getNextToken();
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+
+            symtableSetVariableValue(symTable);
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
@@ -933,6 +937,8 @@ bool assign(){
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
+            symtableSetVariableValue(symTable);
+
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
             tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
@@ -945,7 +951,6 @@ bool assign(){
             // 65) <assign> -> /= <expression>
             if (!symtableIsActiveVariableInitiated(symTable)) { raiseError(ERR_UNDEFINED_VARIABLE); }
 
-            //TO DO semantika dělení nulou řešíme my nebo ne??
             if (lastVarType == DATA_TYPE_STRING ) { raiseError(ERR_WRONG_TYPE); }
 
             //Generator
@@ -956,6 +961,8 @@ bool assign(){
             getNextToken();
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+
+            symtableSetVariableValue(symTable);
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
