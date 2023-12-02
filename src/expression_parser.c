@@ -368,6 +368,9 @@ int expressionParserStart(programState *PS)
     tokenStackPush(tokenStack, firstToken);
     // DEBUG_PRINTF("[Exp parser] Token stack size: %d\n", PS->tokenQueue->size);
 
+// when you can't read everything from shared queue it prevents you from reading from scanner
+    bool reading_block = false;
+
     // copy tokens from queue shared with scanner to internal queue
     while (PS->tokenQueue->size > 0)
     {
@@ -386,8 +389,9 @@ int expressionParserStart(programState *PS)
         }
         else
         {
-            fprintf(stderr, "Error: invalid token type in tokenQueue in expressionParserStart()!\n");
-            raiseError(ERR_SYNTAX);
+            reading_block = true;
+            DEBUG_PRINTF("[Exp parser] Special case\n");
+            raiseError(ERR_INTERNAL);
             break;
         }
     }

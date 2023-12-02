@@ -76,8 +76,7 @@ odevzdani:
 	$(RM) -r test_dir
 	$(RM) -r odevzdani
 
-
-
+rebuild: clean default
 
 .PHONY: clean odevzdani
 
