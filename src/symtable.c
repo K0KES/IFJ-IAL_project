@@ -304,14 +304,19 @@ void symtableFunctionEndOfArguments(symtable *table){
 
     table->activeItem->funcData->endOfArguments = true;
 
+    symtableItem *oldActive = table->activeItem;
+
     symtableEnterScope(table,table->activeItem->name,table->activeItem);   
 
     listNode *node = table->activeItem->funcData->arguments->first;
     while(node != NULL){
         functionArgument *arg = (functionArgument *)node->data;
         symtableInsert(table,arg->id,false);
+        symtableSetDataType(table,arg->type,arg->nullable);
         node = node->next;
     }
+
+    table->activeItem = oldActive;
 
     symtableCreateFunctionStructure(table);
 }
@@ -388,9 +393,14 @@ void symtableCreateFunctionStructure(symtable *table){
     listNode *arg = table->activeItem->funcData->arguments->first;
     int i = 1;
     while(arg != NULL){
-        char str[128];
+        //char str[128];
+        
+        functionArgument *argData = (functionArgument *)arg->data;
         char str2[128];
-        sprintf(str, "LF@param%d", i);
+        //sprintf(str, "LF@param%d", i);
+
+        char* str = concatString(2,symtableGetVariablePrefix(table,argData->id),argData->id);
+
         sprintf(str2, "LF@!%d",i);
         generatorPushStringToList(table->functionCodeHeader,concatString(2,"DEFVAR ",str));
         generatorPushStringToList(table->functionCodeHeader,concatString(4,"MOVE ",str," ",str2));
