@@ -73,10 +73,8 @@ void getNextToken(){
     }
     else {
         DEBUG_PRINTF("[Parser] Token from Queue\n");
-        token *tmpToken = listGetFirst(state->tokenQueue);
         activeToken = listPopFirst(state->tokenQueue);
     }
-    token *tmpToken = activeToken;
     DEBUG_PRINTF("[Parser] Got next token: %s\n",getTokenName(activeToken->tokenType));
 }
 
@@ -1378,8 +1376,15 @@ bool expression(){
             getNextToken();
             break;
     }*/
-    DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
-    listPushBack(state->tokenQueue,activeToken);
+    token *tempToken = tokenInit();
+    tempToken->tokenType = activeToken->tokenType;
+    int stringLength = strlen(activeToken->value->str) + 1;
+    char *string = (char *)malloc(stringLength);
+    memcpy(string,activeToken->value->str,stringLength);
+    tempToken->value->str = string;
+
+    DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
+    listPushBack(state->tokenQueue,tempToken);
     expressionStatus = expressionParserStart(state); 
     getNextToken();
     
@@ -1739,6 +1744,8 @@ bool parseBuidInFunctions(){
 void parseFunctionCall(){
     bool parseFunctionCallStatus = false;
     getNextToken();
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function parseFunctionCall()...\n");
 
     if(activeToken->tokenType == T_IDENTIFIER){
         char *functionName = activeToken->value->str;
