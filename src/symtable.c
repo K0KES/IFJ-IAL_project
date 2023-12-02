@@ -428,6 +428,7 @@ void symtableCreateFunctionStructure(symtable *table){
     generatorPushStringToList(table->functionCodeHeader,"MOVE LF@%retval nil@nil");
 
     listNode *arg = table->activeItem->funcData->arguments->first;
+    char *activeFunctionName = table->activeItem->name;
     int i = 1;
     while(arg != NULL){
         //char str[128];
@@ -445,6 +446,7 @@ void symtableCreateFunctionStructure(symtable *table){
         arg = arg->next;
     }
 
+    generatorPushStringToList(table->functionCodeFooter,concatString(3,"LABEL $",activeFunctionName,"_end"));
     generatorPushStringToList(table->functionCodeFooter,"POPFRAME");
     generatorPushStringToList(table->functionCodeFooter,"RETURN");
     generatorPushStringToList(table->functionCodeFooter,"#End of function definition");

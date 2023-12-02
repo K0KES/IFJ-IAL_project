@@ -37,17 +37,17 @@ enum tokenType acceptedTokenTypes[] = {
 
     KW_LET,
 
-    KW_NIL
+    KW_NIL,
 
-    // KW_READDOUBLE,
-    // KW_READINT,
-    // KW_READSTRING,
-    // KW_INT_TO_DOUBLE,
-    // KW_DOUBLE_TO_INT,
-    // KW_LENGTH,
-    // KW_SUBSTRING,
-    // KW_ORD,
-    // KW_CHR
+    KW_READDOUBLE,
+    KW_READINT,
+    KW_READSTRING,
+    KW_INT_TO_DOUBLE,
+    KW_DOUBLE_TO_INT,
+    KW_LENGTH,
+    KW_SUBSTRING,
+    KW_ORD,
+    KW_CHR
     };
 
 char precedenceTable[9][9] = {
