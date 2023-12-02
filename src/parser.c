@@ -73,9 +73,10 @@ void getNextToken(){
     }
     else {
         DEBUG_PRINTF("[Parser] Token from Queue\n");
+        token *tmpToken = listGetFirst(state->tokenQueue);
         activeToken = listPopFirst(state->tokenQueue);
     }
-
+    token *tmpToken = activeToken;
     DEBUG_PRINTF("[Parser] Got next token: %s\n",getTokenName(activeToken->tokenType));
 }
 
@@ -1281,10 +1282,17 @@ bool argWithName(){
             return false;*/
         default:
             // 54) <argWithName> -> EPS
-            DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
-            listPushBack(state->tokenQueue,activeToken);
-            argWithNameStatus = expressionParserStart(state);
+            token *tempToken = tokenInit();
+            tempToken->tokenType = activeToken->tokenType;
+            int stringLength = strlen(activeToken->value->str) + 1;
+            char *string = (char *)malloc(stringLength);
+            memcpy(string,activeToken->value->str,stringLength);
+            tempToken->value->str = string;
 
+            DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
+            //listPushBack(state->tokenQueue,activeToken);
+            listPushBack(state->tokenQueue,tempToken);
+            argWithNameStatus = expressionParserStart(state);
             //Symtable
             //TO DO kontrola jaký typ vrací exp parser když je "non set"/nil/??
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
