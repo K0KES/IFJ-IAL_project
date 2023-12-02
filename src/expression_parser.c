@@ -486,7 +486,10 @@ int expressionParserStart(programState *PS)
             // fix bracket count
             bracketsState--;
             // raiseError(ERR_INTERNAL);
-             addLastToQueue(tokenQueue, listPopFirst(PS->tokenQueue));
+            addLastToQueue(tokenQueue, listGetFirst(PS->tokenQueue));
+            listPopFirst(PS->tokenQueue);
+
+            // token *tmpDebugToken1 = (token *)listGetFirst(PS->tokenQueue);
         }
 
         else if (isTokenTypeAccepted(activeToken) && bracketsState >= 0 && !ignoredEOL)
@@ -527,7 +530,10 @@ int expressionParserStart(programState *PS)
 
             if (tokenQueue->last->tokenInQueue->tokenType == T_EOL)
             {
-                listPushBack(PS->tokenQueue, tokenQueue->last->tokenInQueue);
+                token *eol_token = tokenInit();
+                eol_token->tokenType = T_EOL;
+                copyToken(tokenQueue->last->tokenInQueue, eol_token);
+                listPushBack(PS->tokenQueue, eol_token);
             }
             // pushes the tokent to queue for parser to process it
             listPushBack(PS->tokenQueue, activeToken);
@@ -536,6 +542,17 @@ int expressionParserStart(programState *PS)
     activeToken = tokenInit();
 
     // adding last token to list
+    // if (getLastFromQueue(tokenQueue) != NULL)
+    // {
+    //     if (getLastFromQueue(tokenQueue)->tokenType == T_EOL)
+    //     {
+    //         token *eol_token = tokenInit();
+    //         eol_token->tokenType = T_EOL;
+    //         copyToken(getLastFromQueue(tokenQueue), eol_token);
+    //         listPushBack(PS->tokenQueue, eol_token);
+    //     }
+    // }
+
     activeToken->tokenType = T_END;
     addLastToQueue(tokenQueue, activeToken);
     // exit(1);
