@@ -481,6 +481,7 @@ int expressionParserStart(programState *PS)
             getLastFromQueue(tokenQueue)->tokenType = T_IDENTIFIER;
             getLastFromQueue(tokenQueue)->tokenExpParserType = PS->expParserReturnType;
             // getLastFromQueue(tokenQueue)->value->str = generatorPopFirstStringFromList(PS->gen->parserStack);
+            char *tmpStr = generatorPopFirstStringFromList(PS->gen->parserStack);
             strSetString(getLastFromQueue(tokenQueue)->value, generatorPopFirstStringFromList(PS->gen->parserStack));
             getLastFromQueue(tokenQueue)->is_return_from_func = true;
             // fix bracket count
