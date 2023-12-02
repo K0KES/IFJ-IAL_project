@@ -49,6 +49,18 @@ int isTokenTypeOperatorLike(enum tokenType tokenType)
     }
 }
 
+int isTokenFunction (enum tokenType tokenType)
+{
+    if (tokenType == KW_READDOUBLE || tokenType == KW_READINT || tokenType == KW_READSTRING || tokenType == KW_INT_TO_DOUBLE || tokenType == KW_DOUBLE_TO_INT || tokenType == KW_LENGTH || tokenType == KW_SUBSTRING || tokenType == KW_ORD || tokenType == KW_CHR || tokenType == T_IDENTIFIER)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack)
 {
     if (stack == NULL || stack->top == NULL || stack->top->tokenOnStack == NULL)
@@ -455,6 +467,17 @@ int expressionParserStart(programState *PS)
             listPushBack(PS->tokenQueue, activeToken);
             break;
         }
+
+        else if (activeToken->tokenType == T_LEFT_BRACKET && getLastFromQueue(tokenQueue) != NULL && isTokenFunction(getLastFromQueue(tokenQueue)->tokenType))
+        {
+            DEBUG_PRINTF("[Exp parser] Spotted function\n");
+            listPushBack(PS->tokenQueue,getLastFromQueue(tokenQueue));
+            listPushBack(PS->tokenQueue,activeToken);
+            parseFunctionCall();
+            
+            raiseError(ERR_INTERNAL);
+        }
+        
 
         else if (isTokenTypeAccepted(activeToken) && bracketsState >= 0 && !ignoredEOL)
         {
@@ -1035,32 +1058,33 @@ int expressionParserStart(programState *PS)
         case '1':
             // tow tokens that should not follow each other follow each other
             // function in expression
-            if (whichTypeIsOnTheStack(tokenStack) == T_IDENTIFIER && tokenQueue->first->tokenInQueue->tokenType == T_LEFT_BRACKET)
-            {
-                DEBUG_PRINTF("[Exp parser] Function in expression!\n");
-                listPushBack(PS->tokenQueue, tokenStackGet(tokenStack, 0));
-                listPushBack(PS->tokenQueue, getFirstFromQueue(tokenQueue));
-                popFirstFromQueue(tokenQueue);
-                bracketsState = 1;
-                token* copyToken;
-                while (bracketsState != 0 && getFirstFromQueue != NULL)
-                {
-                    copyToken = getFirstFromQueue(tokenQueue);
-                    popFirstFromQueue(tokenQueue);
-                    if (copyToken->tokenType == T_LEFT_BRACKET)
-                    {
-                        bracketsState++;
-                    }
-                    else if (copyToken->tokenType == T_RIGHT_BRACKET)
-                    {
-                        bracketsState--;
-                    }
-                    tokenStackPush(tokenStack, copyToken);
-                }
-                parseFunctionCall();
-                generatorPopFirstStringFromList(PS->gen->parserStack);
-                PS->expParserReturnType;
-            }
+            // if (whichTypeIsOnTheStack(tokenStack) == T_IDENTIFIER && tokenQueue->first->tokenInQueue->tokenType == T_LEFT_BRACKET)
+            // {
+            //     DEBUG_PRINTF("[Exp parser] Function in expression!\n");
+            //     listPushBack(PS->tokenQueue, tokenStackGet(tokenStack, 0));
+            //     tokenStackPop(tokenStack, 1);
+            //     listPushBack(PS->tokenQueue, getFirstFromQueue(tokenQueue));
+            //     popFirstFromQueue(tokenQueue);
+            //     bracketsState = 1;
+            //     token* copyToken;
+            //     while (bracketsState != 0 && getFirstFromQueue != NULL)
+            //     {
+            //         copyToken = getFirstFromQueue(tokenQueue);
+            //         popFirstFromQueue(tokenQueue);
+            //         if (copyToken->tokenType == T_LEFT_BRACKET)
+            //         {
+            //             bracketsState++;
+            //         }
+            //         else if (copyToken->tokenType == T_RIGHT_BRACKET)
+            //         {
+            //             bracketsState--;
+            //         }
+            //         tokenStackPush(tokenStack, copyToken);
+            //     }
+            //     parseFunctionCall();
+            //     generatorPopFirstStringFromList(PS->gen->parserStack);
+            //     PS->expParserReturnType;
+            // }
             
 
             DEBUG_PRINTF("[Exp parser] Error: Two tokens that should not follow each other!\n");

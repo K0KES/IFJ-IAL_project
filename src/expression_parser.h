@@ -12,7 +12,7 @@
 #pragma once
 
 // Length of array of accepted token types
-unsigned int acceptedTokenTypesLength = 18;
+unsigned int acceptedTokenTypesLength = 29;
 
 // Array of accepted token types
 enum tokenType acceptedTokenTypes[] = {
@@ -217,3 +217,5 @@ int checkTokensOnTopOfTheStack(struct tokenStack *stack);
 /// @param tokenType Input token type
 /// @return Returns 1 if token type is operator, returns 2 if token type is left bracket, return 3 in token type is right_bracket else return 0
 int isTokenTypeOperatorLike(enum tokenType tokenType);
+
+int isTokenFunction(enum tokenType tokenType);
