@@ -736,8 +736,11 @@ bool statement(){
             break;
         case KW_RETURN:
             // 29) <statement> -> return <returnExpression>
-            DEBUG_PRINTF("[Parser] Error return out of function\n");
-            if(symTable->currentFunction == NULL){raiseError(ERR_SYNTAX);}
+            
+            if(symTable->currentFunction == NULL){
+                DEBUG_PRINTF("[Parser] Error call return out of function\n");
+                raiseError(ERR_SYNTAX);
+            }
             getNextToken();
             statementStatus = returnExpression();
             break;
@@ -868,7 +871,10 @@ bool assign(){
             tempVarNameFromExpParser = generatorPopFirstStringFromList(gen->parserStack);
             destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
 
-            if(!symtableIsVariableDefined(symTable,destinationVarName)){raiseError(ERR_UNDEFINED_VARIABLE);}
+            if(!symtableIsVariableDefined(symTable,destinationVarName)){
+                DEBUG_PRINTF("[Parser] Error undefined variable %s\n",tempVarNameFromExpParser);
+                raiseError(ERR_UNDEFINED_VARIABLE);
+            }
             symtableSetVariableValue(symTable);
 
             destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
@@ -876,7 +882,11 @@ bool assign(){
             break;
         case T_INCREMENT:;
             // 62) <assign> -> += <expression>
-            if (!symtableIsActiveVariableInitiated(symTable)) { raiseError(ERR_UNDEFINED_VARIABLE); }
+            
+            if (!symtableIsActiveVariableInitiated(symTable)) { 
+                DEBUG_PRINTF("[Parser] Error variable is not initiated\n");
+                raiseError(ERR_UNDEFINED_VARIABLE); 
+            }
 
             //Generator
             destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
@@ -899,9 +909,15 @@ bool assign(){
             break;
         case T_DECREMENT:;
             // 63) <assign> -> -= <expression>
-            if (!symtableIsActiveVariableInitiated(symTable)) { raiseError(ERR_UNDEFINED_VARIABLE); }
+            if (!symtableIsActiveVariableInitiated(symTable)) { 
+                DEBUG_PRINTF("[Parser] Error variable is not initiated\n");
+                raiseError(ERR_UNDEFINED_VARIABLE); 
+            }
 
-            if (lastVarType == DATA_TYPE_STRING ) { raiseError(ERR_WRONG_TYPE); }
+            if (lastVarType == DATA_TYPE_STRING ) { 
+                DEBUG_PRINTF("[Parser] Error cant decrement string with string\n");
+                raiseError(ERR_WRONG_TYPE); 
+            }
 
             //Generator
             destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
@@ -924,9 +940,15 @@ bool assign(){
             break;
         case T_VAR_MUL_VAR:;
             // 64) <assign> -> *= <expression>
-            if (!symtableIsActiveVariableInitiated(symTable)) { raiseError(ERR_UNDEFINED_VARIABLE); }
+            if (!symtableIsActiveVariableInitiated(symTable)) { 
+                DEBUG_PRINTF("[Parser] Error variable is not initiated\n");
+                raiseError(ERR_UNDEFINED_VARIABLE); 
+            }
 
-            if (lastVarType == DATA_TYPE_STRING ) { raiseError(ERR_WRONG_TYPE); }
+            if (lastVarType == DATA_TYPE_STRING ) { 
+                 DEBUG_PRINTF("[Parser] Error cant multiply string with string\n");
+                raiseError(ERR_WRONG_TYPE); 
+            }
 
             //Generator
             destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
@@ -949,9 +971,15 @@ bool assign(){
             break;
         case T_VAR_DIV_VAR:;
             // 65) <assign> -> /= <expression>
-            if (!symtableIsActiveVariableInitiated(symTable)) { raiseError(ERR_UNDEFINED_VARIABLE); }
+            if (!symtableIsActiveVariableInitiated(symTable)) { 
+                DEBUG_PRINTF("[Parser] Error variable is not initiated\n");
+                raiseError(ERR_UNDEFINED_VARIABLE); 
+            }
 
-            if (lastVarType == DATA_TYPE_STRING ) { raiseError(ERR_WRONG_TYPE); }
+            if (lastVarType == DATA_TYPE_STRING ) { 
+                DEBUG_PRINTF("[Parser] Error cant divide string with string\n");
+                raiseError(ERR_WRONG_TYPE); 
+            }
 
             //Generator
             destinationVarName = generatorPopFirstStringFromList(gen->parserStack);
@@ -1125,7 +1153,10 @@ bool returnExpression(){
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
             // 45) <returnExpression> -> EPS
-            if(symtableGetReturnTypeOfCurrentScope(symTable) != DATA_TYPE_VOID){ raiseError(ERR_WRONG_RETURN_TYPE); }
+            if(symtableGetReturnTypeOfCurrentScope(symTable) != DATA_TYPE_VOID){ 
+                DEBUG_PRINTF("[Parser] Error function should return value\n");
+                raiseError(ERR_WRONG_RETURN_TYPE); 
+            }
             returnExpressionStatus = true;
             break;
         default:
@@ -1133,9 +1164,11 @@ bool returnExpression(){
             returnExpressionStatus = expression();
             //TO DO co vrací exp parser v druhém případe následující podmínky -> zkontrolovat typy
             if(symtableGetReturnTypeOfCurrentScope(symTable) == DATA_TYPE_VOID && state->expParserReturnType != DATA_TYPE_NOTSET){
+                DEBUG_PRINTF("[Parser] Error function should return void\n");
                 raiseError(ERR_WRONG_RETURN_TYPE);
             }
             if (symtableGetReturnTypeOfCurrentScope(symTable) != state->expParserReturnType) { 
+                DEBUG_PRINTF("[Parser] Error function wrong return type\n");
                 raiseError(ERR_WRONG_RETURN_TYPE); 
             }
             symtablePushCode(symTable,concatString(2,"MOVE LF@%retval ",generatorPopFirstStringFromList(gen->parserStack)));
@@ -1289,7 +1322,7 @@ bool argWithName(){
         default:
             DEBUG_PRINTF("[Parser] Leaving function argWithName() with %d ...\n",false);
             return false;*/
-        default:
+        default:;
             // 54) <argWithName> -> EPS
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
@@ -1453,7 +1486,10 @@ bool parseBuidInFunctions(){
 
             parseBuidInFunctionsStatus = argument();
 
-            if(state->expParserReturnType != T_INT){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+            if(state->expParserReturnType != T_INT){
+                DEBUG_PRINTF("[Parser] Error function parameter should be int\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
@@ -1486,7 +1522,10 @@ bool parseBuidInFunctions(){
 
             parseBuidInFunctionsStatus = argument();
 
-            if(state->expParserReturnType != T_DOUBLE){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+            if(state->expParserReturnType != T_DOUBLE){
+                DEBUG_PRINTF("[Parser] Error function parameter should be double\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
@@ -1519,7 +1558,10 @@ bool parseBuidInFunctions(){
 
             parseBuidInFunctionsStatus = argument();
 
-            if(state->expParserReturnType != T_STRING){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+            if(state->expParserReturnType != T_STRING){
+                DEBUG_PRINTF("[Parser] Error function parameter should be string\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
 
             //Generator
             tempGeneratedName = generatorGenerateTempVarName(gen);
@@ -1553,7 +1595,10 @@ bool parseBuidInFunctions(){
 
             parseBuidInFunctionsStatus = argument();
 
-            if(state->expParserReturnType != T_INT){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+            if(state->expParserReturnType != T_INT){
+                DEBUG_PRINTF("[Parser] Error function parameter should be int\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
             
             // verification of: substring(<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
@@ -1563,7 +1608,10 @@ bool parseBuidInFunctions(){
             getNextToken();
             parseBuidInFunctionsStatus = parseBuidInFunctionsStatus && argument();
 
-            if(state->expParserReturnType != T_INT){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+            if(state->expParserReturnType != T_INT){
+                DEBUG_PRINTF("[Parser] Error function parameter should be int\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
 
             // verification of: substring(<argument>,<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
@@ -1573,7 +1621,10 @@ bool parseBuidInFunctions(){
             getNextToken();
             parseBuidInFunctionsStatus = parseBuidInFunctionsStatus && argument();
             
-            if(state->expParserReturnType != T_INT){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+            if(state->expParserReturnType != T_INT){
+                DEBUG_PRINTF("[Parser] Error function parameter should be int\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
 
             // verification of: substring(<argument>,<argument>,<argument>)
             if (activeToken->tokenType != T_RIGHT_BRACKET){
@@ -1605,7 +1656,10 @@ bool parseBuidInFunctions(){
             symtablePushCode(symTable,"#Start of build in function ord()");
             parseBuidInFunctionsStatus = argument();
 
-            if(state->expParserReturnType != T_STRING){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+            if(state->expParserReturnType != T_STRING){
+                DEBUG_PRINTF("[Parser] Error function parameter should be string\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
@@ -1652,7 +1706,10 @@ bool parseBuidInFunctions(){
 
             parseBuidInFunctionsStatus = argument();
 
-            if(state->expParserReturnType != T_INT){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+            if(state->expParserReturnType != T_INT){
+                DEBUG_PRINTF("[Parser] Error function parameter should be int\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
@@ -1688,7 +1745,10 @@ void parseFunctionCall(){
         symtableSetFunctionCallName(symTable,functionName);
 
         getNextToken();
-        if(activeToken->tokenType != T_LEFT_BRACKET){ raiseError(ERR_SYNTAX);}
+        if(activeToken->tokenType != T_LEFT_BRACKET){ 
+            DEBUG_PRINTF("[Parser] Syntax error left bracket missing\n");
+            raiseError(ERR_SYNTAX);
+        }
         getNextToken();
 
         //Generator
@@ -1715,7 +1775,7 @@ void parseFunctionCall(){
     }else{
         parseFunctionCallStatus = parseBuidInFunctions();
     }
-
+    //TO DO check if tokenQueue is empty
     DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
     listPushBack(state->tokenQueue,activeToken);
     if (parseFunctionCallStatus){
