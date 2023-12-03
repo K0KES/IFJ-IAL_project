@@ -1159,7 +1159,8 @@ int getToken(token *token, int charNumber, int lineNumber) {
 
                         charNumber++;
                         state = S_START;
-                        token->tokenType = T_MULTILINE_STRING;
+                        // token->tokenType = T_MULTILINE_STRING;
+                        token->tokenType = T_STRING;
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
                         strFree(token->value);

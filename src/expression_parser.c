@@ -300,6 +300,7 @@ unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
     case T_INT:
     case T_DOUBLE:
     case T_STRING:
+    case KW_NIL:
         return 7;
         break;
 
@@ -759,7 +760,7 @@ int expressionParserStart(programState *PS)
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " int@", strGetStr(tokenStackGet(tokenStack, 0)->value)));
 
-                tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_INT;
                 tokenStackGet(tokenStack, 0)->tokenType = T_E;
 
                 strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
@@ -784,7 +785,7 @@ int expressionParserStart(programState *PS)
                 free(stringAssemblyValue);
                 stringAssemblyValue = NULL;
 
-                tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_STRING;
                 tokenStackGet(tokenStack, 0)->tokenType = T_E;
 
                 strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
@@ -803,13 +804,31 @@ int expressionParserStart(programState *PS)
                 sprintf(floatString, "%a", atof(strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " float@", floatString));
 
-                tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_DOUBLE;
                 tokenStackGet(tokenStack, 0)->tokenType = T_E;
 
                 strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
 
                 break;
             }
+            case KW_NIL:
+            {
+                DEBUG_PRINTF("[Exp parser] E -> i (nil)\n");
+
+                char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
+                symtablePushCode(PS->symTable, concatString(3, "MOVE ", tempVarName, " nil@nil"));
+
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenType;
+                tokenStackGet(tokenStack, 0)->tokenType = T_E;
+                tokenStackGet(tokenStack, 0)->is_nullable = true;
+
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
+                // raiseError(ERR_INTERNAL);
+                break;
+            }
+
             case T_PLUS:
             {
                 DEBUG_PRINTF("[Exp parser] E -> E + E\n");
@@ -836,7 +855,6 @@ int expressionParserStart(programState *PS)
                 else if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
                     symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                    
                 }
                 // float + int
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)

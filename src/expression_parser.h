@@ -12,7 +12,7 @@
 #pragma once
 
 // Length of array of accepted token types
-unsigned int acceptedTokenTypesLength = 29;
+unsigned int acceptedTokenTypesLength = 28;
 
 // Array of accepted token types
 enum tokenType acceptedTokenTypes[] = {
@@ -35,7 +35,6 @@ enum tokenType acceptedTokenTypes[] = {
     T_DOUBLE,
     T_STRING,
 
-    KW_LET,
 
     KW_NIL,
 
