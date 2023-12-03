@@ -1061,7 +1061,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     strAddChar(token->value, c);
                     state = S_MULTILINE_STRING;
                     //new string, where we copy full multiline string without entering """ sequence
-                    multiLineString = (string*)malloc(sizeof(string));
+                    multiLineString = strInit();
                     if (multiLineString == NULL) { raiseError(ERR_INTERNAL); }
                     lastChar = c;
                     break;
@@ -1224,7 +1224,7 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
     int i = 1;
 
 
-    string* newString = (string*)malloc(sizeof(string));
+    string* newString = strInit();
     if (newString == NULL) { raiseError(ERR_INTERNAL); }
 
     strAddChar(newString, '"');
