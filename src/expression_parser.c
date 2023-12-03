@@ -1228,28 +1228,29 @@ int expressionParserStart(programState *PS)
                 }
                 DEBUG_PRINTF("[Exp parser]  E -> E ?? E\n");
 
-                char *tempGeneratedNameNil = generatorGenerateTempVarName(PS->gen);
-                // char *tempGeneratedNameOutput = generatorGenerateTempVarName(PS->gen);
-                char *tempGeneratedLabel0 = generatorGenerateTempVarName(PS->gen);
-                char *tempGeneratedLabel1 = generatorGenerateTempVarName(PS->gen);
-                // char *tempGeneratedLabel2 = generatorGenerateTempVarName(PS->gen);
+                // char *tempGeneratedNameNil = generatorGenerateTempVarName(PS->gen);
+                // // char *tempGeneratedNameOutput = generatorGenerateTempVarName(PS->gen);
+                // char *tempGeneratedLabel0 = generatorGenerateTempVarName(PS->gen);
+                // char *tempGeneratedLabel1 = generatorGenerateTempVarName(PS->gen);
+                // // char *tempGeneratedLabel2 = generatorGenerateTempVarName(PS->gen);
 
-                char *tempVarNameNil = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedNameNil), tempGeneratedNameNil);
-                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarNameNil));
-                symtablePushCode(PS->symTable, concatString(3, "MOVE ", tempVarNameNil, " nil@nil"));
+                // char *tempVarNameNil = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedNameNil), tempGeneratedNameNil);
+                // symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarNameNil));
+                // symtablePushCode(PS->symTable, concatString(3, "MOVE ", tempVarNameNil, " nil@nil"));
 
-                // symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempGeneratedNameOutput));
+                // // symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempGeneratedNameOutput));
 
     
-                symtablePushCode(PS->symTable, concatString(6, "JUMPIFNEQ ", tempGeneratedLabel0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", tempVarNameNil));
-                symtablePushCode(PS->symTable, concatString(3, "MOVE ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                symtablePushCode(PS->symTable, concatString(2, "JUMP ", tempGeneratedLabel1));
+                // symtablePushCode(PS->symTable, concatString(6, "JUMPIFNEQ ", tempGeneratedLabel0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", tempVarNameNil));
+                // symtablePushCode(PS->symTable, concatString(3, "MOVE ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                // symtablePushCode(PS->symTable, concatString(2, "JUMP ", tempGeneratedLabel1));
 
-                symtablePushCode(PS->symTable, concatString(2, "LABEL ", tempGeneratedLabel0));
-                symtablePushCode(PS->symTable, concatString(3, "MOVE ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                // symtablePushCode(PS->symTable, concatString(2, "LABEL ", tempGeneratedLabel0));
+                // symtablePushCode(PS->symTable, concatString(3, "MOVE ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
 
-                symtablePushCode(PS->symTable, concatString(2, "LABEL ", tempGeneratedLabel1));
+                // symtablePushCode(PS->symTable, concatString(2, "LABEL ", tempGeneratedLabel1));
 
+                tokenStackPop(tokenStack, 2);
                 break;
             }
 
