@@ -838,8 +838,8 @@ bool callOrAssign(){
                 symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
                 i++;
             }
-
-            symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+            
+            symtablePushCode(symTable,symTable->lastFunctionCall);
             char *tempGeneratedName = generatorGenerateTempVarName(gen);
             char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
             symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
@@ -1967,7 +1967,11 @@ void parseFunctionCall(){
             symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
             i++;
         }
-        symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+        //TO DO jak vrátit return value pushnout na gen-parserStack
+        // return type nastavit do program state
+
+        //symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+        symtablePushCode(symTable,symTable->lastFunctionCall);
 
         char *tempGeneratedName = generatorGenerateTempVarName(gen);
         char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
