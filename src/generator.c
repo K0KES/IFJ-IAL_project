@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include "symtable.h"
 
 list *allocatedStrings;
 
@@ -15,6 +16,7 @@ generator* generatorInit(){
     gen->parserStack = listInit();
     gen->temporary = listInit();
     allocatedStrings = listInit();
+    ht_init(&gen->functionCallsTable);
 
     gen->counter = 1;
 
@@ -69,6 +71,39 @@ void generatorFree(generator *gen){
     gen = NULL;
 }
 
+char* generatorProccessFunctionCall(generator *gen, char* line){
+    symtable *table = (symtable *)gen->table;
+    ht_item_t *item = ht_search(gen->functionCallsTable,line);
+    if(item != NULL){
+        functionData * callData = (functionData *)item->data;
+        symtableItem *owner = symtableFindSymtableItem(table,callData->callName);
+
+        if(listLength(owner->funcData->overloadFunctions) == 0){
+            return concatString(2,"CALL $",callData->callName);
+        }else{
+            listNode *overloadNode = owner->funcData->overloadFunctions->first;
+            int i = 1;
+
+            if(symtableCheckIfOverloadMatches(callData,owner->funcData)){
+                return concatString(2,"CALL $",callData->callName);
+            }
+
+            while(overloadNode != NULL){
+                if(symtableCheckIfOverloadMatches(callData,(functionData *)overloadNode->data)){
+                    char *str = allocateString("empty_string");
+                    sprintf(str,"%d",i);
+        
+                    return concatString(3,"CALL $",callData->callName,str);
+                }
+                i++;
+                overloadNode = overloadNode->next;
+            }
+        }
+    }else{
+        return line;
+    }
+}
+
 void generatorGenerateOutput(generator *gen){
     FILE *fptr = NULL;
     fptr = fopen("output", "w");
@@ -77,9 +112,10 @@ void generatorGenerateOutput(generator *gen){
 
     char* line = (char *)listPopFirst(gen->functions);
     while(line != NULL){
+        line = generatorProccessFunctionCall(gen,line);
         fprintf(fptr, line);
         fprintf(fptr, "\n");
-        free(line);
+        //free(line);
         line = NULL;
         line = (char *)listPopFirst(gen->functions);
     }
@@ -88,9 +124,10 @@ void generatorGenerateOutput(generator *gen){
     
     line = (char *)listPopFirst(gen->mainCode);
     while(line != NULL){
+        line = generatorProccessFunctionCall(gen,line);
         fprintf(fptr, line);
         fprintf(fptr, "\n");
-        free(line);
+        //free(line);
         line = NULL;
         line = (char *)listPopFirst(gen->mainCode);
     }
@@ -98,6 +135,7 @@ void generatorGenerateOutput(generator *gen){
     fclose(fptr);
     fptr = NULL;
 }
+
 
 void generatorGenerateOutputToStdOut(generator *gen){
     printf(".IFJcode23\n");

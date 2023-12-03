@@ -1,7 +1,7 @@
+#pragma once
 #include "list.h"
 #include "hashtable.h"
 #include "string.h"
-#pragma once
 
 typedef struct generator_h
 {
@@ -10,6 +10,8 @@ typedef struct generator_h
     int counter; //Unique counter
     list *temporary;
     list *parserStack; 
+    ht_table_t *functionCallsTable;
+    void* table;
 }generator;
 
 
@@ -33,7 +35,7 @@ void generatorPushStringFirstToList(list *list, char *string);
 
 void generatorPushStringToList(list *list, char *string);
 
-char* generatorGenerateTempVarName();
+char* generatorGenerateTempVarName(generator *gen);
 
 char * concatString(int num_args, ...);
 

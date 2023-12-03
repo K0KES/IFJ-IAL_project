@@ -836,7 +836,7 @@ bool callOrAssign(){
                 i++;
             }
 
-            symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+            symtablePushCode(symTable,symTable->lastFunctionCall);
 
             break;
         default:
@@ -1792,7 +1792,8 @@ void parseFunctionCall(){
         //TO DO jak vrátit return value pushnout na gen-parserStack
         // return type nastavit do program state
 
-        symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+        //symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+        symtablePushCode(symTable,symTable->lastFunctionCall);
 
     }else{
         parseFunctionCallStatus = parseBuidInFunctions();

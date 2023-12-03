@@ -5,11 +5,9 @@
  * @date 9.10.2023
 */
 
-#pragma once
 #include "symtable.h"
 #include <stdio.h>
 #include "error.h"
-#include "generator.h"
 
 symtable* symtableInit(generator *generator)
 {
@@ -24,6 +22,8 @@ symtable* symtableInit(generator *generator)
     table->functionCodeHeader = listInit();
     table->functionCodeBody = listInit();
     table->functionCodeFooter = listInit();
+
+    generator->table = (void *)table;
 
     if(table->tables == NULL){ free(table); return NULL; }
     
@@ -179,7 +179,7 @@ void symtableFree(symtable *table){
 
     listDestroy(table->tables);
     listDestroy(table->scopes);
-    listDestroy(table->functionCalls);
+    //listDestroy(table->functionCalls);
 
     freeContentOfListAndDestroy(table->functionCodeFooter);
     freeContentOfListAndDestroy(table->functionCodeBody);
@@ -378,40 +378,14 @@ void symtableSetFunctionArgumentName(symtable *table, char *name){
     argument->name = string;
 }
 
-bool symtableCheckIfFunctionsAreSame(functionData *funcData1, functionData *funcData2){
-    listNode *argNode = funcData1->arguments->first;
-    listNode *argNode2 = funcData2->arguments->first;
-    while(true){
-        if(argNode == NULL && argNode2 != NULL) return false;
-        if(argNode != NULL && argNode2 == NULL) return false;
-        if(argNode == NULL && argNode2 == NULL) break;
-        functionArgument *funcArg = (functionArgument *)(argNode->data);
-        functionArgument *funcArg2 = (functionArgument *)(argNode2->data);
-
-        if(strcmp(funcArg->name,funcArg2->name) != 0) return false;
-        if(funcArg->type != funcArg2->type) return false;
-        if(funcArg->nullable != funcArg2->nullable) return false;
-
-        argNode = argNode->next;
-        argNode2 = argNode2->next;
-    }
-
-    if(funcData1->returnType != funcData2->returnType)return false;
-
-    return true;
-}
-
 bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcData){
     listNode *callNode = callData->arguments->first;
     listNode *funcNode = funcData->arguments->first;
-    DEBUG_PRINTF("Compariung overloads... \n");
     while(true){
         if(callNode == NULL && funcNode != NULL){
-            DEBUG_PRINTF("Case 1\n");
             return false;
         }
         if(callNode != NULL && funcNode == NULL){
-            DEBUG_PRINTF("Case 2\n");
             return false;
         }
         if(callNode == NULL && funcNode == NULL) break;
@@ -419,15 +393,12 @@ bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcDa
         functionArgument *funcArg = (functionArgument *)(funcNode->data);
 
         if(strcmp(funcArg->name,callArg->name) != 0){
-            DEBUG_PRINTF("Name doesnt match %s = %s\n",funcArg->name,callArg->name);
             return false;
         } 
         if(funcArg->type != callArg->type){
-            DEBUG_PRINTF("Type doesnt match\n %d = %d \n",funcArg->type,callArg->type);
             return false;
         }
         if(funcArg->nullable != callArg->nullable){
-            DEBUG_PRINTF("Nullable doesnt match\n");
             return false;
         }
 
@@ -436,7 +407,6 @@ bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcDa
     }
 
     if(callData->returnType != callData->returnType){
-        DEBUG_PRINTF("Return types doesnt match\n");
         return false;
     }
 
@@ -453,24 +423,23 @@ void symtableFunctionEndOfArguments(symtable *table){
     if(listLength(owner->funcData->overloadFunctions) == 0){
         currentFunction = owner->funcData;
     }else{
+        //TODOOOOO
         currentFunction = (functionData *)listGetLast(owner->funcData->overloadFunctions);
-        if(symtableCheckIfFunctionsAreSame(owner->funcData,currentFunction)){
-            DEBUG_PRINTF("[Symtable] Overload functions are same\n");
-            raiseError(ERR_UNDEFINED_FUNCTION);
-        }
         /*
+        if(symtableCheckIfOverloadMatches(table->activeItem->funcData,owner->funcData)){
+            DEBUG_PRINTF("[Symtable] Overload functions are same 2\n");
+            raiseError(ERR_UNDEFINED_FUNCTION);
+        }*/
 
-        TODO
         listNode *overloadNode = owner->funcData->overloadFunctions->first;
-        while(overloadNode != NULL){
-            DEBUG_PRINTF(".................\n");
-            if(symtableCheckIfFunctionsAreSame(owner->funcData,(functionData *)(overloadNode->data))){
+        while(overloadNode->next != NULL){
+            if(symtableCheckIfOverloadMatches(currentFunction,(functionData *)(overloadNode->data))){
                 DEBUG_PRINTF("[Symtable] Overload functions are same\n");
                 raiseError(ERR_UNDEFINED_FUNCTION);
             }
             overloadNode = overloadNode->next;
         }
-        */
+        
     }
 
 
@@ -714,6 +683,9 @@ void symtableFunctionCallStart(symtable *table, char *funcName){
     funcData->arguments = listInit();
     funcData->callName = concatString(2,table->lastFunctionCall,"");
 
+    table->lastFunctionCall = concatString(3,"$$$",generatorGenerateTempVarName(table->gen),"$$$");
+    ht_insert(table->gen->functionCallsTable,table->lastFunctionCall,funcData);
+
     listPushBack(table->functionCalls,funcData);
 }
 
@@ -765,10 +737,6 @@ void symtableCheckOverload(symtable *table,functionData *funcCall){
         
 
         if(symtableCheckIfOverloadMatches(funcCall,overloadFunc)){
-            char *str = allocateString("empty_string");
-            sprintf(str,"%d",overloadId);
-            
-            table->lastFunctionCall = concatString(2,table->lastFunctionCall,str);
             DEBUG_PRINTF("FOUND OVERLOAD :) \n");
             return;
         }
@@ -781,12 +749,14 @@ void symtableCheckOverload(symtable *table,functionData *funcCall){
     raiseError(ERR_UNDEFINED_FUNCTION);
 
 
-    symtableFunctionDataFree(funcCall);
+    //symtableFunctionDataFree(funcCall);
 }
 
 void symtableEndOfFile(symtable *table){
-    while(listLength(table->functionCalls) != 0){
-        functionData *funcData = (functionData *)listGetFirst(table->functionCalls);
+    listNode *funcDataNode = table->functionCalls->first;
+
+    while(funcDataNode != NULL){
+        functionData *funcData = (functionData *)funcDataNode->data;
         
         if(strcmp(funcData->callName,"write") == 0 
             || strcmp(funcData->callName,"readString") == 0 
@@ -799,15 +769,17 @@ void symtableEndOfFile(symtable *table){
             || strcmp(funcData->callName,"ord") == 0
             || strcmp(funcData->callName,"chr") == 0){
 
-            symtableFunctionDataFree(funcData);
-            funcData = (functionData *)listPopFirst(table->functionCalls);
+            //symtableFunctionDataFree(funcData);
+            //funcData = (functionData *)listPopFirst(table->functionCalls);
+            funcDataNode = funcDataNode->next;
             continue;
         }
 
         symtableItem *item = symtableFindSymtableItem(table,funcData->callName);
         if(listLength(item->funcData->overloadFunctions) != 0){
             symtableCheckOverload(table,funcData);
-            funcData = (functionData *)listPopFirst(table->functionCalls);
+            //funcData = (functionData *)listPopFirst(table->functionCalls);
+            funcDataNode = funcDataNode->next;
             continue;
         }
         if(item != NULL){
@@ -838,13 +810,13 @@ void symtableEndOfFile(symtable *table){
                 }
                 if(callArg->type != funcArg->type){
                     DEBUG_PRINTF("[Symtable] Call argument type doesn't match fuction argument type (%d != %d)\n",callArg->type,funcArg->type);
-                    raiseError(ERR_WRONG_TYPE);
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
                 }
                 
                 if(callArg->nullable != funcArg->nullable){
                     if(!(funcArg->nullable && !callArg->nullable)){
                         DEBUG_PRINTF("[Symtable] Call argument nullable doesn't match fuction argument nullable (%d != %d)\n",callArg->nullable,funcArg->nullable);
-                        raiseError(ERR_WRONG_TYPE);
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
                     }
                 }
 
@@ -857,8 +829,9 @@ void symtableEndOfFile(symtable *table){
             raiseError(ERR_UNDEFINED_FUNCTION);
         }
 
-        symtableFunctionDataFree(funcData);
-        funcData = (functionData *)listPopFirst(table->functionCalls);
+        //symtableFunctionDataFree(funcData);
+        //funcData = (functionData *)listPopFirst(table->functionCalls);
+        funcDataNode = funcDataNode->next;
     }
 
     DEBUG_PRINTF("[Symtable] File was ended\n");
