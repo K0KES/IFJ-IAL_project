@@ -1425,6 +1425,7 @@ bool argument(){
             // 52) <argument> -> ID <eol> <argWithName>
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
+            tempToken->lastChar = activeToken->lastChar;
             /*
             int stringLength = strlen(strGetStr(activeToken->value)) + 1;
             char *string = (char *)malloc(stringLength);
@@ -1506,6 +1507,7 @@ bool argWithName(){
             // 54) <argWithName> -> EPS
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
+            tempToken->lastChar = activeToken->lastChar;
             /*
             int stringLength = strlen(strGetStr(activeToken->value)) + 1;
             char *string = (char *)malloc(stringLength);
@@ -1562,6 +1564,7 @@ bool expression(){
     }*/
     token *tempToken = tokenInit();
     tempToken->tokenType = activeToken->tokenType;
+    tempToken->lastChar = activeToken->lastChar;
     /*
     int stringLength = strlen(strGetStr(activeToken->value)) + 1;
     char *string = (char *)malloc(stringLength);
