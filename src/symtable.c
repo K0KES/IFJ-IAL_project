@@ -219,7 +219,7 @@ void symtableInsert(symtable *table, char *varName, bool isFunction){
 
     if(isFunction){
         newSymtableItem->funcData = (functionData *)malloc(sizeof(functionData));
-        newSymtableItem->funcData->returnType = DATA_TYPE_NOTSET;
+        newSymtableItem->funcData->returnType = DATA_TYPE_VOID;
         newSymtableItem->funcData->arguments = listInit();
         newSymtableItem->funcData->overloadFunctions = listInit();
     }
@@ -463,7 +463,7 @@ void symtableFunctionEndOfArguments(symtable *table){
 }
 
 enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table){
-    if(table->currentFunction == NULL) return DATA_TYPE_VOID;
+    if(table->currentFunction == NULL) return DATA_TYPE_NOTSET;
     return table->currentFunction->funcData->returnType;
 }
 
@@ -514,7 +514,7 @@ bool symtableIsActiveVariableInitiated(symtable *table){
 enum data_type symtableGetVariableType(symtable *table, char *varName){
     symtableItem *item = symtableFindSymtableItem(table,varName);
 
-    if(item == NULL) raiseError(ERR_UNDEFINED_VARIABLE);
+    if(item == NULL) return DATA_TYPE_NOTSET;
     if(item->funcData == NULL){
         return item->type;
     }else{
@@ -525,7 +525,7 @@ enum data_type symtableGetVariableType(symtable *table, char *varName){
 bool symtableGetVariableNullable(symtable *table, char *varName){
     symtableItem *item = symtableFindSymtableItem(table,varName);
 
-    if(item == NULL) raiseError(ERR_UNDEFINED_VARIABLE);
+    if(item == NULL) return false;
     if(item->funcData == NULL){
         return item->nullable;
     }else{
@@ -776,13 +776,13 @@ void symtableEndOfFile(symtable *table){
         }
 
         symtableItem *item = symtableFindSymtableItem(table,funcData->callName);
-        if(listLength(item->funcData->overloadFunctions) != 0){
-            symtableCheckOverload(table,funcData);
-            //funcData = (functionData *)listPopFirst(table->functionCalls);
-            funcDataNode = funcDataNode->next;
-            continue;
-        }
         if(item != NULL){
+            if(listLength(item->funcData->overloadFunctions) != 0){
+                symtableCheckOverload(table,funcData);
+                //funcData = (functionData *)listPopFirst(table->functionCalls);
+                funcDataNode = funcDataNode->next;
+                continue;
+            }
             if(item->funcData == NULL){
                 DEBUG_PRINTF("[Symtable] In list function calls was normal variable :killemoji:\n");
                 raiseError(ERR_UNDEFINED_FUNCTION);
