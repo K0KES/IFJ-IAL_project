@@ -13,10 +13,10 @@ int main(int argc, char const *argv[]){
     parse(programState);
 
     //Generate output code
-    //generatorGenerateOutputToStdOut(programState->gen);
+    generatorGenerateOutputToStdOut(programState->gen);
 
     //Odkomentaruj toto jestli chces vystup do souboru
-    generatorGenerateOutput(programState->gen);
+    //generatorGenerateOutput(programState->gen);
 
     //symtablePrintVariables(symTable);
 
