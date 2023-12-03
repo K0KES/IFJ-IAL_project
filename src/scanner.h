@@ -56,6 +56,7 @@ enum tokenType {
     T_BOOL = 123, // Boolean
     T_VOID = 124, // Void only for symtable
     T_NULLABLE = 125, // ?
+    KW_NIL = 126, // nil
     T_MULTILINE_STRING, // """ """
 
     //OTHERS
@@ -72,7 +73,7 @@ enum tokenType {
     KW_RETURN, // return
     KW_INT, // Int
     KW_STRING, // String
-    KW_NIL, // nil
+    
     KW_ELSE, // else
     KW_IF, // if
     KW_WHILE, // while
