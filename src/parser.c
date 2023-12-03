@@ -7,6 +7,8 @@
 
 enum tokenType typeOfLastToken;
 
+int numberOfArguments = 0;
+
 symtable *symTable;
 generator *gen;
 token *activeToken;
@@ -771,7 +773,6 @@ bool statement(){
 
             //Generator
             while (listLength(gen->parserStack) != 0){
-                //TO DO převést formát floatu ?? na výpis ve formátu 1.0 
                 symtablePushCode(symTable,concatString(2,"WRITE ",generatorPopLastStringFromList(gen->parserStack)));
             }
             break;
@@ -820,24 +821,31 @@ bool callOrAssign(){
             symtablePushCode(symTable,"CREATEFRAME");
 
             char *functionName = generatorPopFirstStringFromList(gen->parserStack);
+            state->expParserReturnType = symtableGetVariableType(symTable,functionName);
             
             //Symtable
             symtableFunctionCallStart(symTable,NULL);
 
             getNextToken();
+            numberOfArguments = 0;
             callOrAssignStatus = arguments();
 
             int i = 1;
             char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
-            while(listLength(gen->parserStack) != 0){
+            while(i <= numberOfArguments){
                 snprintf(result, sizeof(result), "%d", i);
                 symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));
                 symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
                 i++;
             }
-
+            
             symtablePushCode(symTable,symTable->lastFunctionCall);
+            char *tempGeneratedName = generatorGenerateTempVarName(gen);
+            char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
 
+            symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," TF@%retval"));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
             break;
         default:
             DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",false);
@@ -858,12 +866,37 @@ bool assign(){
     char *tempGeneratedName;
     char *tempNameWithPrefix;
 
+    int assignTokenLastChar;
+
     enum data_type lastVarType = symtableGetActiveItemType(symTable);
     //TO DO kontrola mezer u =
     switch(activeToken->tokenType) {
-        case T_ASSIGNMENT:
+        case T_ASSIGNMENT:;
             // 61) <assign> -> = <expression>
+            assignTokenLastChar = activeToken->lastChar;
             getNextToken();
+
+            // there is NOT space in front of operator
+            if (assignTokenLastChar == 0 && typeOfLastToken != T_EOL){
+                // next token is EOL
+                if (activeToken->tokenType == T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+                // next token  has space in front of him
+                if (activeToken->lastChar == 32){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            // there is space in front of operator
+            else if (assignTokenLastChar == 32 || typeOfLastToken == T_EOL){
+                if (activeToken->lastChar == 0 && activeToken->tokenType != T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
@@ -893,7 +926,30 @@ bool assign(){
             destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
+            assignTokenLastChar = activeToken->lastChar;
             getNextToken();
+
+            // there is NOT space in front of operator
+            if (assignTokenLastChar == 0 && typeOfLastToken != T_EOL){
+                // next token is EOL
+                if (activeToken->tokenType == T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+                // next token  has space in front of him
+                if (activeToken->lastChar == 32){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            // there is space in front of operator
+            else if (assignTokenLastChar == 32 || typeOfLastToken == T_EOL){
+                if (activeToken->lastChar == 0 && activeToken->tokenType != T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
@@ -924,7 +980,30 @@ bool assign(){
             destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
+            assignTokenLastChar = activeToken->lastChar;
             getNextToken();
+
+            // there is NOT space in front of operator
+            if (assignTokenLastChar == 0 && typeOfLastToken != T_EOL){
+                // next token is EOL
+                if (activeToken->tokenType == T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+                // next token  has space in front of him
+                if (activeToken->lastChar == 32){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            // there is space in front of operator
+            else if (assignTokenLastChar == 32 || typeOfLastToken == T_EOL){
+                if (activeToken->lastChar == 0 && activeToken->tokenType != T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
@@ -955,7 +1034,30 @@ bool assign(){
             destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
+            assignTokenLastChar = activeToken->lastChar;
             getNextToken();
+
+            // there is NOT space in front of operator
+            if (assignTokenLastChar == 0 && typeOfLastToken != T_EOL){
+                // next token is EOL
+                if (activeToken->tokenType == T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+                // next token  has space in front of him
+                if (activeToken->lastChar == 32){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            // there is space in front of operator
+            else if (assignTokenLastChar == 32 || typeOfLastToken == T_EOL){
+                if (activeToken->lastChar == 0 && activeToken->tokenType != T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
@@ -986,7 +1088,30 @@ bool assign(){
             destinationVarNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,destinationVarName),destinationVarName);
 
             //Parser
+            assignTokenLastChar = activeToken->lastChar;
             getNextToken();
+
+            // there is NOT space in front of operator
+            if (assignTokenLastChar == 0 && typeOfLastToken != T_EOL){
+                // next token is EOL
+                if (activeToken->tokenType == T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+                // next token  has space in front of him
+                if (activeToken->lastChar == 32){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            // there is space in front of operator
+            else if (assignTokenLastChar == 32 || typeOfLastToken == T_EOL){
+                if (activeToken->lastChar == 0 && activeToken->tokenType != T_EOL){
+                    DEBUG_PRINTF("[Parser] Error wrong white space \n");
+                    raiseError(ERR_SYNTAX);
+                }
+            }
+            
             assignStatus = expression();
             symtableCheckSameTypes(lastVarType,state->expParserReturnType);
 
@@ -1087,6 +1212,8 @@ bool varDecMid(){
         case T_ASSIGNMENT:
             // 41) <varDecMid> -> = <expression>
             getNextToken();
+            DEBUG_PRINTF("------ %d \n",listLength(gen->parserStack));
+
             varDecMidStatus = expression();
             //TO DO umí expressionParser vracet nil?? -> nil vracet jako DATA_TYPE_NOTSET
             //TO DO if nill -> raise error 8
@@ -1095,6 +1222,7 @@ bool varDecMid(){
             symtableSetVariableValue(symTable);
 
             //Generator
+            DEBUG_PRINTF("------ %d \n",listLength(gen->parserStack));
             symtablePushCode(symTable,concatString(4,"MOVE ",generatorPopFirstStringFromList(gen->parserStack)," ",generatorPopFirstStringFromList(gen->parserStack)));
             break;
         default:
@@ -1152,8 +1280,6 @@ bool returnExpression(){
     DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
     DEBUG_PRINTF("[Parser] Entering function returnExpression()...\n");
 
-    //TO DO generování kodu - přidat u returnu jump na konec funkce v případě když by nebyl na jejím konci
-
     switch(activeToken->tokenType) {
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
@@ -1177,6 +1303,7 @@ bool returnExpression(){
                 // raiseError(ERR_WRONG_RETURN_TYPE); 
             }
             symtablePushCode(symTable,concatString(2,"MOVE LF@%retval ",generatorPopFirstStringFromList(gen->parserStack)));
+            symtablePushCode(symTable,concatString(3,"JUMP $",symTable->currentFunction->name,"_end"));
             break;
     }
     DEBUG_PRINTF("[Parser] Leaving function returnExpression() with %d ...\n",returnExpressionStatus);
@@ -1247,6 +1374,8 @@ bool argument(){
     bool argumentStatus = false;
     DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
     DEBUG_PRINTF("[Parser] Entering function argument()...\n");
+
+    numberOfArguments++;
 
     symtableFunctionCallNextParameter(symTable);
     switch(activeToken->tokenType) {
@@ -1763,8 +1892,9 @@ void parseFunctionCall(){
     DEBUG_PRINTF("[Parser] Entering function parseFunctionCall()...\n");
 
     if(activeToken->tokenType == T_IDENTIFIER){
-        char *functionName = strGetStr(activeToken->value);
+        char *functionName = concatString(1,strGetStr(activeToken->value));
         symtableSetFunctionCallName(symTable,functionName);
+        state->expParserReturnType = symtableGetVariableType(symTable,functionName);
 
         getNextToken();
         if(activeToken->tokenType != T_LEFT_BRACKET){ 
@@ -1779,11 +1909,12 @@ void parseFunctionCall(){
         //Symtable
         symtableFunctionCallStart(symTable,NULL);
 
+        numberOfArguments = 0;
         parseFunctionCallStatus = arguments();
 
         int i = 1;
         char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
-        while(listLength(gen->parserStack) != 0){
+        while(i <= numberOfArguments){
             snprintf(result, sizeof(result), "%d", i);
             symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));
             symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
@@ -1795,10 +1926,15 @@ void parseFunctionCall(){
         //symtablePushCode(symTable,concatString(2,"CALL $",functionName));
         symtablePushCode(symTable,symTable->lastFunctionCall);
 
+        char *tempGeneratedName = generatorGenerateTempVarName(gen);
+        char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+        symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+
+        symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," TF@%retval"));
+        generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
     }else{
         parseFunctionCallStatus = parseBuidInFunctions();
     }
-    //TO DO check if tokenQueue is empty
     DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
     listPushBack(state->tokenQueue,activeToken);
     if (parseFunctionCallStatus){
