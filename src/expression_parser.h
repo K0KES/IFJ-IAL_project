@@ -35,7 +35,6 @@ enum tokenType acceptedTokenTypes[] = {
     T_DOUBLE,
     T_STRING,
 
-
     KW_NIL,
 
     KW_READDOUBLE,
