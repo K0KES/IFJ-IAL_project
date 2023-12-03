@@ -25,6 +25,11 @@ token *tokenInit(){
 
     activeToken->position->charNumber = 0;
     activeToken->position->lineNumber = 1;
+    activeToken->is_nullable = false;
+    activeToken->is_return_from_func = false;
+    activeToken->lastChar = '\0';
+    activeToken->tokenType = T_NULLABLE;
+    activeToken->tokenExpParserType = T_NULLABLE;
     return activeToken;
 }
 

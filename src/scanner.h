@@ -132,6 +132,7 @@ typedef struct {
     positionInfo *position;
     char lastChar;
     bool is_return_from_func; //only for expression parser
+    bool is_nullable; //only for expression parser  
 
 } token;
 
