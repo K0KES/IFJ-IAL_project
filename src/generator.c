@@ -143,8 +143,9 @@ void generatorGenerateOutputToStdOut(generator *gen){
 
     char* line = (char *)listPopFirst(gen->functions);
     while(line != NULL){
+        line = generatorProccessFunctionCall(gen,line);
         printf("%s\n",line);
-        free(line);
+        //free(line);
         line = NULL;
         line = (char *)listPopFirst(gen->functions);
     }
@@ -153,8 +154,9 @@ void generatorGenerateOutputToStdOut(generator *gen){
     
     line = (char *)listPopFirst(gen->mainCode);
     while(line != NULL){
+        line = generatorProccessFunctionCall(gen,line);
         printf("%s\n",line);
-        free(line);
+        //free(line);
         line = NULL;
         line = (char *)listPopFirst(gen->mainCode);
     }

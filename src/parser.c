@@ -1242,9 +1242,7 @@ bool varDecMid(){
             }
 
             varDecMidStatus = expression();
-            //TO DO umí expressionParser vracet nil?? -> nil vracet jako DATA_TYPE_NOTSET
-            //TO DO if nill -> raise error 8
-            if (state->expParserReturnType == DATA_TYPE_NOTSET) { raiseError(ERR_MISSING_TYPE); }
+            if (state->expParserReturnType == DATA_TYPE_NIL) { raiseError(ERR_MISSING_TYPE); }
             symtableSetDataType(symTable,state->expParserReturnType,false);
             symtableSetVariableValue(symTable);
 

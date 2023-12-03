@@ -24,7 +24,8 @@ enum data_type{
     DATA_TYPE_STRING = 122,
     DATA_TYPE_BOOL = 123,
     DATA_TYPE_VOID = 124,
-    DATA_TYPE_NOTSET = 125
+    DATA_TYPE_NOTSET = 125,
+    DATA_TYPE_NIL = 126
 };
 
 /// @brief Structure that holds function argument or paramer from callee

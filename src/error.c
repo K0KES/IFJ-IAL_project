@@ -1,7 +1,9 @@
 #include "error.h"
+#include <stdio.h>
 
 void raiseError(enum errorType error){
     DEBUG_PRINTF("Error: %s\n",getErrorName(error));
+    fprintf(stderr,"Error: %s\n",getErrorName(error));
     exit(error);
 }
 
