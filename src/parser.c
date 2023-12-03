@@ -843,8 +843,8 @@ bool callOrAssign(){
                 symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
                 i++;
             }
-
-            symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+            
+            symtablePushCode(symTable,symTable->lastFunctionCall);
             char *tempGeneratedName = generatorGenerateTempVarName(gen);
             char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
             symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
@@ -874,7 +874,7 @@ bool assign(){
     int assignTokenLastChar;
 
     enum data_type lastVarType = symtableGetActiveItemType(symTable);
-    //TO DO kontrola mezer u =
+    //TO DO přetypování intu na double
     switch(activeToken->tokenType) {
         case T_ASSIGNMENT:;
             // 61) <assign> -> = <expression>
@@ -1216,6 +1216,7 @@ bool varDecMid(){
             break;
         case T_ASSIGNMENT:;
             // 41) <varDecMid> -> = <expression>
+            //TO DO přetypování intu na double
             int assignTokenLastChar = activeToken->lastChar;
             getNextToken();
 
@@ -1272,6 +1273,7 @@ bool varDef(){
             break;
         case T_ASSIGNMENT:;
             // 43) <varDef> -> = <expression>
+            //TO DO přetypování intu na double
             int assignTokenLastChar = activeToken->lastChar;
             getNextToken();
 
@@ -1331,7 +1333,7 @@ bool returnExpression(){
         case T_RIGHT_CURLY_BRACKET:
         case T_EOL:
             // 45) <returnExpression> -> EPS
-            if(symtableGetReturnTypeOfCurrentScope(symTable) != DATA_TYPE_VOID){ 
+            if(symtableGetReturnTypeOfCurrentScope(symTable) != DATA_TYPE_VOID){
                 DEBUG_PRINTF("[Parser] Error function should return value\n");
                 raiseError(ERR_WRONG_RETURN_TYPE); 
             }
@@ -1970,7 +1972,11 @@ void parseFunctionCall(){
             symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
             i++;
         }
-        symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+        //TO DO jak vrátit return value pushnout na gen-parserStack
+        // return type nastavit do program state
+
+        //symtablePushCode(symTable,concatString(2,"CALL $",functionName));
+        symtablePushCode(symTable,symTable->lastFunctionCall);
 
         char *tempGeneratedName = generatorGenerateTempVarName(gen);
         char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);

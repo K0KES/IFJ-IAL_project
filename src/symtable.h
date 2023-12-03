@@ -14,6 +14,8 @@
 #include "generator.h"
 #include "error.h"
 
+
+
 /// @brief Enum for symtable item data types
 /// We started values from 120 to match TOKEN types
 enum data_type{
@@ -40,6 +42,7 @@ typedef struct{
     list *arguments;
     bool endOfArguments;
     char *callName;
+    list *overloadFunctions;
 } functionData;
 
 /// @brief Structure of generic symtableItem (function or variable)
@@ -237,3 +240,13 @@ void symtableEndOfFile(symtable *table);
 /// @brief This function sets endOfDefiniton to true
 /// @param table 
 void symtableSetEndOfVariableDefinition(symtable *table);
+
+
+
+
+
+
+
+bool symtableIsVariableDefinedInCurrentScope(symtable *table,char *varName);
+symtableItem *symtableFindSymtableItemInCurrentScope(symtable *table, char *varName);
+bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcData);
