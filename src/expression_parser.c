@@ -8,6 +8,7 @@ void copyToken(token *t1, token *t2)
     t2->tokenExpParserType = t1->tokenExpParserType;
     t2->tokenType = t1->tokenType;
     t2->is_return_from_func = t1->is_return_from_func;
+    t2->is_nullable = t1->is_nullable;
     strSetString(t2->value, strGetStr(t1->value));
 }
 
@@ -501,8 +502,8 @@ int expressionParserStart(programState *PS)
 
             DEBUG_PRINTF("[Exp parser] Got token from queue: %s\n", getTokenName(getLastFromQueue(tokenQueue)->tokenType));
             // token *tmpDebugToken1 = (token *)listGetFirst(PS->tokenQueue);
-                lastValidTokensTypes[1] = lastValidTokensTypes[0];
-                lastValidTokensTypes[0] = tokenToPush->tokenType;
+            lastValidTokensTypes[1] = lastValidTokensTypes[0];
+            lastValidTokensTypes[0] = tokenToPush->tokenType;
         }
 
         else if (isTokenTypeAccepted(activeToken) && bracketsState >= 0 && !ignoredEOL)
@@ -742,7 +743,8 @@ int expressionParserStart(programState *PS)
 
                     tokenStackGet(tokenStack, 0)->tokenExpParserType = newIdentifierType;
                     tokenStackGet(tokenStack, 0)->tokenType = T_E;
-
+                    tokenStackGet(tokenStack, 0)->is_nullable = symtableGetVariableNullable(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value));
+                    // symtableGetVariableNullable(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value));
                     strSetString(tokenStackGet(tokenStack, 0)->value, concatString(2, symtableGetVariablePrefix(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value)), strGetStr(tokenStackGet(tokenStack, 0)->value)));
                     break;
                 }
@@ -817,6 +819,12 @@ int expressionParserStart(programState *PS)
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
+                // check if any of the operand is nullable
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
                 // concat str
                 if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_STRING && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_STRING)
@@ -828,18 +836,21 @@ int expressionParserStart(programState *PS)
                 else if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
                     symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    
                 }
                 // float + int
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
                 {
                     symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                     symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
                 // int + float
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
                 {
                     symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
                     symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
                 // Error
                 else
@@ -860,6 +871,13 @@ int expressionParserStart(programState *PS)
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
+                // check if any of the operand is nullable
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
+                }
+
                 // int + int or float + float
                 if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
@@ -870,12 +888,14 @@ int expressionParserStart(programState *PS)
                 {
                     symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                     symtablePushCode(PS->symTable, concatString(6, "SUB ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
                 // int + float
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
                 {
                     symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
                     symtablePushCode(PS->symTable, concatString(6, "SUB ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
                 // Error
                 else
@@ -896,6 +916,12 @@ int expressionParserStart(programState *PS)
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
+                // check if any of the operand is nullable
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
                 if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
@@ -906,12 +932,14 @@ int expressionParserStart(programState *PS)
                 {
                     symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                     symtablePushCode(PS->symTable, concatString(6, "MUL ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
                 // int + float
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
                 {
                     symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
                     symtablePushCode(PS->symTable, concatString(6, "MUL ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
                 // Error
                 else
@@ -932,6 +960,12 @@ int expressionParserStart(programState *PS)
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
+                // check if any of the operand is nullable
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
                 if ((tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT) || (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE))
                 {
@@ -942,12 +976,14 @@ int expressionParserStart(programState *PS)
                 {
                     symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                     symtablePushCode(PS->symTable, concatString(6, "IDIV ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
                 // int + float
                 else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
                 {
                     symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
                     symtablePushCode(PS->symTable, concatString(6, "IDIV ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
                 // Error
                 else
@@ -966,6 +1002,12 @@ int expressionParserStart(programState *PS)
                 {
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
+                }
+                // check if any of the operand is nullable
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
                 }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
@@ -993,6 +1035,12 @@ int expressionParserStart(programState *PS)
                 {
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
+                }
+                // check if any of the operand is nullable
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
                 }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
@@ -1026,6 +1074,12 @@ int expressionParserStart(programState *PS)
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
+                // check if any of the operand is nullable
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1051,6 +1105,12 @@ int expressionParserStart(programState *PS)
                 {
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
+                }
+                // check if any of the operand is nullable
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
                 }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
@@ -1084,6 +1144,12 @@ int expressionParserStart(programState *PS)
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
+                // check if any of the operand is nullable
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1109,6 +1175,12 @@ int expressionParserStart(programState *PS)
                 {
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
+                }
+                // check if any of the operand is nullable
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
                 }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
