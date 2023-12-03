@@ -735,7 +735,7 @@ int expressionParserStart(programState *PS)
                 else
                 {
                     newIdentifierType = symtableGetVariableType(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value));
-                    if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING)
+                    if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING && newIdentifierType != KW_NIL)
                     {
                         // DEBUG_PRINTF("[Exp parser] Error: expression parser spotted potential function!\n");
                         DEBUG_PRINTF("[Exp parser] Error internal 9!\n");
@@ -1226,26 +1226,30 @@ int expressionParserStart(programState *PS)
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
-                // DEBUG_PRINTF("[Exp parser]  E -> E ?? E\n");
+                DEBUG_PRINTF("[Exp parser]  E -> E ?? E\n");
 
-                // if (checkTokensOnTopOfTheStack(tokenStack) != 0)
-                // {
-                //     return checkTokensOnTopOfTheStack(tokenStack);
-                // }
+                char *tempGeneratedNameNil = generatorGenerateTempVarName(PS->gen);
+                // char *tempGeneratedNameOutput = generatorGenerateTempVarName(PS->gen);
+                char *tempGeneratedLabel0 = generatorGenerateTempVarName(PS->gen);
+                char *tempGeneratedLabel1 = generatorGenerateTempVarName(PS->gen);
+                // char *tempGeneratedLabel2 = generatorGenerateTempVarName(PS->gen);
 
-                // struct precedenceRule *newRule = (struct precedenceRule *)malloc(sizeof(struct precedenceRule));
-                // newRule->description = (char *)malloc(sizeof(char) * 20);
-                // newRule->description = "E -> E ?? E";
-                // newRule->leftSide.tokenType = T_E;
-                // newRule->rightSideLen = 3;
-                // newRule->rightSide = (token *)malloc(sizeof(token) * newRule->rightSideLen);
-                // copyToken(tokenStackGet(tokenStack, 2), &(newRule->rightSide[0]));
-                // copyToken(tokenStackGet(tokenStack, 1), &(newRule->rightSide[1]));
+                char *tempVarNameNil = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedNameNil), tempGeneratedNameNil);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarNameNil));
+                symtablePushCode(PS->symTable, concatString(3, "MOVE ", tempVarNameNil, " nil@nil"));
 
-                // copyToken(tokenStackGet(tokenStack, 0), &(newRule->rightSide[2]));
-                // addPrecedenceRuleToList(outputPrecedenceRuleList, newRule);
-                // tokenStackPop(tokenStack, 2);
-                // copyToken(&(newRule->leftSide), tokenStackGet(tokenStack, 0));
+                // symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempGeneratedNameOutput));
+
+    
+                symtablePushCode(PS->symTable, concatString(6, "JUMPIFNEQ ", tempGeneratedLabel0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", tempVarNameNil));
+                symtablePushCode(PS->symTable, concatString(3, "MOVE ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                symtablePushCode(PS->symTable, concatString(2, "JUMP ", tempGeneratedLabel1));
+
+                symtablePushCode(PS->symTable, concatString(2, "LABEL ", tempGeneratedLabel0));
+                symtablePushCode(PS->symTable, concatString(3, "MOVE ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+
+                symtablePushCode(PS->symTable, concatString(2, "LABEL ", tempGeneratedLabel1));
+
                 break;
             }
 
