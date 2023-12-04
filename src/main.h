@@ -8,12 +8,14 @@
 
 #pragma once
 
-typedef struct {
+typedef struct{
     list *tokenQueue;
     generator *gen;
     symtable *symTable;
     token *activeToken;
     enum tokenType expParserReturnType;
+    bool expParserReturnTypeNullable;
+    bool changeToDouble;
 } programState;
 
 programState *programStateInit();
