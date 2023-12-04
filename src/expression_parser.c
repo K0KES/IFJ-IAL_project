@@ -1268,7 +1268,7 @@ int expressionParserStart(programState *PS)
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
-                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 symtablePushCode(PS->symTable, concatString(4, "NOT ", tempVarName, " ", tempVarName));
                 tokenStackPop(tokenStack, 2);
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
