@@ -303,6 +303,31 @@ token *getLastFromQueue(struct tokenQueue *tQ)
     return tQ->last->tokenInQueue;
 }
 
+token *popLastFromQueue(struct tokenQueue *tQ)
+{
+    if (tQ->first == tQ->last)
+    {
+        token *tmpToken = tQ->first->tokenInQueue;
+        free(tQ->first);
+        tQ->first = NULL;
+        tQ->last = NULL;
+        return tmpToken;
+    }
+    else
+    {
+        struct tokenQueueElement *tQE = tQ->first;
+        while (tQE->next != tQ->last)
+        {
+            tQE = tQE->next;
+        }
+        token *tmpToken = tQ->last->tokenInQueue;
+        free(tQ->last);
+        tQ->last = tQE;
+        tQ->last->next = NULL;
+        return tmpToken;
+    }
+}
+
 int popFirstFromQueue(struct tokenQueue *tQ)
 {
     struct tokenQueueElement *tQE = tQ->first;
@@ -376,15 +401,34 @@ int expressionParserStart(programState *PS)
             }
             else
             {
-                if (((token *)listGetFirst(PS->tokenQueue))->tokenType == T_LEFT_BRACKET && getLastFromQueue(tokenQueue) != NULL && isTokenFunction(getLastFromQueue(tokenQueue)->tokenType))
-                {
-                    DEBUG_PRINTF("[Exp parser] Spotted function in shared queue\n");
-                    raiseError(ERR_INTERNAL);
-                }
-                else
-                {
-                    addLastToQueue(tokenQueue, listPopFirst(PS->tokenQueue));
-                }
+                // if (((token *)listGetFirst(PS->tokenQueue))->tokenType == T_LEFT_BRACKET && getLastFromQueue(tokenQueue) != NULL && isTokenFunction(getLastFromQueue(tokenQueue)->tokenType))
+                // {
+                //     DEBUG_PRINTF("[Exp parser] Spotted function in shared queue\n");
+                //     functionInExpression = true;
+                //     char lastCharBackup = getLastFromQueue(tokenQueue)->lastChar;
+                //     listPushFirst(PS->tokenQueue, getLastFromQueue(tokenQueue));
+                //     // popLastFromQueue(tokenQueue);
+
+                //     parseFunctionCall();
+
+                //     DEBUG_PRINTF("[Exp parser] Back from parser function\n");
+                //     getLastFromQueue(tokenQueue)->tokenType = T_IDENTIFIER;
+                //     getLastFromQueue(tokenQueue)->tokenExpParserType = PS->expParserReturnType;
+                //     getLastFromQueue(tokenQueue)->lastChar = lastCharBackup;
+                //     // getLastFromQueue(tokenQueue)->value->str = generatorPopFirstStringFromList(PS->gen->parserStack);
+                //     // char *tmpStr = generatorPopFirstStringFromList(PS->gen->parserStack);
+                //     strSetString(getLastFromQueue(tokenQueue)->value, generatorPopFirstStringFromList(PS->gen->parserStack));
+                //     getLastFromQueue(tokenQueue)->is_return_from_func = true;
+                //     // fix bracket count
+                //     bracketsState--;
+
+                //     raiseError(ERR_INTERNAL);
+                // }
+                // else
+                // {
+                //     addLastToQueue(tokenQueue, listPopFirst(PS->tokenQueue));
+                // }
+                addLastToQueue(tokenQueue, listPopFirst(PS->tokenQueue));
             }
         }
         else
@@ -1265,7 +1309,6 @@ int expressionParserStart(programState *PS)
             break;
 
         case '1':
-
 
             DEBUG_PRINTF("[Exp parser] Error: Two tokens that should not follow each other!\n");
             raiseError(ERR_SYNTAX);
