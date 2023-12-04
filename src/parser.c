@@ -1305,12 +1305,12 @@ bool varDef(){
                 }
             }
 
-            if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
+            if (symtableGetActiveItemType(symTable) == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
             else{state->changeToDouble = false;} 
 
             varDefStatus = expression();
 
-            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
+            if (symtableGetVariableNullable(symTable,symtableGetActiveItemName(symTable)) && state->expParserReturnTypeNullable){
                 if (state->expParserReturnType != DATA_TYPE_NIL){
                     symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
                 }

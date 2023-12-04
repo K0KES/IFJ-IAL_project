@@ -856,6 +856,12 @@ enum data_type symtableGetActiveItemType(symtable *table){
     return table->activeItem->type;
 }
 
+char *symtableGetActiveItemName(symtable *table){
+    if(table == NULL) return DATA_TYPE_NOTSET;
+    if(table->activeItem == NULL) return DATA_TYPE_NOTSET;
+    return table->activeItem->name;
+}
+
 void symtableCheckSameTypes(enum data_type type1,enum data_type type2){
     if(type1 == type2) {return;}
     raiseError(ERR_WRONG_TYPE);
