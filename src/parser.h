@@ -82,7 +82,7 @@ bool statement();
 
 /// @brief Function of LL grammer
 /// @return returns true if it was syntactically correct, otherwise returns false
-bool statementOnLine();
+bool letExp();
 
 /// @brief Function of LL grammer
 /// @return returns true if it was syntactically correct, otherwise returns false

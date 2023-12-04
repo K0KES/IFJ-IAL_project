@@ -8,6 +8,7 @@
 enum tokenType typeOfLastToken;
 
 int numberOfArguments = 0;
+bool isLetId = false;
 
 symtable *symTable;
 generator *gen;
@@ -589,6 +590,8 @@ bool statement(){
     DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
     DEBUG_PRINTF("[Parser] Entering function statement()...\n");
 
+    char *letIdName;
+
     switch(activeToken->tokenType) {
         case KW_LET:
         case KW_VAR:
@@ -596,15 +599,16 @@ bool statement(){
             statementStatus = varDec();
             break;
         case KW_IF:
-            // 27) <statement> -> if <eol> <expression> <eol> {<statements>} <eol> else <eol> {<statements>}
+            // 27) <statement> -> if <eol> <letExp> <eol> {<statements>} <eol> else <eol> {<statements>}
             
             symtableEnterScope(symTable,"&if",NULL);
             
             getNextToken();
             symtablePushCode(symTable,"");
             symtablePushCode(symTable,"#Start of IF statement");
-            state->changeToDouble = false;
-            statementStatus = eol() && expression() && eol();
+            statementStatus = eol() && letExp() && eol();
+
+            if (isLetId){ letIdName = generatorPopFirstStringFromList(gen->parserStack); }
 
             //Generator
             symtablePushCode(symTable,concatString(5,"JUMPIFNEQ $",
@@ -615,19 +619,23 @@ bool statement(){
 
             char *labelIfScopePrefixName = allocateString(symtableGetScopePrefixName(symTable));
 
-            // verification of: if <eol>  <expression> <eol> {
+            // verification of: if <eol>  <letExp> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
                 DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
             }
 
-            // verification of: if <eol>  <expression> <eol> {<statements>} <eol> 
+            // verification of: if <eol>  <letExp> <eol> {<statements>} <eol> 
             getNextToken();
             statementStatus = statementStatus && statements() && eol();
-
+            
+            if (isLetId){ 
+                symtableSetVariableNullable(symTable,letIdName,true); 
+                isLetId = false;  
+            }
             symtableExitScope(symTable);
 
-            // verification of: if <eol>  <expression> <eol> {<statements>} <eol> else
+            // verification of: if <eol>  <letExp> <eol> {<statements>} <eol> else
             if (activeToken->tokenType != KW_ELSE){
                 DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
@@ -642,11 +650,11 @@ bool statement(){
                                                     labelIfScopePrefixName,
                                                     "else"));
 
-            // verification of: if <eol>  <expression> <eol> {<statements>} <eol> else <eol>
+            // verification of: if <eol>  <letExp> <eol> {<statements>} <eol> else <eol>
             getNextToken();
             statementStatus = statementStatus && eol();
 
-            // verification of: if <eol>  <expression> <eol> {<statements>} <eol> else <eol> {
+            // verification of: if <eol>  <letExp> <eol> {<statements>} <eol> else <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
                 DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
@@ -665,7 +673,7 @@ bool statement(){
 
             break;
         case KW_WHILE:
-            // 28) <statement> -> while <eol> <expression> <eol> {<statements>}
+            // 28) <statement> -> while <eol> <letExp> <eol> {<statements>}
             symtableEnterScope(symTable,"&while",NULL);
 
             symtablePushCode(symTable,"");
@@ -674,7 +682,9 @@ bool statement(){
 
             getNextToken();
             state->changeToDouble = false;
-            statementStatus = eol() && expression() && eol();
+            statementStatus = eol() && letExp() && eol();
+
+            if (isLetId){ letIdName = generatorPopFirstStringFromList(gen->parserStack); }
 
             //Generator
             symtablePushCode(symTable,concatString(5,"JUMPIFNEQ $",
@@ -684,7 +694,7 @@ bool statement(){
                                                     " bool@true"));
             symtablePushCode(symTable,"#While body");
 
-            // verification of: while <eol>  <expression> <eol> {
+            // verification of: while <eol>  <letExp> <eol> {
             if (activeToken->tokenType != T_LEFT_CURLY_BRACKET){
                 DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
@@ -696,6 +706,10 @@ bool statement(){
             symtablePushCode(symTable,concatString(3,"LABEL $",symtableGetScopePrefixName(symTable),"end"));
             symtablePushCode(symTable,"#End of while");
 
+            if (isLetId){ 
+                symtableSetVariableNullable(symTable,letIdName,true); 
+                isLetId = false;  
+            }
             symtableExitScope(symTable);
 
             break;
@@ -760,6 +774,49 @@ bool statement(){
     }
     DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",statementStatus);
     return statementStatus;
+}
+
+bool letExp(){
+    bool letExpStatus = false;
+    DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
+    DEBUG_PRINTF("[Parser] Entering function letExp()...\n");
+
+    switch(activeToken->tokenType) {
+        case KW_LET:
+            // 68) <letExp> -> let <eol> ID
+            getNextToken();
+
+            letExpStatus = eol();
+
+            // verification of: let <eol> ID
+            if (activeToken->tokenType != T_IDENTIFIER){
+                DEBUG_PRINTF("[Parser] Leaving function letExp() with %d ...\n",false);
+                return false;
+            }
+
+            if (symtableGetVariableNullable(symTable,strGetStr(activeToken->value)) == false){ raiseError(ERR_WRONG_TYPE);}
+            isLetId = true;
+            symtableSetVariableNullable(symTable,strGetStr(activeToken->value),false);
+            
+            char *tempGeneratedName = generatorGenerateTempVarName(gen);
+            char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+
+            symtablePushCode(symTable,concatString(5,"EQ ", tempNameWithPrefix, " nil@nil ",symtableGetVariablePrefix(symTable,strGetStr(activeToken->value)),strGetStr(activeToken->value)));
+            symtablePushCode(symTable,concatString(4,"NOT ", tempNameWithPrefix, " ", tempNameWithPrefix));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
+
+            generatorPushStringFirstToList(gen->parserStack,strGetStr(activeToken->value));
+            getNextToken();
+            break;
+        default:
+            // 69) <letExp> -> <expression>
+            state->changeToDouble = false;
+            letExpStatus = expression();
+            break;
+    }
+    DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",letExpStatus);
+    return letExpStatus;
 }
 
 bool callOrAssign(){
@@ -866,13 +923,18 @@ bool assign(){
 
             assignStatus = expression();
 
-            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
-                if (state->expParserReturnType != DATA_TYPE_NIL){
-                    symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            if (state->expParserReturnType == DATA_TYPE_NIL){
+                if (lastVarTypeNullable == false){
+                    raiseError(ERR_WRONG_TYPE);
                 }
             }else{
                 symtableCheckSameTypes(lastVarType,state->expParserReturnType);
-            }     
+            }
+            if (state->expParserReturnTypeNullable){ 
+                if (lastVarTypeNullable == false ){
+                    raiseError(ERR_WRONG_TYPE); 
+                }
+            }
 
             //Generator
             tempVarNameFromExpParser = generatorPopFirstStringFromList(gen->parserStack);
@@ -929,13 +991,18 @@ bool assign(){
 
             assignStatus = expression();
 
-            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
-                if (state->expParserReturnType != DATA_TYPE_NIL){
-                    symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            if (state->expParserReturnType == DATA_TYPE_NIL){
+                if (lastVarTypeNullable == false){
+                    raiseError(ERR_WRONG_TYPE);
                 }
             }else{
                 symtableCheckSameTypes(lastVarType,state->expParserReturnType);
             }     
+            if (state->expParserReturnTypeNullable){ 
+                if (lastVarTypeNullable == false ){
+                    raiseError(ERR_WRONG_TYPE); 
+                }
+            }
 
             symtableSetVariableValue(symTable);
 
@@ -993,13 +1060,18 @@ bool assign(){
 
             assignStatus = expression();
 
-            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
-                if (state->expParserReturnType != DATA_TYPE_NIL){
-                    symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            if (state->expParserReturnType == DATA_TYPE_NIL){
+                if (lastVarTypeNullable == false){
+                    raiseError(ERR_WRONG_TYPE);
                 }
             }else{
                 symtableCheckSameTypes(lastVarType,state->expParserReturnType);
             }     
+            if (state->expParserReturnTypeNullable){ 
+                if (lastVarTypeNullable == false ){
+                    raiseError(ERR_WRONG_TYPE); 
+                }
+            }
 
             symtableSetVariableValue(symTable);
 
@@ -1057,13 +1129,18 @@ bool assign(){
 
             assignStatus = expression();
 
-            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
-                if (state->expParserReturnType != DATA_TYPE_NIL){
-                    symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            if (state->expParserReturnType == DATA_TYPE_NIL){
+                if (lastVarTypeNullable == false){
+                    raiseError(ERR_WRONG_TYPE);
                 }
             }else{
                 symtableCheckSameTypes(lastVarType,state->expParserReturnType);
             }     
+            if (state->expParserReturnTypeNullable){ 
+                if (lastVarTypeNullable == false ){
+                    raiseError(ERR_WRONG_TYPE); 
+                }
+            }
 
             symtableSetVariableValue(symTable);
 
@@ -1121,13 +1198,18 @@ bool assign(){
 
             assignStatus = expression();
 
-            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
-                if (state->expParserReturnType != DATA_TYPE_NIL){
-                    symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            if (state->expParserReturnType == DATA_TYPE_NIL){
+                if (lastVarTypeNullable == false){
+                    raiseError(ERR_WRONG_TYPE);
                 }
             }else{
                 symtableCheckSameTypes(lastVarType,state->expParserReturnType);
-            }     
+            }       
+            if (state->expParserReturnTypeNullable){ 
+                if (lastVarTypeNullable == false ){
+                    raiseError(ERR_WRONG_TYPE); 
+                }
+            }
 
             symtableSetVariableValue(symTable);
 
@@ -1221,7 +1303,13 @@ bool varDecMid(){
         case T_COLON:
             // 40) <varDecMid> -> : <eol> <type> <eol> <varDef>
             getNextToken();
-            varDecMidStatus = eol() && type() && eol() && varDef();
+            varDecMidStatus = eol() && type(); 
+            
+            if (symtableGetVariableNullable(symTable,symtableGetActiveItemName(symTable))){
+                symtablePushCode(symTable,concatString(3,"MOVE ",generatorGetFirstStringFromList(gen->parserStack)," nil@nil"));
+            }
+
+            varDecMidStatus = varDecMidStatus && eol() && varDef();
             break;
         case T_ASSIGNMENT:;
             // 41) <varDecMid> -> = <expression>
@@ -1251,7 +1339,7 @@ bool varDecMid(){
             }
 
             varDecMidStatus = expression();
-            if (state->expParserReturnType == DATA_TYPE_NIL) { raiseError(ERR_MISSING_TYPE); }
+            if (state->expParserReturnType == DATA_TYPE_NIL || state->expParserReturnTypeNullable) { raiseError(ERR_MISSING_TYPE); }
             symtableSetDataType(symTable,state->expParserReturnType,state->expParserReturnTypeNullable);
             symtableSetVariableValue(symTable);
 
@@ -1310,13 +1398,18 @@ bool varDef(){
 
             varDefStatus = expression();
 
-            if (symtableGetVariableNullable(symTable,symtableGetActiveItemName(symTable)) && state->expParserReturnTypeNullable){
-                if (state->expParserReturnType != DATA_TYPE_NIL){
-                    symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+            if (state->expParserReturnType == DATA_TYPE_NIL){
+                if (symtableGetVariableNullable(symTable,symtableGetActiveItemName(symTable)) == false){
+                    raiseError(ERR_WRONG_TYPE);
                 }
             }else{
                 symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
             }     
+            if (state->expParserReturnTypeNullable){ 
+                if ( symtableGetVariableNullable(symTable,symtableGetActiveItemName(symTable)) == false ){
+                    raiseError(ERR_WRONG_TYPE); 
+                }
+            }
 
             symtableSetVariableValue(symTable);
 
@@ -1366,13 +1459,18 @@ bool returnExpression(){
 
             /*
             TO DO chceck if return type is nullable
-            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
-                if (state->expParserReturnType != DATA_TYPE_NIL){
-                    symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+            if (state->expParserReturnType == DATA_TYPE_NIL){
+                if (lastVarTypeNullable == false){
+                    raiseError(ERR_WRONG_TYPE);
                 }
             }else{
-                symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
-            }    
+                symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            }   
+            if (state->expParserReturnTypeNullable){ 
+                if ( symtableGetVariableNullable(symTable,symtableGetActiveItemName(symTable)) == false ){
+                    raiseError(ERR_WRONG_TYPE); 
+                }
+            }  
             */
             //TO DO co vrací exp parser v druhém případe následující podmínky -> zkontrolovat typy
             if(symtableGetReturnTypeOfCurrentScope(symTable) == DATA_TYPE_VOID && state->expParserReturnType != DATA_TYPE_NOTSET){
@@ -1587,6 +1685,7 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_STRING;
+            state->expParserReturnTypeNullable = true;
             state->changeToDouble = false;
 
             getNextToken();
@@ -1613,6 +1712,7 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_INT;
+            state->expParserReturnTypeNullable = true;
             state->changeToDouble = false;
 
             getNextToken();
@@ -1639,6 +1739,7 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_DOUBLE;
+            state->expParserReturnTypeNullable = true;
             state->changeToDouble = false;
 
             getNextToken();
@@ -1677,6 +1778,7 @@ bool parseBuidInFunctions(){
             }
 
             state->expParserReturnType = T_DOUBLE;
+            state->expParserReturnTypeNullable = false;
             state->changeToDouble = false;
 
             getNextToken();
@@ -1714,6 +1816,7 @@ bool parseBuidInFunctions(){
             }
 
             state->expParserReturnType = T_INT;
+            state->expParserReturnTypeNullable = false;
             state->changeToDouble = false;
 
             getNextToken();
@@ -1751,6 +1854,7 @@ bool parseBuidInFunctions(){
             }
 
             state->expParserReturnType = T_INT;
+            state->expParserReturnTypeNullable = false;
             state->changeToDouble = false;
 
             getNextToken();
@@ -1811,6 +1915,7 @@ bool parseBuidInFunctions(){
             //TO DO
 
             state->expParserReturnType = T_STRING;
+            state->expParserReturnTypeNullable = false;
             state->changeToDouble = false;
 
             getNextToken();
@@ -1864,6 +1969,7 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_INT;
+            state->expParserReturnTypeNullable = false;
             state->changeToDouble = false;
 
             getNextToken();
@@ -1901,6 +2007,7 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_STRING;
+            state->expParserReturnTypeNullable = false;
             state->changeToDouble = false;
 
             getNextToken();
@@ -1923,6 +2030,7 @@ void parseFunctionCall(){
         char *functionName = concatString(1,strGetStr(activeToken->value));
         symtableSetFunctionCallName(symTable,functionName);
         state->expParserReturnType = symtableGetVariableType(symTable,functionName);
+        state->expParserReturnTypeNullable = symtableGetVariableNullable(symTable,functionName);
         state->changeToDouble = false;
 
         getNextToken();
