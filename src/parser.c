@@ -1961,8 +1961,14 @@ void parseFunctionCall(){
     }else{
         parseFunctionCallStatus = parseBuidInFunctions();
     }
-    DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
-    listPushBack(state->tokenQueue,activeToken);
+    token *tempToken = tokenInit();
+    tempToken->tokenType = activeToken->tokenType;
+    tempToken->lastChar = activeToken->lastChar;
+    char *string = allocateString(strGetStr(activeToken->value));
+    strSetString(tempToken->value,string);
+
+    DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
+    listPushBack(state->tokenQueue,tempToken);
     if (parseFunctionCallStatus){
         DEBUG_PRINTF("[Parser] Successfully leaving function parseFunctionCall()\n");
         return;
