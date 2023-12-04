@@ -745,6 +745,10 @@ int expressionParserStart(programState *PS)
                     tokenStackGet(tokenStack, 0)->tokenExpParserType = newIdentifierType;
                     tokenStackGet(tokenStack, 0)->tokenType = T_E;
                     tokenStackGet(tokenStack, 0)->is_nullable = symtableGetVariableNullable(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value));
+                    DEBUG_PRINTF("[Exp parser] E -> i (identifier)\n");
+                    DEBUG_PRINTF("[Exp parser] Identifier type: %s\n", getTokenName(newIdentifierType));
+                    DEBUG_PRINTF("[Exp parser] Identifier name: %s\n", strGetStr(tokenStackGet(tokenStack, 0)->value));
+                    DEBUG_PRINTF("[Exp parser] Identifier is nullable: %d\n", tokenStackGet(tokenStack, 0)->is_nullable);
                     // symtableGetVariableNullable(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value));
                     strSetString(tokenStackGet(tokenStack, 0)->value, concatString(2, symtableGetVariablePrefix(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value)), strGetStr(tokenStackGet(tokenStack, 0)->value)));
                     break;
@@ -1221,35 +1225,60 @@ int expressionParserStart(programState *PS)
 
             case T_NIL_OP:
             {
-                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
+
+                DEBUG_PRINTF("[Exp parser] --------------------------------------------------------\n");
+                // DEBUG_PRINTF("[Exp parser]  E -> E ?? E\n");
+                DEBUG_PRINTF("[Exp parser]  %s ?? %s \n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType), getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+                DEBUG_PRINTF("[Exp parser]  %s ?? %s \n", getTokenName(tokenStackGet(tokenStack, 2)->tokenExpParserType), getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
+                DEBUG_PRINTF("[Exp parser]  %d ?? %d \n", tokenStackGet(tokenStack, 2)->is_nullable, tokenStackGet(tokenStack, 0)->is_nullable);
+                DEBUG_PRINTF("[Exp parser] --------------------------------------------------------\n");
+
+                // check if the syntax of the operation is right
+                if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 1)->tokenType != T_NIL_OP || tokenStackGet(tokenStack, 2)->tokenType != T_E)
                 {
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
-                DEBUG_PRINTF("[Exp parser]  E -> E ?? E\n");
 
-                // char *tempGeneratedNameNil = generatorGenerateTempVarName(PS->gen);
-                // // char *tempGeneratedNameOutput = generatorGenerateTempVarName(PS->gen);
-                // char *tempGeneratedLabel0 = generatorGenerateTempVarName(PS->gen);
-                // char *tempGeneratedLabel1 = generatorGenerateTempVarName(PS->gen);
-                // // char *tempGeneratedLabel2 = generatorGenerateTempVarName(PS->gen);
+                // check if first operator is nullable
+                if (tokenStackGet(tokenStack, 2)->is_nullable != true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Fist operand in ?? is not nullable!\n");
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
-                // char *tempVarNameNil = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedNameNil), tempGeneratedNameNil);
-                // symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarNameNil));
-                // symtablePushCode(PS->symTable, concatString(3, "MOVE ", tempVarNameNil, " nil@nil"));
+                // check if are both operands same type of if any of them is nil
+                if (tokenStackGet(tokenStack, 0)->tokenExpParserType != tokenStackGet(tokenStack, 2)->tokenExpParserType && tokenStackGet(tokenStack, 0)->tokenExpParserType != KW_NIL && tokenStackGet(tokenStack, 2)->tokenExpParserType != KW_NIL)
+                {
+                    DEBUG_PRINTF("[Exp parser] Not matching operand types in ?? \n");
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
-                // // symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempGeneratedNameOutput));
+                // creates temporary nil variable
+                char *tempGeneratedNameNil = generatorGenerateTempVarName(PS->gen);
+                char *tempVarNameNil = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedNameNil), tempGeneratedNameNil);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarNameNil));
+                symtablePushCode(PS->symTable, concatString(3, "MOVE ", tempVarNameNil, " nil@nil"));
 
-    
-                // symtablePushCode(PS->symTable, concatString(6, "JUMPIFNEQ ", tempGeneratedLabel0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", tempVarNameNil));
-                // symtablePushCode(PS->symTable, concatString(3, "MOVE ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                // symtablePushCode(PS->symTable, concatString(2, "JUMP ", tempGeneratedLabel1));
+                // creates labels
+                char *ifNil = generatorGenerateTempVarName(PS->gen);
+                char *ifNotNil = generatorGenerateTempVarName(PS->gen);
 
-                // symtablePushCode(PS->symTable, concatString(2, "LABEL ", tempGeneratedLabel0));
-                // symtablePushCode(PS->symTable, concatString(3, "MOVE ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                // the decision if jump
+                symtablePushCode(PS->symTable, concatString(6, "JUMPIFNEQ ", ifNotNil, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", tempVarNameNil));
 
-                // symtablePushCode(PS->symTable, concatString(2, "LABEL ", tempGeneratedLabel1));
+                // is nil so it should be swapped
+                symtablePushCode(PS->symTable, concatString(2, "LABEL ", ifNil));
+                symtablePushCode(PS->symTable, concatString(4, "MOVE ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
 
+                symtablePushCode(PS->symTable, concatString(2, "LABEL ", ifNotNil));
+
+                // set right return type
+                if (tokenStackGet(tokenStack, 2)->tokenExpParserType == KW_NIL)
+                {
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
+                }
+                tokenStackGet(tokenStack, 2)->is_nullable = true;
                 tokenStackPop(tokenStack, 2);
                 break;
             }
