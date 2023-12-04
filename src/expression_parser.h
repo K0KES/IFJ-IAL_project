@@ -99,6 +99,11 @@ token *getFirstFromQueue(struct tokenQueue *tQ);
 /// @return Pointer to token, that is last in queue
 token *getLastFromQueue(struct tokenQueue *tQ);
 
+/// @brief Remove last token from queue
+/// @param tQ Pointer to queue
+/// @return Pointer to token, that is last in queue
+token *popLastFromQueue(struct tokenQueue *tQ);
+
 /// @brief Remove first token from queue
 /// @param tQ Pointer to queue
 /// @return Error code
