@@ -436,6 +436,7 @@ int expressionParserStart(programState *PS)
                     DEBUG_PRINTF("[Exp parser] Back from parser function\n");
                     getLastFromQueue(tokenQueue)->tokenType = T_IDENTIFIER;
                     getLastFromQueue(tokenQueue)->tokenExpParserType = PS->expParserReturnType;
+                    getLastFromQueue(tokenQueue)->is_nullable = PS->expParserReturnTypeNullable;
                     getLastFromQueue(tokenQueue)->lastChar = lastCharBackup;
                     // getLastFromQueue(tokenQueue)->value->str = generatorPopFirstStringFromList(PS->gen->parserStack);
                     // char *tmpStr = generatorPopFirstStringFromList(PS->gen->parserStack);
@@ -526,6 +527,7 @@ int expressionParserStart(programState *PS)
 
             getLastFromQueue(tokenQueue)->tokenType = T_IDENTIFIER;
             getLastFromQueue(tokenQueue)->tokenExpParserType = PS->expParserReturnType;
+            getLastFromQueue(tokenQueue)->is_nullable = PS->expParserReturnTypeNullable;
             getLastFromQueue(tokenQueue)->lastChar = lastCharBackup;
             // getLastFromQueue(tokenQueue)->value->str = generatorPopFirstStringFromList(PS->gen->parserStack);
             // char *tmpStr = generatorPopFirstStringFromList(PS->gen->parserStack);
@@ -1370,6 +1372,7 @@ int expressionParserStart(programState *PS)
             generatorPushStringFirstToList(PS->gen->parserStack, returnAdr);
             DEBUG_PRINTF("[Exp Parser] return type: %s\n", getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
             PS->expParserReturnType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
+            PS->expParserReturnTypeNullable = tokenStackGet(tokenStack, 0)->is_nullable;
 
             // clear memory
             tokenFree(activeToken);
