@@ -746,11 +746,14 @@ bool statement(){
             //Symtable
             symtableFunctionCallStart(symTable,"write");
 
+            numberOfArguments = 0;
             statementStatus = arguments();
 
             //Generator
-            while (listLength(gen->parserStack) != 0){
+            int i = 0;
+            while (i < numberOfArguments){
                 symtablePushCode(symTable,concatString(2,"WRITE ",generatorPopLastStringFromList(gen->parserStack)));
+                i++;
             }
             break;
         case KW_READSTRING:
@@ -867,7 +870,8 @@ bool callOrAssign(){
             symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
 
             symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," TF@%retval"));
-            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
+            //Návratová hodnota této funkce se stejně nikam neukládá
+            //generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
             break;
         default:
             DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",false);
@@ -1448,6 +1452,7 @@ bool returnExpression(){
                 DEBUG_PRINTF("[Parser] Error function should return value\n");
                 raiseError(ERR_WRONG_RETURN_TYPE); 
             }
+            symtablePushCode(symTable,concatString(3,"JUMP $",symTable->currentFunction->name,"_end"));
             returnExpressionStatus = true;
             break;
         default:
@@ -1480,7 +1485,7 @@ bool returnExpression(){
             }
             if (symtableGetReturnTypeOfCurrentScope(symTable) != state->expParserReturnType) { 
                 DEBUG_PRINTF("[Parser] Error function wrong return type\n");
-                raiseError(ERR_WRONG_RETURN_TYPE); 
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS); 
             }
             symtablePushCode(symTable,concatString(2,"MOVE LF@%retval ",generatorPopFirstStringFromList(gen->parserStack)));
             symtablePushCode(symTable,concatString(3,"JUMP $",symTable->currentFunction->name,"_end"));
