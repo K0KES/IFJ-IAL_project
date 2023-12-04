@@ -449,7 +449,7 @@ int expressionParserStart(programState *PS)
                     {
                         /* code */
                     }
-                    else
+                    else if (isTokenTypeAccepted((token *)listGetFirst(PS->tokenQueue)))
                     {
                         token *tokenToPush = tokenInit();
                         copyToken(listGetFirst(PS->tokenQueue), tokenToPush);
@@ -1331,7 +1331,7 @@ int expressionParserStart(programState *PS)
                 {
                     tokenStackGet(tokenStack, 2)->tokenExpParserType = tokenStackGet(tokenStack, 0)->tokenExpParserType;
                 }
-                tokenStackGet(tokenStack, 2)->is_nullable = true;
+                tokenStackGet(tokenStack, 2)->is_nullable = tokenStackGet(tokenStack, 0)->is_nullable;
                 tokenStackPop(tokenStack, 2);
                 break;
             }
