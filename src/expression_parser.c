@@ -1079,11 +1079,11 @@ int expressionParserStart(programState *PS)
                     raiseError(ERR_SYNTAX);
                 }
                 // check if any of the operand is nullable
-                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
-                {
-                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
-                    raiseError(ERR_WRONG_TYPE);
-                }
+                // if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                // {
+                //     DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                //     raiseError(ERR_WRONG_TYPE);
+                // }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1112,11 +1112,11 @@ int expressionParserStart(programState *PS)
                     raiseError(ERR_SYNTAX);
                 }
                 // check if any of the operand is nullable
-                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
-                {
-                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
-                    raiseError(ERR_WRONG_TYPE);
-                }
+                // if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                // {
+                //     DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                //     raiseError(ERR_WRONG_TYPE);
+                // }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1150,11 +1150,11 @@ int expressionParserStart(programState *PS)
                     raiseError(ERR_SYNTAX);
                 }
                 // check if any of the operand is nullable
-                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
-                {
-                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
-                    raiseError(ERR_WRONG_TYPE);
-                }
+                // if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                // {
+                //     DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                //     raiseError(ERR_WRONG_TYPE);
+                // }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1182,11 +1182,11 @@ int expressionParserStart(programState *PS)
                     raiseError(ERR_SYNTAX);
                 }
                 // check if any of the operand is nullable
-                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
-                {
-                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
-                    raiseError(ERR_WRONG_TYPE);
-                }
+                // if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                // {
+                //     DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                //     raiseError(ERR_WRONG_TYPE);
+                // }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1220,11 +1220,11 @@ int expressionParserStart(programState *PS)
                     raiseError(ERR_SYNTAX);
                 }
                 // check if any of the operand is nullable
-                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
-                {
-                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
-                    raiseError(ERR_WRONG_TYPE);
-                }
+                // if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                // {
+                //     DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                //     raiseError(ERR_WRONG_TYPE);
+                // }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
@@ -1252,11 +1252,11 @@ int expressionParserStart(programState *PS)
                     raiseError(ERR_SYNTAX);
                 }
                 // check if any of the operand is nullable
-                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
-                {
-                    DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
-                    raiseError(ERR_WRONG_TYPE);
-                }
+                // if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                // {
+                //     DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
+                //     raiseError(ERR_WRONG_TYPE);
+                // }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType != tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
