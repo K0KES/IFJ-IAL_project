@@ -45,8 +45,7 @@ enum tokenType acceptedTokenTypes[] = {
     KW_LENGTH,
     KW_SUBSTRING,
     KW_ORD,
-    KW_CHR
-    };
+    KW_CHR};
 
 char precedenceTable[9][9] = {
     {'<', '=', '<', '<', '<', '<', '<', '<', '1'},
@@ -58,31 +57,6 @@ char precedenceTable[9][9] = {
     {'<', '>', '<', '<', '>', '<', '<', '<', '>'},
     {'1', '>', '>', '>', '>', '>', '>', '1', '>'},
     {'<', '1', '<', '<', '<', '<', '<', '<', '0'}};
-
-/* Precedence rules */
-
-/// @brief Structure that stores one precedence rule
-struct precedenceRule
-{
-    // Basic description that is meant to be used only for debugging
-    char *description;
-    // Length of token list
-    unsigned rightSideLen;
-    // List of tokens that are meant to be reduced
-    token *rightSide;
-    // Token to which they should be reduced
-    token leftSide;
-};
-
-/// @brief Structure that stores all precedence rules
-struct precedenceRuleList
-{
-    // Length of precedence rule list
-    unsigned precedenceRuleListLen;
-    // List of all precedence rules
-    unsigned precedenceRuleListAllocatedLen;
-    struct precedenceRule **precedenceRuleList;
-};
 
 /*Token stack*/
 
@@ -180,11 +154,6 @@ token *tokenStackGet(struct tokenStack *stack, unsigned location);
 /// @return type of token on the top of the stack
 enum tokenType whichTypeIsOnTheStack(struct tokenStack *stack);
 
-/// @brief Function adds precedence rule to the list
-/// @param precedenceRuleList list of precedence rules
-/// @param precedenceRule precedence rule to be added
-int addPrecedenceRuleToList(struct precedenceRuleList *precedenceRuleList, struct precedenceRule *precedenceRule);
-
 /// @brief Decides if expression parser can parse this token
 /// @param activeToken Token to decide
 /// @return True if token is accepted
@@ -195,13 +164,6 @@ bool isTokenTypeAccepted(token *activeToken);
 /// @return Returns 0 if everything is ok, 1 if there is an error
 int setUpActiveToken(token *T);
 
-/// @brief Inicialize precedence rule list
-struct precedenceRuleList *precedenceRuleListInit();
-
-/// @brief Free all memmory used by precednce rule list and it's rules
-/// @param precedenceRuleList Pointer to precedence rule list
-void precedenceRuleListClear(struct precedenceRuleList *precedenceRuleList);
-
 /// @brief Free all memmory used by token stack
 /// @param stack Pointer to token stack
 void tokenStackClear(struct tokenStack *stack);
@@ -211,9 +173,14 @@ void tokenStackClear(struct tokenStack *stack);
 /// @return Returns error code
 int checkTokensOnTopOfTheStack(struct tokenStack *stack);
 
-/// @brief FUnction for classification of token types
+/// @brief Function for classification of token types
 /// @param tokenType Input token type
 /// @return Returns 1 if token type is operator, returns 2 if token type is left bracket, return 3 in token type is right_bracket else return 0
 int isTokenTypeOperatorLike(enum tokenType tokenType);
 
+/// @brief Function for classification of token types
+/// @param tokenType Input token type
+/// @return Returns false if token can't be function, else returns true
 int isTokenFunction(enum tokenType tokenType);
+
+int dealWithFunction(struct tokenStack *stack, struct tokenQueue *queue, programState *PS);

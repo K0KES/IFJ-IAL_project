@@ -163,24 +163,6 @@ int tokenStackPop(struct tokenStack *stack, unsigned numberOfPops)
     return 0;
 }
 
-int addPrecedenceRuleToList(struct precedenceRuleList *precedenceRuleList, struct precedenceRule *precedenceRule)
-{
-    if (precedenceRuleList->precedenceRuleListLen == precedenceRuleList->precedenceRuleListAllocatedLen)
-    {
-        precedenceRuleList->precedenceRuleListAllocatedLen *= 2;
-        precedenceRuleList->precedenceRuleList = (struct precedenceRule **)realloc(precedenceRuleList->precedenceRuleList, precedenceRuleList->precedenceRuleListAllocatedLen * sizeof(struct precedenceRule *));
-        if (precedenceRuleList->precedenceRuleList == NULL)
-        {
-            DEBUG_PRINTF("[Exp parser] Error internal 3!\n");
-
-            raiseError(ERR_INTERNAL);
-        }
-    }
-    precedenceRuleList->precedenceRuleList[precedenceRuleList->precedenceRuleListLen] = precedenceRule;
-    precedenceRuleList->precedenceRuleListLen++;
-    return 0;
-}
-
 bool isTokenTypeAccepted(token *activeToken)
 {
     for (size_t i = 0; i < acceptedTokenTypesLength; i++)
@@ -218,35 +200,6 @@ int setUpActiveToken(token *T)
         raiseError(ERR_INTERNAL);
     }
     return 0;
-}
-
-struct precedenceRuleList *precedenceRuleListInit()
-{
-    struct precedenceRuleList *precedenceRuleList = (struct precedenceRuleList *)malloc(sizeof(struct precedenceRuleList));
-    if (precedenceRuleList == NULL)
-    {
-        return NULL;
-    }
-    precedenceRuleList->precedenceRuleListLen = 0;
-    precedenceRuleList->precedenceRuleListAllocatedLen = 1;
-    precedenceRuleList->precedenceRuleList = (struct precedenceRule **)malloc(sizeof(struct precedenceRule *) * precedenceRuleList->precedenceRuleListAllocatedLen);
-    if (precedenceRuleList->precedenceRuleList == NULL)
-    {
-        return NULL;
-    }
-    return precedenceRuleList;
-}
-
-void precedenceRuleListClear(struct precedenceRuleList *precedenceRuleList)
-{
-    for (size_t i = 0; i < precedenceRuleList->precedenceRuleListLen; i++)
-    {
-        free(precedenceRuleList->precedenceRuleList[i]->rightSide);
-        // free(precedenceRuleList->precedenceRuleList[i]->description);
-    }
-    free(precedenceRuleList->precedenceRuleList);
-    free(precedenceRuleList);
-    precedenceRuleList = NULL;
 }
 
 char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTokenType, char *precedenceTable)
@@ -370,7 +323,7 @@ int popFirstFromQueue(struct tokenQueue *tQ)
 
 int expressionParserStart(programState *PS)
 {
-
+    bool functionInExpression = false;
     DEBUG_PRINTF("[Exp parser] Expression parser started...\n");
     // structures init
     token *tmpDebugToken;
@@ -423,7 +376,15 @@ int expressionParserStart(programState *PS)
             }
             else
             {
-                addLastToQueue(tokenQueue, listPopFirst(PS->tokenQueue));
+                if (((token *)listGetFirst(PS->tokenQueue))->tokenType == T_LEFT_BRACKET && getLastFromQueue(tokenQueue) != NULL && isTokenFunction(getLastFromQueue(tokenQueue)->tokenType))
+                {
+                    DEBUG_PRINTF("[Exp parser] Spotted function in shared queue\n");
+                    raiseError(ERR_INTERNAL);
+                }
+                else
+                {
+                    addLastToQueue(tokenQueue, listPopFirst(PS->tokenQueue));
+                }
             }
         }
         else
@@ -473,6 +434,7 @@ int expressionParserStart(programState *PS)
         else if (activeToken->tokenType == T_LEFT_BRACKET && getLastFromQueue(tokenQueue) != NULL && isTokenFunction(getLastFromQueue(tokenQueue)->tokenType))
         {
             DEBUG_PRINTF("[Exp parser] Spotted function\n");
+            functionInExpression = true;
             listPushBack(PS->tokenQueue, getLastFromQueue(tokenQueue));
             token *tokenToPush = tokenInit();
             char lastCharBackup = getLastFromQueue(tokenQueue)->lastChar;
@@ -495,16 +457,23 @@ int expressionParserStart(programState *PS)
             bracketsState--;
             // raiseError(ERR_INTERNAL);
             tokenToPush = tokenInit();
+            if (isTokenTypeAccepted((token *)listGetFirst(PS->tokenQueue)))
+            {
+                copyToken(listGetFirst(PS->tokenQueue), tokenToPush);
+                listPopFirst(PS->tokenQueue);
+                addLastToQueue(tokenQueue, tokenToPush);
 
-            copyToken(listGetFirst(PS->tokenQueue), tokenToPush);
-            listPopFirst(PS->tokenQueue);
-
-            addLastToQueue(tokenQueue, tokenToPush);
-
-            DEBUG_PRINTF("[Exp parser] Got token from queue: %s\n", getTokenName(getLastFromQueue(tokenQueue)->tokenType));
-            // token *tmpDebugToken1 = (token *)listGetFirst(PS->tokenQueue);
-            lastValidTokensTypes[1] = lastValidTokensTypes[0];
-            lastValidTokensTypes[0] = tokenToPush->tokenType;
+                DEBUG_PRINTF("[Exp parser] Got token from queue: %s\n", getTokenName(getLastFromQueue(tokenQueue)->tokenType));
+                // token *tmpDebugToken1 = (token *)listGetFirst(PS->tokenQueue);
+                lastValidTokensTypes[1] = lastValidTokensTypes[0];
+                lastValidTokensTypes[0] = tokenToPush->tokenType;
+            }
+            else
+            {
+                DEBUG_PRINTF("[Exp parser] Error: Invalid token after function call!\n");
+                DEBUG_PRINTF("[Exp parser] Token type %s\n", getTokenName(((token *)listGetFirst(PS->tokenQueue))->tokenType));
+                break;
+            }
         }
 
         else if (isTokenTypeAccepted(activeToken) && bracketsState >= 0 && !ignoredEOL)
@@ -536,7 +505,7 @@ int expressionParserStart(programState *PS)
             }
         }
 
-        else
+        else if (reading)
         {
             // deals with token that can't be handled by expression parser
             reading = false;
@@ -735,11 +704,15 @@ int expressionParserStart(programState *PS)
                 else
                 {
                     newIdentifierType = symtableGetVariableType(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value));
+
+                    DEBUG_PRINTF("[Exp parser] Identifier type: %s\n", getTokenName(newIdentifierType));
                     if (newIdentifierType != T_INT && newIdentifierType != T_DOUBLE && newIdentifierType != T_STRING && newIdentifierType != KW_NIL)
                     {
                         // DEBUG_PRINTF("[Exp parser] Error: expression parser spotted potential function!\n");
                         DEBUG_PRINTF("[Exp parser] Error internal 9!\n");
-                        raiseError(ERR_INTERNAL);
+                        DEBUG_PRINTF("[Exp parser] Error: Got undefined variable from symtable!\n");
+                        raiseError(ERR_UNDEFINED_VARIABLE);
+                        // raiseError(ERR_INTERNAL);
                     }
 
                     tokenStackGet(tokenStack, 0)->tokenExpParserType = newIdentifierType;
@@ -1226,12 +1199,12 @@ int expressionParserStart(programState *PS)
             case T_NIL_OP:
             {
 
-                DEBUG_PRINTF("[Exp parser] --------------------------------------------------------\n");
+                // DEBUG_PRINTF("[Exp parser] --------------------------------------------------------\n");
                 // DEBUG_PRINTF("[Exp parser]  E -> E ?? E\n");
-                DEBUG_PRINTF("[Exp parser]  %s ?? %s \n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType), getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
-                DEBUG_PRINTF("[Exp parser]  %s ?? %s \n", getTokenName(tokenStackGet(tokenStack, 2)->tokenExpParserType), getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
-                DEBUG_PRINTF("[Exp parser]  %d ?? %d \n", tokenStackGet(tokenStack, 2)->is_nullable, tokenStackGet(tokenStack, 0)->is_nullable);
-                DEBUG_PRINTF("[Exp parser] --------------------------------------------------------\n");
+                // DEBUG_PRINTF("[Exp parser]  %s ?? %s \n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType), getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+                // DEBUG_PRINTF("[Exp parser]  %s ?? %s \n", getTokenName(tokenStackGet(tokenStack, 2)->tokenExpParserType), getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
+                // DEBUG_PRINTF("[Exp parser]  %d ?? %d \n", tokenStackGet(tokenStack, 2)->is_nullable, tokenStackGet(tokenStack, 0)->is_nullable);
+                // DEBUG_PRINTF("[Exp parser] --------------------------------------------------------\n");
 
                 // check if the syntax of the operation is right
                 if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 1)->tokenType != T_NIL_OP || tokenStackGet(tokenStack, 2)->tokenType != T_E)
@@ -1292,35 +1265,7 @@ int expressionParserStart(programState *PS)
             break;
 
         case '1':
-            // tow tokens that should not follow each other follow each other
-            // function in expression
-            // if (whichTypeIsOnTheStack(tokenStack) == T_IDENTIFIER && tokenQueue->first->tokenInQueue->tokenType == T_LEFT_BRACKET)
-            // {
-            //     DEBUG_PRINTF("[Exp parser] Function in expression!\n");
-            //     listPushBack(PS->tokenQueue, tokenStackGet(tokenStack, 0));
-            //     tokenStackPop(tokenStack, 1);
-            //     listPushBack(PS->tokenQueue, getFirstFromQueue(tokenQueue));
-            //     popFirstFromQueue(tokenQueue);
-            //     bracketsState = 1;
-            //     token* copyToken;
-            //     while (bracketsState != 0 && getFirstFromQueue != NULL)
-            //     {
-            //         copyToken = getFirstFromQueue(tokenQueue);
-            //         popFirstFromQueue(tokenQueue);
-            //         if (copyToken->tokenType == T_LEFT_BRACKET)
-            //         {
-            //             bracketsState++;
-            //         }
-            //         else if (copyToken->tokenType == T_RIGHT_BRACKET)
-            //         {
-            //             bracketsState--;
-            //         }
-            //         tokenStackPush(tokenStack, copyToken);
-            //     }
-            //     parseFunctionCall();
-            //     generatorPopFirstStringFromList(PS->gen->parserStack);
-            //     PS->expParserReturnType;
-            // }
+
 
             DEBUG_PRINTF("[Exp parser] Error: Two tokens that should not follow each other!\n");
             raiseError(ERR_SYNTAX);
@@ -1337,6 +1282,13 @@ int expressionParserStart(programState *PS)
             if (PS->tokenQueue->size > 0)
             {
                 tmpDebugToken = getFirstFromQueue(PS->tokenQueue);
+            }
+
+            if (PS->changeToDouble == true && functionInExpression == false && tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT)
+            {
+                DEBUG_PRINTF("[Exp parser] Changing int to double!\n");
+                symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_DOUBLE;
             }
 
             char *returnAdr = malloc(sizeof(char) * strGetLength(tokenStackGet(tokenStack, 0)->value));

@@ -8,7 +8,7 @@
 
 #pragma once
 
-typedef struct {
+typedef struct{
     list *tokenQueue;
     generator *gen;
     symtable *symTable;
