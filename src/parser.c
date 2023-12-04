@@ -1340,7 +1340,7 @@ bool varDecMid(){
             }
 
             varDecMidStatus = expression();
-            if (state->expParserReturnType == DATA_TYPE_NIL || state->expParserReturnTypeNullable) { raiseError(ERR_MISSING_TYPE); }
+            if (state->expParserReturnType == DATA_TYPE_NIL) { raiseError(ERR_MISSING_TYPE); }
             symtableSetDataType(symTable,state->expParserReturnType,state->expParserReturnTypeNullable);
             symtableSetVariableValue(symTable);
 
