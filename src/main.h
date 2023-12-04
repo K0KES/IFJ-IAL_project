@@ -14,6 +14,8 @@ typedef struct {
     symtable *symTable;
     token *activeToken;
     enum tokenType expParserReturnType;
+    bool expParserReturnTypeNullable;
+    bool changeToDouble;
 } programState;
 
 programState *programStateInit();

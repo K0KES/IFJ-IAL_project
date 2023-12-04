@@ -217,50 +217,6 @@ bool eol(){
             getNextToken();
             eolStatus = true;
             break;
-        /*case T_IDENTIFIER:
-        case T_INT:
-        case T_DOUBLE:
-        case T_STRING:
-        case KW_FUNC:
-        case KW_RETURN:
-        case KW_IF:
-        case KW_ELSE:
-        case KW_WHILE:
-        case KW_LET:
-        case KW_VAR:
-        case KW_INT:
-        case KW_DOUBLE:
-        case KW_STRING:
-        case T_LEFT_BRACKET:
-        case T_RIGHT_BRACKET:
-        case T_LEFT_CURLY_BRACKET:
-        case T_RIGHT_CURLY_BRACKET:
-        case T_ASSIGNMENT:
-        case T_INCREMENT:
-        case T_DECREMENT:
-        case T_VAR_MUL_VAR:
-        case T_VAR_DIV_VAR:
-        case T_ARROW:
-        case T_COLON:
-        case KW_UNDERSCORE:
-        case T_COMMA:
-        case T_EOF:
-        case KW_READSTRING:
-        case KW_READINT:
-        case KW_READDOUBLE:
-        case KW_WRITE:
-        case KW_INT_TO_DOUBLE:
-        case KW_DOUBLE_TO_INT:
-        case KW_LENGTH:
-        case KW_SUBSTRING:
-        case KW_ORD:
-        case KW_CHR:
-            // 7) <eol> -> EPS
-            eolStatus = true;
-            break;
-        default:
-            DEBUG_PRINTF("[Parser] Leaving function eol() with %d ...\n",false);
-            return false;*/
         default:
             // 7) <eol> -> EPS
             eolStatus = true;
@@ -647,6 +603,7 @@ bool statement(){
             getNextToken();
             symtablePushCode(symTable,"");
             symtablePushCode(symTable,"#Start of IF statement");
+            state->changeToDouble = false;
             statementStatus = eol() && expression() && eol();
 
             //Generator
@@ -716,6 +673,7 @@ bool statement(){
             symtablePushCode(symTable,concatString(2,"LABEL $",symtableGetScopePrefixName(symTable)));
 
             getNextToken();
+            state->changeToDouble = false;
             statementStatus = eol() && expression() && eol();
 
             //Generator
@@ -827,6 +785,7 @@ bool callOrAssign(){
 
             char *functionName = generatorPopFirstStringFromList(gen->parserStack);
             state->expParserReturnType = symtableGetVariableType(symTable,functionName);
+            state->changeToDouble = false;
             
             //Symtable
             symtableFunctionCallStart(symTable,NULL);
@@ -874,6 +833,7 @@ bool assign(){
     int assignTokenLastChar;
 
     enum data_type lastVarType = symtableGetActiveItemType(symTable);
+    bool lastVarTypeNullable = symtableGetVariableNullable(symTable,symtableGetActiveItemName(symTable));
     //TO DO přetypování intu na double
     switch(activeToken->tokenType) {
         case T_ASSIGNMENT:;
@@ -901,9 +861,18 @@ bool assign(){
                     raiseError(ERR_SYNTAX);
                 }
             }
+            if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
+            else{state->changeToDouble = false;} 
 
             assignStatus = expression();
-            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+
+            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
+                if (state->expParserReturnType != DATA_TYPE_NIL){
+                    symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+                }
+            }else{
+                symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            }     
 
             //Generator
             tempVarNameFromExpParser = generatorPopFirstStringFromList(gen->parserStack);
@@ -955,8 +924,18 @@ bool assign(){
                 }
             }
             
+            if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
+            else{state->changeToDouble = false;} 
+
             assignStatus = expression();
-            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+
+            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
+                if (state->expParserReturnType != DATA_TYPE_NIL){
+                    symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+                }
+            }else{
+                symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            }     
 
             symtableSetVariableValue(symTable);
 
@@ -1009,8 +988,18 @@ bool assign(){
                 }
             }
 
+            if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
+            else{state->changeToDouble = false;} 
+
             assignStatus = expression();
-            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+
+            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
+                if (state->expParserReturnType != DATA_TYPE_NIL){
+                    symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+                }
+            }else{
+                symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            }     
 
             symtableSetVariableValue(symTable);
 
@@ -1063,8 +1052,18 @@ bool assign(){
                 }
             }
 
+            if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
+            else{state->changeToDouble = false;} 
+
             assignStatus = expression();
-            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+
+            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
+                if (state->expParserReturnType != DATA_TYPE_NIL){
+                    symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+                }
+            }else{
+                symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            }     
 
             symtableSetVariableValue(symTable);
 
@@ -1117,8 +1116,18 @@ bool assign(){
                 }
             }
             
+            if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
+            else{state->changeToDouble = false;} 
+
             assignStatus = expression();
-            symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+
+            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
+                if (state->expParserReturnType != DATA_TYPE_NIL){
+                    symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+                }
+            }else{
+                symtableCheckSameTypes(lastVarType,state->expParserReturnType);
+            }     
 
             symtableSetVariableValue(symTable);
 
@@ -1243,7 +1252,7 @@ bool varDecMid(){
 
             varDecMidStatus = expression();
             if (state->expParserReturnType == DATA_TYPE_NIL) { raiseError(ERR_MISSING_TYPE); }
-            symtableSetDataType(symTable,state->expParserReturnType,false);
+            symtableSetDataType(symTable,state->expParserReturnType,state->expParserReturnTypeNullable);
             symtableSetVariableValue(symTable);
 
             //Generator
@@ -1296,9 +1305,19 @@ bool varDef(){
                 }
             }
 
+            if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
+            else{state->changeToDouble = false;} 
+
             varDefStatus = expression();
-            symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
-            //TO DO když by to byl let Int? = 10 tak by to hodilo že nejde přepsat let -> opravit
+
+            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
+                if (state->expParserReturnType != DATA_TYPE_NIL){
+                    symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+                }
+            }else{
+                symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+            }     
+
             symtableSetVariableValue(symTable);
 
             //Generator
@@ -1339,7 +1358,22 @@ bool returnExpression(){
             break;
         default:
             // 44) <returnExpression> -> <expression>
+
+            if (symtableGetReturnTypeOfCurrentScope(symTable) == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
+            else{state->changeToDouble = false;}  
+
             returnExpressionStatus = expression();
+
+            /*
+            TO DO chceck if return type is nullable
+            if (lastVarTypeNullable && state->expParserReturnTypeNullable){
+                if (state->expParserReturnType != DATA_TYPE_NIL){
+                    symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+                }
+            }else{
+                symtableCheckSameTypes(symtableGetActiveItemType(symTable),state->expParserReturnType);
+            }    
+            */
             //TO DO co vrací exp parser v druhém případe následující podmínky -> zkontrolovat typy
             if(symtableGetReturnTypeOfCurrentScope(symTable) == DATA_TYPE_VOID && state->expParserReturnType != DATA_TYPE_NOTSET){
                 DEBUG_PRINTF("[Parser] Error function should return void\n");
@@ -1431,11 +1465,6 @@ bool argument(){
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
             tempToken->lastChar = activeToken->lastChar;
-            /*
-            int stringLength = strlen(strGetStr(activeToken->value)) + 1;
-            char *string = (char *)malloc(stringLength);
-            memcpy(string,strGetStr(activeToken->value),stringLength);
-            */
 
             char *string = allocateString(strGetStr(activeToken->value));
             strSetString(tempToken->value,string);
@@ -1452,13 +1481,9 @@ bool argument(){
             argumentStatus = expression();
 
             //Symtable
-            //TO DO kontrola jaký typ vrací exp parser když je "non set"/nil/??
-            if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
-            }
-            else {
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
-            }
+            symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,state->expParserReturnTypeNullable); 
+
+            // TO DO zpětné přetypování argumentu z int na double
             break;
     }
     DEBUG_PRINTF("[Parser] Leaving function argument() with %d ...\n",argumentStatus);
@@ -1481,48 +1506,20 @@ bool argWithName(){
             argWithNameStatus = eol() && expression();
 
             //Symtable
-            //TO DO kontrola jaký typ vrací exp parser když je "non set"/nil/??
-            if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
-            }
-            else {
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
-            }
+            symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,state->expParserReturnTypeNullable); 
+   
             break;
-        /*case T_RIGHT_BRACKET:
-        case T_COMMA:
-        case T_EOL:
-            // 54) <argWithName> -> EPS
-            DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
-            listPushBack(state->tokenQueue,activeToken);
-            argWithNameStatus = expressionParserStart(state);
-
-            //Symtable
-            if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
-            }
-            else {
-                symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,false);
-            }
-            break;
-        default:
-            DEBUG_PRINTF("[Parser] Leaving function argWithName() with %d ...\n",false);
-            return false;*/
         default:;
             // 54) <argWithName> -> EPS
             token *tempToken = tokenInit();
             tempToken->tokenType = activeToken->tokenType;
             tempToken->lastChar = activeToken->lastChar;
-            /*
-            int stringLength = strlen(strGetStr(activeToken->value)) + 1;
-            char *string = (char *)malloc(stringLength);
-            memcpy(string,strGetStr(activeToken->value),stringLength);*/
             char *string = allocateString(strGetStr(activeToken->value));
             strSetString(tempToken->value,string);
 
             DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
-            //listPushBack(state->tokenQueue,activeToken);
             listPushBack(state->tokenQueue,tempToken);
+            state->changeToDouble = false;
             argWithNameStatus = expressionParserStart(state);
             //Symtable
             //TO DO kontrola jaký typ vrací exp parser když je "non set"/nil/??
@@ -1544,36 +1541,9 @@ bool expression(){
     DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
     DEBUG_PRINTF("[Parser] Entering function expression()...\n");
 
-    /*char *tempNameWithPrefix;
-    char *tempGeneratedName;
-
-    switch(activeToken->tokenType) {
-        case KW_READSTRING:
-        case KW_READINT:
-        case KW_READDOUBLE:
-        case KW_INT_TO_DOUBLE:
-        case KW_DOUBLE_TO_INT:
-        case KW_LENGTH:
-        case KW_SUBSTRING:
-        case KW_ORD:
-        case KW_CHR:
-            //
-            expressionStatus = parseBuidInFunctions();
-            break;
-        default:
-            DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(activeToken->tokenType));
-            listPushBack(state->tokenQueue,activeToken);
-            expressionStatus = expressionParserStart(state); 
-            getNextToken();
-            break;
-    }*/
     token *tempToken = tokenInit();
     tempToken->tokenType = activeToken->tokenType;
     tempToken->lastChar = activeToken->lastChar;
-    /*
-    int stringLength = strlen(strGetStr(activeToken->value)) + 1;
-    char *string = (char *)malloc(stringLength);
-    memcpy(string,strGetStr(activeToken->value),stringLength);*/
     char *string = allocateString(strGetStr(activeToken->value));
     strSetString(tempToken->value,string);
 
@@ -1617,6 +1587,7 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_STRING;
+            state->changeToDouble = false;
 
             getNextToken();
             parseBuidInFunctionsStatus = true;
@@ -1642,6 +1613,7 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_INT;
+            state->changeToDouble = false;
 
             getNextToken();
             parseBuidInFunctionsStatus = true;
@@ -1667,6 +1639,7 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_DOUBLE;
+            state->changeToDouble = false;
 
             getNextToken();
             parseBuidInFunctionsStatus = true;
@@ -1704,6 +1677,7 @@ bool parseBuidInFunctions(){
             }
 
             state->expParserReturnType = T_DOUBLE;
+            state->changeToDouble = false;
 
             getNextToken();
             break;
@@ -1740,6 +1714,7 @@ bool parseBuidInFunctions(){
             }
 
             state->expParserReturnType = T_INT;
+            state->changeToDouble = false;
 
             getNextToken();
             break;
@@ -1776,6 +1751,7 @@ bool parseBuidInFunctions(){
             }
 
             state->expParserReturnType = T_INT;
+            state->changeToDouble = false;
 
             getNextToken();
             break;
@@ -1834,8 +1810,8 @@ bool parseBuidInFunctions(){
             //Generator
             //TO DO
 
-            //TO DO dodělat že je to String?
             state->expParserReturnType = T_STRING;
+            state->changeToDouble = false;
 
             getNextToken();
             break;
@@ -1888,6 +1864,7 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_INT;
+            state->changeToDouble = false;
 
             getNextToken();
             break;
@@ -1924,6 +1901,7 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_STRING;
+            state->changeToDouble = false;
 
             getNextToken();
             break;
@@ -1945,6 +1923,7 @@ void parseFunctionCall(){
         char *functionName = concatString(1,strGetStr(activeToken->value));
         symtableSetFunctionCallName(symTable,functionName);
         state->expParserReturnType = symtableGetVariableType(symTable,functionName);
+        state->changeToDouble = false;
 
         getNextToken();
         if(activeToken->tokenType != T_LEFT_BRACKET){ 
@@ -1970,10 +1949,7 @@ void parseFunctionCall(){
             symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
             i++;
         }
-        //TO DO jak vrátit return value pushnout na gen-parserStack
-        // return type nastavit do program state
 
-        //symtablePushCode(symTable,concatString(2,"CALL $",functionName));
         symtablePushCode(symTable,symTable->lastFunctionCall);
 
         char *tempGeneratedName = generatorGenerateTempVarName(gen);
