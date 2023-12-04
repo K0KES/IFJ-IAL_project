@@ -794,7 +794,7 @@ bool letExp(){
                 return false;
             }
 
-            if (symtableGetVariableNullable(symTable,strGetStr(activeToken->value)) == false){ raiseError(ERR_WRONG_TYPE);}
+            if (symtableGetVariableNullable(symTable,strGetStr(activeToken->value)) == false){ raiseError(ERR_SEMANTIC);}
             isLetId = true;
             symtableSetVariableNullable(symTable,strGetStr(activeToken->value),false);
             
@@ -813,6 +813,7 @@ bool letExp(){
             // 69) <letExp> -> <expression>
             state->changeToDouble = false;
             letExpStatus = expression();
+            if (state->expParserReturnType != DATA_TYPE_BOOL){ raiseError(ERR_WRONG_TYPE); }
             break;
     }
     DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",letExpStatus);
