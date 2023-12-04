@@ -163,23 +163,6 @@ int tokenStackPop(struct tokenStack *stack, unsigned numberOfPops)
     return 0;
 }
 
-int addPrecedenceRuleToList(struct precedenceRuleList *precedenceRuleList, struct precedenceRule *precedenceRule)
-{
-    if (precedenceRuleList->precedenceRuleListLen == precedenceRuleList->precedenceRuleListAllocatedLen)
-    {
-        precedenceRuleList->precedenceRuleListAllocatedLen *= 2;
-        precedenceRuleList->precedenceRuleList = (struct precedenceRule **)realloc(precedenceRuleList->precedenceRuleList, precedenceRuleList->precedenceRuleListAllocatedLen * sizeof(struct precedenceRule *));
-        if (precedenceRuleList->precedenceRuleList == NULL)
-        {
-            DEBUG_PRINTF("[Exp parser] Error internal 3!\n");
-
-            raiseError(ERR_INTERNAL);
-        }
-    }
-    precedenceRuleList->precedenceRuleList[precedenceRuleList->precedenceRuleListLen] = precedenceRule;
-    precedenceRuleList->precedenceRuleListLen++;
-    return 0;
-}
 
 bool isTokenTypeAccepted(token *activeToken)
 {
@@ -218,35 +201,6 @@ int setUpActiveToken(token *T)
         raiseError(ERR_INTERNAL);
     }
     return 0;
-}
-
-struct precedenceRuleList *precedenceRuleListInit()
-{
-    struct precedenceRuleList *precedenceRuleList = (struct precedenceRuleList *)malloc(sizeof(struct precedenceRuleList));
-    if (precedenceRuleList == NULL)
-    {
-        return NULL;
-    }
-    precedenceRuleList->precedenceRuleListLen = 0;
-    precedenceRuleList->precedenceRuleListAllocatedLen = 1;
-    precedenceRuleList->precedenceRuleList = (struct precedenceRule **)malloc(sizeof(struct precedenceRule *) * precedenceRuleList->precedenceRuleListAllocatedLen);
-    if (precedenceRuleList->precedenceRuleList == NULL)
-    {
-        return NULL;
-    }
-    return precedenceRuleList;
-}
-
-void precedenceRuleListClear(struct precedenceRuleList *precedenceRuleList)
-{
-    for (size_t i = 0; i < precedenceRuleList->precedenceRuleListLen; i++)
-    {
-        free(precedenceRuleList->precedenceRuleList[i]->rightSide);
-        // free(precedenceRuleList->precedenceRuleList[i]->description);
-    }
-    free(precedenceRuleList->precedenceRuleList);
-    free(precedenceRuleList);
-    precedenceRuleList = NULL;
 }
 
 char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTokenType, char *precedenceTable)
@@ -1226,12 +1180,12 @@ int expressionParserStart(programState *PS)
             case T_NIL_OP:
             {
 
-                DEBUG_PRINTF("[Exp parser] --------------------------------------------------------\n");
+                // DEBUG_PRINTF("[Exp parser] --------------------------------------------------------\n");
                 // DEBUG_PRINTF("[Exp parser]  E -> E ?? E\n");
-                DEBUG_PRINTF("[Exp parser]  %s ?? %s \n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType), getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
-                DEBUG_PRINTF("[Exp parser]  %s ?? %s \n", getTokenName(tokenStackGet(tokenStack, 2)->tokenExpParserType), getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
-                DEBUG_PRINTF("[Exp parser]  %d ?? %d \n", tokenStackGet(tokenStack, 2)->is_nullable, tokenStackGet(tokenStack, 0)->is_nullable);
-                DEBUG_PRINTF("[Exp parser] --------------------------------------------------------\n");
+                // DEBUG_PRINTF("[Exp parser]  %s ?? %s \n", getTokenName(tokenStackGet(tokenStack, 2)->tokenType), getTokenName(tokenStackGet(tokenStack, 0)->tokenType));
+                // DEBUG_PRINTF("[Exp parser]  %s ?? %s \n", getTokenName(tokenStackGet(tokenStack, 2)->tokenExpParserType), getTokenName(tokenStackGet(tokenStack, 0)->tokenExpParserType));
+                // DEBUG_PRINTF("[Exp parser]  %d ?? %d \n", tokenStackGet(tokenStack, 2)->is_nullable, tokenStackGet(tokenStack, 0)->is_nullable);
+                // DEBUG_PRINTF("[Exp parser] --------------------------------------------------------\n");
 
                 // check if the syntax of the operation is right
                 if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 1)->tokenType != T_NIL_OP || tokenStackGet(tokenStack, 2)->tokenType != T_E)
@@ -1292,7 +1246,7 @@ int expressionParserStart(programState *PS)
             break;
 
         case '1':
-            // tow tokens that should not follow each other follow each other
+            // two tokens that should not follow each other follow each other
             // function in expression
             // if (whichTypeIsOnTheStack(tokenStack) == T_IDENTIFIER && tokenQueue->first->tokenInQueue->tokenType == T_LEFT_BRACKET)
             // {
