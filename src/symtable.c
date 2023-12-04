@@ -533,6 +533,19 @@ bool symtableGetVariableNullable(symtable *table, char *varName){
     }
 }
 
+void symtableSetVariableNullable(symtable *table, char *varName, bool nullable){
+    symtableItem *item = symtableFindSymtableItem(table,varName);
+
+    if(item == NULL) return;
+    if(item->funcData == NULL){
+        item->nullable = nullable;
+        return;
+    }else{
+        item->funcData->returnTypeNullable = nullable;
+        return;
+    }
+}
+
 void symtableCreateFunctionStructure(symtable *table){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
