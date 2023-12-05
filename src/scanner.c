@@ -23,18 +23,12 @@ int getToken(token *token, int charNumber, int lineNumber) {
     int spaceCounter = 0;
     int firstCharCount = 0;
     int foundFirstChar = 0;
-    int lastCharCount = 0;
-    int spaceCount2 = 0;
-
-    int firstNewLine = 0;
 
     int fromNewLineState = 0;
-
     string* multiLineString;
     while (c != EOF) {
         c = getc(stdin);
         if (state != S_BLOCK_COMMENT && state != S_LINE_COMMENT && state != S_BLOCK_LINE_COMMENT && c != '/') { /*DEBUG_PRINTF("%c\n", c);*/ }
-        // if (lineNumber > 10) {  raiseError(ERR_LEXICAL); }
         switch (state) {
             /////////////////////////  
             //first starting STATE
@@ -731,6 +725,10 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                          raiseError(ERR_LEXICAL);
                     }
+                    else if (lastChar == 'e' || lastChar == 'E') {
+                        // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                         raiseError(ERR_LEXICAL);
+                    }
                     else {
                         token->tokenType = T_INT;
                         ungetc(c, stdin);
@@ -818,6 +816,10 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         lastChar = c;
                     }
                     else if (lastChar == '+' || lastChar == '-') {
+                        // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                         raiseError(ERR_LEXICAL);
+                    }
+                    else if (lastChar == 'e' || lastChar == 'E') {
                         // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                          raiseError(ERR_LEXICAL);
                     }
@@ -1090,9 +1092,6 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 case '\r':
                 case '\n':
-                    // if (firstNewLine == 0) firstNewLine++;
-
-                    // if (firstNewLine > 0) { foundFirstChar = 1; spaceCounter};
                     lineNumber++;
                     charNumber = 0;
                     strAddChar(multiLineString, c);
@@ -1106,7 +1105,6 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 case ' ':
                     if (foundFirstChar == 0) spaceCounter++;
-                    spaceCount2++;
                     strAddChar(multiLineString, c);
                     charNumber++;
                     break;
@@ -1114,10 +1112,6 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     raiseError(LEX_ERROR);
                     break;
                 case '"':
-                    // if (lastChar != '\n') {
-                    //     // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
-                    //     raiseError(ERR_LEXICAL);
-                    // }
                     strAddChar(multiLineString, c);
                     charNumber++;
                     state = S_MULTILINE_STRING_EXIT;
@@ -1126,7 +1120,6 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 //ERROR
                 default:
                     foundFirstChar = 1;
-                    lastCharCount++;
                     if (lastChar == '"') {
                         charNumber++;
                         // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
@@ -1148,18 +1141,11 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '"':
                     if (lastChar == '"') {
                         strAddChar(multiLineString, c);
-                        // charNumber++;
-                        // state = S_START;
-                        // token->tokenType = T_MULTILINE_STRING;
-                        // token->position->charNumber = charNumber;
-                        // token->position->lineNumber = lineNumber;
-
                         //call function to handle indent and check for errors
                         string* checkedMultiLineString = multilineStringCheck(multiLineString, firstCharCount-spaceCounter-1);
 
                         charNumber++;
                         state = S_START;
-                        // token->tokenType = T_MULTILINE_STRING;
                         token->tokenType = T_STRING;
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
@@ -1174,10 +1160,14 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     lastChar = c;
                     break;
                 //we have first quote and we get something else than quote => error
-                default:
-                    charNumber++;
-                    // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
+                case EOF:
                     raiseError(ERR_LEXICAL);
+                    break;
+                default:
+                    strAddChar(multiLineString, c);
+                    charNumber++;
+                    lastChar = c;
+                    state = S_MULTILINE_STRING;
                     break;
                 }
                 break;
@@ -1191,11 +1181,15 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case 'r':
                 case 't':
                 case '\\':
-                    strAddChar(token->value, lastChar);
-                    strAddChar(token->value, c);
+                    strAddChar(multiLineString, lastChar);
+                    strAddChar(multiLineString, c);
                     charNumber++;
                     charNumber++;
                     state = S_MULTILINE_STRING;
+                    break;
+                //SPECIAL STATE FOR \u{dd}
+                case 'u':
+                    state = S_MULTILINE_STRING_HEXA;
                     break;
                 //ERROR
                 default:
@@ -1205,7 +1199,90 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 }
                 break;
+            /////////////////////////    
+            // \u{dd}
+            /////////////////////////
+            case S_MULTILINE_STRING_HEXA:
+                // printf("%c - > ",c);
+                switch (c) {
+                case '{':
+                    if (lastChar == '{') { raiseError(ERR_LEXICAL); }
+                    lastChar = c;
+                    break;
+                case '}':
+                    if (stringHexaCount > 2 ) { raiseError(ERR_LEXICAL); }
+                    if (lastChar != '{') { raiseError(ERR_LEXICAL); }
+                    stringHexaFirst = (stringHexaFirst << 4) + stringHexaSecond;
+                    // printf("result:%d\n", stringHexaFirst);
+                    strAddChar(multiLineString, stringHexaFirst);
+                    
+                    state = S_MULTILINE_STRING;
+                    break;
+                case 'a':
+                case 'A':
+                    if (stringHexaCount == 0) {
+                        stringHexaFirst = 10;
+                    }
+                    else if (stringHexaCount == 1) { stringHexaSecond = 10; }
+                    stringHexaCount++;
+                    break;
+                case 'b':
+                case 'B':
+                    if (stringHexaCount == 0) {
+                        stringHexaFirst = 11;
+                    }
+                    else if (stringHexaCount == 1) { stringHexaSecond = 11; }
+                    stringHexaCount++;
+                    break;
+                case 'c':
+                case 'C':
+                    if (stringHexaCount == 0) {
+                        stringHexaFirst = 12;
+                    }
+                    else if (stringHexaCount == 1) { stringHexaSecond = 12; }
+                    stringHexaCount++;
+                    break;
+                case 'd':
+                case 'D':
+                    if (stringHexaCount == 0) {
+                        stringHexaFirst = 13;
+                    }
+                    else if (stringHexaCount == 1) { stringHexaSecond = 13; }
+                    stringHexaCount++;
+                    break;
+                case 'e':
+                case 'E':
+                    if (stringHexaCount == 0) {
+                        stringHexaFirst = 14;
+                    }
+                    else if (stringHexaCount == 1) { stringHexaSecond = 14; }
+                    stringHexaCount++;
+                    break;
+                case 'f':
+                case 'F':
+                    if (stringHexaCount == 0) {
+                        stringHexaFirst = 15;
+                    }
+                    else if (stringHexaCount == 1) { stringHexaSecond = 15; }
+                    stringHexaCount++;
+                    break;
+                
+                default:
+                    if (!isalpha(c) && isalnum(c)) {
+                        if (stringHexaCount == 0) {
+                            stringHexaFirst = c - 48;
+                            }
+                        else if (stringHexaCount == 1) { stringHexaSecond = c - 48; }
+                        stringHexaCount++;
+                        }
+                    else { raiseError(ERR_LEXICAL); }
+                    break;
+                }
+                // printf("%d", stringHexaFirst);
+                // printf(" %d", stringHexaSecond);
+                // printf(" count:%d\n", stringHexaCount);
         }
+        
     }
     token->tokenType = T_EOF;
     token->lastChar = lastChar;
