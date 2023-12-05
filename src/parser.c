@@ -632,6 +632,8 @@ bool statement(){
             
             if (isLetId){ 
                 symtableSetVariableNullable(symTable,letIdName,true); 
+                symtableSetActiveItem(symTable,letIdName);
+                symtableVariableIsNotConstant(symTable);
                 isLetId = false;  
             }
             symtableExitScope(symTable);
@@ -709,6 +711,8 @@ bool statement(){
 
             if (isLetId){ 
                 symtableSetVariableNullable(symTable,letIdName,true); 
+                symtableSetActiveItem(symTable,letIdName);
+                symtableVariableIsNotConstant(symTable);
                 isLetId = false;  
             }
             symtableExitScope(symTable);
@@ -801,6 +805,9 @@ bool letExp(){
             if (symtableGetVariableNullable(symTable,strGetStr(activeToken->value)) == false){ raiseError(ERR_SEMANTIC);}
             isLetId = true;
             symtableSetVariableNullable(symTable,strGetStr(activeToken->value),false);
+            symtableSetActiveItem(symTable,strGetStr(activeToken->value));
+            symtableVariableIsConstant(symTable);
+            symtableSetEndOfVariableDefinition(symTable);
             
             char *tempGeneratedName = generatorGenerateTempVarName(gen);
             char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
@@ -839,11 +846,10 @@ bool callOrAssign(){
             // 36) <callOrAssign> -> <eol> <assign>>
             callOrAssignStatus = eol() && assign();
             break;
-        case T_LEFT_BRACKET:
+        case T_LEFT_BRACKET:;
             // 37) <callOrAssign> -> (<arguments>)
 
             //Generator
-            
 
             char *functionName = generatorPopFirstStringFromList(gen->parserStack);
             state->expParserReturnType = symtableGetVariableType(symTable,functionName);
@@ -2004,9 +2010,10 @@ bool parseBuidInFunctions(){
 
             symtablePushCode(symTable,concatString(4, "STRLEN ", stringLengthVarPrefix, " ", argumentString));
             //TO DO dodat originálni label na skok 
-            symtablePushCode(symTable,concatString(3, "JUMPIFEQ returnLabel ", stringLengthVarPrefix, " int@0"));
+            char *originalLabel  = generatorGenerateTempVarName(gen);
+            symtablePushCode(symTable,concatString(5, "JUMPIFEQ ",originalLabel," ", stringLengthVarPrefix, " int@0"));
             symtablePushCode(symTable,concatString(5, "STRI2INT ",tempNameWithPrefix," ",argumentString, " int@0"));
-            symtablePushCode(symTable,allocateString( "LABEL returnLabel"));
+            symtablePushCode(symTable,concatString(2,"LABEL ",originalLabel));
             symtablePushCode(symTable,"#End of build in function ord()");
 
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
