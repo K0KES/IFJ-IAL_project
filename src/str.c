@@ -154,12 +154,12 @@ int strGetLength(string *s) {
 }
 
 void strPrint (string *s) {
-   /*
-   int i = 0;
-   while (s->str[i] != '\0') {
-      DEBUG_PRINTF("%c", s->str[i]);
-      i++;
-   }*/
+   
+   // int i = 0;
+   // while (s->str[i] != '\0') {
+   //    printf("%c", s->str[i]);
+   //    i++;
+   // }
    
 }
 

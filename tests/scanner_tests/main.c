@@ -9,8 +9,7 @@
 int main(int argc, char const *argv[])
 {   
     token *token_e = malloc(sizeof(token));
-    token_e->value = (string*)malloc(sizeof(string));
-    strInit(token_e->value);
+    token_e->value = strInit(token_e->value);
     token_e->position = (positionInfo*)malloc(sizeof(positionInfo));
     token_e->position->charNumber = 0;
     token_e->position->lineNumber = 1;   

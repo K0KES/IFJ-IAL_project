@@ -1249,27 +1249,38 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
     char newLineStart;
     int currentIndent = 0;
     for (int k = 0; k < strGetLength(multiLine); k++) {
+        // printf("\nk = %i\n", k);
         newLineStart = strGetCharOnIndex(multiLine,k);
-        // printf("\n znak: '%c'\n", newLineStart);
+        // printf("\nznak: '%c'\n", newLineStart);
             if (newLineStart == '\n') {
+                // printf("\nENTERING NEWLINE\n");
                 strAddChar(newString, newLineStart);
                 k++;
                 newLineStart = strGetCharOnIndex(multiLine,k);
-                // printf("\n znak: '%c'\n", newLineStart);
-                // printf("\nENTERING NEWLINE\n");
-                
+                // printf("\nAfter newlineznak: '%c'\n", newLineStart);
+                currentIndent = 0;
+                while (newLineStart == '\n') {
+                    strAddChar(newString, newLineStart);
+                    k++;
+                    newLineStart = strGetCharOnIndex(multiLine,k);
+                }
                 while (newLineStart == ' ') {
-                    // printf("\n znak: '%c'\n", newLineStart);
+                    // printf("\nENTERING SPACECOUNT\n");
+                    // printf("\nznak: '%c', k = %d\n", newLineStart, k);
                     if (currentIndent == indent) { break; }
                     currentIndent++;
                     k++;
                     newLineStart = strGetCharOnIndex(multiLine,k);
                     j = k;
                 }
+                // printf("\nEND SPACECOUNT\n");
                 //indents of lines that starts with something else than \n are not equal => error
                 if (currentIndent != indent && (j == k)) { raiseError(ERR_LEXICAL); }
-                currentIndent = 0;
+                // printf("\ninside k = %i\n", k);
+                if (newLineStart == '\n') k --;
             }
+        //  printf("\nznak: '%c'\n", newLineStart);
+        if (currentIndent == indent && newLineStart!= '\n')
         strAddChar(newString, newLineStart);
     }
 
