@@ -309,11 +309,13 @@ char* stringToAssemblyStringFormat(char* inputString) {
     
     char threeQuotesAndNewLine[] = {34,34,34,10,0};
     char newLineAndThreeQuotes[] = {10,34,34,34,0};
+    char threeQuotes[] = {34,34,34,0};
     char singleQuote[] = {34,0};
     char singleQuoteEscape[] = {92,34,0};
 
     output = replaceWord(output,threeQuotesAndNewLine,"");
-    output = replaceWord(output,newLineAndThreeQuotes,"");
+    output = replaceWord(output,threeQuotesAndNewLine,"");
+    output = replaceWord(output,threeQuotes,"");
 
     output = replaceWord(output,"\\n","\\010");
     output = replaceWord(output,"\\r","\\013");
@@ -326,12 +328,14 @@ char* stringToAssemblyStringFormat(char* inputString) {
 
     output = replaceWord(output,singleQuoteEscape,singleQuote);
 
+    
     if(output[0] == '"'){
-        memmove(output, output+1, strlen(output));
+        if(output[strlen(output)-1] == '"'){
+            memmove(output, output+1, strlen(output));
+            output[strlen(output)-1] = '\0';
+        }
     }
-    if(output[strlen(output)-1] == '"'){
-        output[strlen(output)-1] = '\0';
-    }
+    
 
     return output;
 }
