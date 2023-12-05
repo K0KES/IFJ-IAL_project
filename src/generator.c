@@ -36,9 +36,11 @@ void generatorAddSubstringFunction(generator *gen){
     //generatorPushStringToList(gen->functions,"DEFVAR LF@zero");
     //generatorPushStringToList(gen->functions,"DEFVAR LF@one");
     generatorPushStringToList(gen->functions,"DEFVAR LF@relation");
+    generatorPushStringToList(gen->functions,"DEFVAR LF@result");
     generatorPushStringToList(gen->functions,"DEFVAR LF@char");
     generatorPushStringToList(gen->functions,"DEFVAR LF@i");
 
+    generatorPushStringToList(gen->functions,"MOVE LF@result nil@nil");
     generatorPushStringToList(gen->functions,"MOVE LF@%retval nil@nil");
     //generatorPushStringToList(gen->functions,"MOVE LF@zero int@0");
     //generatorPushStringToList(gen->functions,"MOVE LF@one int@1");
@@ -46,31 +48,34 @@ void generatorAddSubstringFunction(generator *gen){
     generatorPushStringToList(gen->functions,"MOVE LF@i LF@!2");
     
     generatorPushStringToList(gen->functions,"LT LF@relation LF@!2 int@0");
-    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation int@1");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
 
     generatorPushStringToList(gen->functions,"LT LF@relation LF@!3 int@0");
-    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation int@1");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
 
     generatorPushStringToList(gen->functions,"GT LF@relation LF@!2 LF@length");
-    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation int@1");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
 
     generatorPushStringToList(gen->functions,"EQ LF@relation LF@!2 LF@length");
-    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation int@1");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
+
+    generatorPushStringToList(gen->functions,"GT LF@relation LF@!2 LF@!3");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
 
     generatorPushStringToList(gen->functions,"GT LF@relation LF@!3 LF@length");
-    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation int@1");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
     
-    generatorPushStringToList(gen->functions,"MOVE LF%result string@");
+    generatorPushStringToList(gen->functions,"MOVE LF@result string@");
 
     generatorPushStringToList(gen->functions,"LABEL $$substring$$while");
     generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@i LF@!3");
-    generatorPushStringToList(gen->functions,"GETCHAR LF@char LF@1 LF@i");
-    generatorPushStringToList(gen->functions,"CONCAT LF@%result LF@%result LF@char");
-    generatorPushStringToList(gen->functions,"ADD LF@i int@1");
+    generatorPushStringToList(gen->functions,"GETCHAR LF@char LF@!1 LF@i");
+    generatorPushStringToList(gen->functions,"CONCAT LF@result LF@result LF@char");
+    generatorPushStringToList(gen->functions,"ADD LF@i LF@i int@1");
     generatorPushStringToList(gen->functions,"JUMP $$substring$$while");
 
     generatorPushStringToList(gen->functions,"LABEL $$substring$$return");
-    generatorPushStringToList(gen->functions,"MOVE LF@%retval LF@%result");
+    generatorPushStringToList(gen->functions,"MOVE LF@%retval LF@result");
     generatorPushStringToList(gen->functions,"POPFRAME");
     generatorPushStringToList(gen->functions,"RETURN");
     

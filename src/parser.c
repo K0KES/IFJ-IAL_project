@@ -760,6 +760,7 @@ bool statement(){
                 symtablePushCode(symTable,concatString(2,"WRITE ",generatorPopLastStringFromList(gen->parserStack)));
                 i++;
             }
+            symtableFunctionCallEnd(symTable);
             break;
         case KW_READSTRING:
         case KW_READINT:
@@ -1799,6 +1800,8 @@ bool parseBuidInFunctions(){
             state->changeToDouble = false;
 
             getNextToken();
+
+            symtableFunctionCallEnd(symTable);
             break;
         case KW_DOUBLE_TO_INT:
             // 67) <parseBuidInFunctions> -> Double2Int(term : Double)
@@ -1837,6 +1840,8 @@ bool parseBuidInFunctions(){
             state->changeToDouble = false;
 
             getNextToken();
+
+            symtableFunctionCallEnd(symTable);
             break;
         case KW_LENGTH:
             // 67) <parseBuidInFunctions> -> length(s : String)
@@ -1875,10 +1880,14 @@ bool parseBuidInFunctions(){
             state->changeToDouble = false;
 
             getNextToken();
+
+            symtableFunctionCallEnd(symTable);
             break;
         case KW_SUBSTRING:
             // 67) <parseBuidInFunctions> -> substring(s : String, start : Int, end : Int)
             // verification of: substring(<argument>
+            generatorAddSubstringFunction(gen);
+            symtablePushCodeCreateFrame(symTable);
             getNextToken();
             if (activeToken->tokenType != T_LEFT_BRACKET){
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
@@ -1905,6 +1914,12 @@ bool parseBuidInFunctions(){
             getNextToken();
 
             parseBuidInFunctionsStatus = argument();
+
+            if(state->expParserReturnType != DATA_TYPE_STRING){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+
+            char *tempVarName = generatorPopFirstStringFromList(gen->parserStack);
+            symtablePushCode(symTable,"DEFVAR TF@!1");
+            symtablePushCode(symTable,concatString(2,"MOVE TF@!1 ",tempVarName));
             
             // verification of: substring(<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
@@ -1930,6 +1945,12 @@ bool parseBuidInFunctions(){
 
             parseBuidInFunctionsStatus = parseBuidInFunctionsStatus && argument();
 
+            if(state->expParserReturnType != DATA_TYPE_INTEGER){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+
+            tempVarName = generatorPopFirstStringFromList(gen->parserStack);
+            symtablePushCode(symTable,"DEFVAR TF@!2");
+            symtablePushCode(symTable,concatString(2,"MOVE TF@!2 ",tempVarName));
+
             // verification of: substring(<argument>,<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
@@ -1953,6 +1974,12 @@ bool parseBuidInFunctions(){
             getNextToken();
 
             parseBuidInFunctionsStatus = parseBuidInFunctionsStatus && argument();
+
+            if(state->expParserReturnType != DATA_TYPE_INTEGER){raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);}
+
+            tempVarName = generatorPopFirstStringFromList(gen->parserStack);
+            symtablePushCode(symTable,"DEFVAR TF@!3");
+            symtablePushCode(symTable,concatString(2,"MOVE TF@!3 ",tempVarName));
             
             // verification of: substring(<argument>,<argument>,<argument>)
             if (activeToken->tokenType != T_RIGHT_BRACKET){
@@ -1960,14 +1987,20 @@ bool parseBuidInFunctions(){
                 return false;
             }
 
-            //Generator
-            //TO DO
+            symtablePushCode(symTable,"CALL $$substring");
+            char *tempGeneratedName = generatorGenerateTempVarName(gen);
+            char *tempNameWithPrefix = concatString(2,symtableGetVariablePrefix(symTable,tempGeneratedName),tempGeneratedName);
+            symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
+
+            symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," TF@%retval"));
+            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             state->expParserReturnType = T_STRING;
-            state->expParserReturnTypeNullable = false;
+            state->expParserReturnTypeNullable = true;
             state->changeToDouble = false;
 
             getNextToken();
+            symtableFunctionCallEnd(symTable);
             break;
         case KW_ORD:
             // 67) <parseBuidInFunctions> -> ord(s : String)
@@ -2023,6 +2056,8 @@ bool parseBuidInFunctions(){
             state->changeToDouble = false;
 
             getNextToken();
+
+            symtableFunctionCallEnd(symTable);
             break;
         case KW_CHR:
             // 67) <parseBuidInFunctions> -> chr(i : Int)
@@ -2061,6 +2096,8 @@ bool parseBuidInFunctions(){
             state->changeToDouble = false;
 
             getNextToken();
+
+            symtableFunctionCallEnd(symTable);
             break;
         default:
             DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
