@@ -771,7 +771,7 @@ void symtableEndOfFile(symtable *table){
 
     while(funcDataNode != NULL){
         functionData *funcData = (functionData *)funcDataNode->data;
-        printf("FUNC: %s \n",funcData->callName);
+        DEBUG_PRINTF("FUNC: %s \n",funcData->callName);
 
         if(strcmp(funcData->callName,"write") == 0 
             || strcmp(funcData->callName,"readString") == 0 
