@@ -747,11 +747,14 @@ bool statement(){
             //Symtable
             symtableFunctionCallStart(symTable,"write");
 
+            numberOfArguments = 0;
             statementStatus = arguments();
 
             //Generator
-            while (listLength(gen->parserStack) != 0){
+            int i = 0;
+            while (i < numberOfArguments){
                 symtablePushCode(symTable,concatString(2,"WRITE ",generatorPopLastStringFromList(gen->parserStack)));
+                i++;
             }
             break;
         case KW_READSTRING:
@@ -795,7 +798,7 @@ bool letExp(){
                 return false;
             }
 
-            if (symtableGetVariableNullable(symTable,strGetStr(activeToken->value)) == false){ raiseError(ERR_WRONG_TYPE);}
+            if (symtableGetVariableNullable(symTable,strGetStr(activeToken->value)) == false){ raiseError(ERR_SEMANTIC);}
             isLetId = true;
             symtableSetVariableNullable(symTable,strGetStr(activeToken->value),false);
             
@@ -814,6 +817,7 @@ bool letExp(){
             // 69) <letExp> -> <expression>
             state->changeToDouble = false;
             letExpStatus = expression();
+            if (state->expParserReturnType != DATA_TYPE_BOOL){ raiseError(ERR_WRONG_TYPE); }
             break;
     }
     DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",letExpStatus);
@@ -867,7 +871,8 @@ bool callOrAssign(){
             symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
 
             symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," TF@%retval"));
-            generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
+            //Návratová hodnota této funkce se stejně nikam neukládá
+            //generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
             break;
         default:
             DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",false);
@@ -1340,7 +1345,7 @@ bool varDecMid(){
             }
 
             varDecMidStatus = expression();
-            if (state->expParserReturnType == DATA_TYPE_NIL || state->expParserReturnTypeNullable) { raiseError(ERR_MISSING_TYPE); }
+            if (state->expParserReturnType == DATA_TYPE_NIL) { raiseError(ERR_MISSING_TYPE); }
             symtableSetDataType(symTable,state->expParserReturnType,state->expParserReturnTypeNullable);
             symtableSetVariableValue(symTable);
 
@@ -1448,6 +1453,7 @@ bool returnExpression(){
                 DEBUG_PRINTF("[Parser] Error function should return value\n");
                 raiseError(ERR_WRONG_RETURN_TYPE); 
             }
+            symtablePushCode(symTable,concatString(3,"JUMP $",symTable->currentFunction->name,"_end"));
             returnExpressionStatus = true;
             break;
         default:
@@ -1480,7 +1486,7 @@ bool returnExpression(){
             }
             if (symtableGetReturnTypeOfCurrentScope(symTable) != state->expParserReturnType) { 
                 DEBUG_PRINTF("[Parser] Error function wrong return type\n");
-                raiseError(ERR_WRONG_RETURN_TYPE); 
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS); 
             }
             symtablePushCode(symTable,concatString(2,"MOVE LF@%retval ",generatorPopFirstStringFromList(gen->parserStack)));
             symtablePushCode(symTable,concatString(3,"JUMP $",symTable->currentFunction->name,"_end"));
