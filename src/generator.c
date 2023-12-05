@@ -245,29 +245,34 @@ char* replaceWord(const char* s, const char* oldW,
 } 
 
 char* stringToAssemblyStringFormat(char* inputString) {
-    /*
-    for (size_t i = 0; inputString[i] != '\0'; i++)
-    {
-        printf("%d ",inputString[i]);
-    }
-
-    printf("\n\n\n");*/
 
     char* output = allocateString(inputString);
     
     char threeQuotesAndNewLine[] = {34,34,34,10,0};
     char newLineAndThreeQuotes[] = {10,34,34,34,0};
     char singleQuote[] = {34,0};
+    char singleQuoteEscape[] = {92,34,0};
 
     output = replaceWord(output,threeQuotesAndNewLine,"");
     output = replaceWord(output,newLineAndThreeQuotes,"");
 
-    output = replaceWord(output,singleQuote,"");
-
+    output = replaceWord(output,"\\n","\\010");
+    output = replaceWord(output,"\\r","\\013");
+    output = replaceWord(output,"\\t","\\009");
+    output = replaceWord(output,"\\\\","\\092");
     output = replaceWord(output,"\n","\\010");
     output = replaceWord(output,"\r","\\013");
     
     output = replaceWord(output," ","\\032");
+
+    output = replaceWord(output,singleQuoteEscape,singleQuote);
+
+    if(output[0] == '"'){
+        memmove(output, output+1, strlen(output));
+    }
+    if(output[strlen(output)-1] == '"'){
+        output[strlen(output)-1] = '\0';
+    }
 
     return output;
 }
