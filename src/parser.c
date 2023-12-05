@@ -31,6 +31,7 @@ token *tokenInit(){
     activeToken->lastChar = '\0';
     activeToken->tokenType = T_NULLABLE;
     activeToken->tokenExpParserType = T_NULLABLE;
+    activeToken->is_number_literal = false;
     return activeToken;
 }
 
