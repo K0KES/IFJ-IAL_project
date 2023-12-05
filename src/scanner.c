@@ -1264,6 +1264,7 @@ string* multilineStringCheck (string* multiLine, int firstCharPos) {
                     k++;
                     newLineStart = strGetCharOnIndex(multiLine,k);
                 }
+                j = k;
                 while (newLineStart == ' ') {
                     // printf("\nENTERING SPACECOUNT\n");
                     // printf("\nznak: '%c', k = %d\n", newLineStart, k);
