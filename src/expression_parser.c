@@ -780,6 +780,14 @@ int expressionParserStart(programState *PS)
                     tokenStackGet(tokenStack, 0)->is_return_from_func = false;
                     tokenStackGet(tokenStack, 0)->tokenType = T_E;
                     tokenStackGet(tokenStack, 0)->is_number_literal = false;
+                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_STRING && tokenStackGet(tokenStack, 0)->tokenExpParserType != KW_NIL)
+                    {
+                        DEBUG_PRINTF("[Exp parser] Got no return type from function!\n");
+                        raiseError(ERR_WRONG_RETURN_TYPE);
+                    }
+
+                    
+
 
                     break;
                     // raiseError(ERR_INTERNAL);
@@ -796,6 +804,11 @@ int expressionParserStart(programState *PS)
                         DEBUG_PRINTF("[Exp parser] Error: Got undefined variable from symtable!\n");
                         raiseError(ERR_UNDEFINED_VARIABLE);
                         // raiseError(ERR_INTERNAL);
+                    }
+                    if (symtableIsVariableInitiated(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value)) == false || symtableIsVariableDefined(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value)) == false)
+                    {
+                        DEBUG_PRINTF("[Exp parser] Error: Variable is not initiated!\n");
+                        raiseError(ERR_UNDEFINED_VARIABLE);
                     }
 
                     tokenStackGet(tokenStack, 0)->tokenExpParserType = newIdentifierType;
