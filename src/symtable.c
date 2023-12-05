@@ -731,7 +731,9 @@ void symtableFunctionCallEnd(symtable *table){
         functionData *funcData = (functionData *)listPopLast(table->functionCalls);
         listPushFirst(table->functionCalls,funcData);
     }
-    table->createFrameCounter--;
+    if(table->createFrameCounter > 0){
+        table->createFrameCounter--;
+    }
     if(table->createFrameCounter != 0){
         symtablePushCode(table,"CREATEFRAME");
     }

@@ -45,6 +45,8 @@ void printList(list *l);
 char* stringToAssemblyStringFormat(char* inputString);
 char * allocateString(char * string);
 
+void generatorAddSubstringFunction(generator *gen);
+
 /*
 
 1) push nazev_promene to parser stack
