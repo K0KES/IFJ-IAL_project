@@ -12,6 +12,7 @@ typedef struct generator_h
     list *parserStack; 
     ht_table_t *functionCallsTable;
     void* table;
+    bool substringGenerated;
 }generator;
 
 
