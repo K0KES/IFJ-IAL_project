@@ -873,6 +873,7 @@ bool callOrAssign(){
             symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," TF@%retval"));
             //Návratová hodnota této funkce se stejně nikam neukládá
             //generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
+            symtableFunctionCallEnd(symTable);
             break;
         default:
             DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",false);
@@ -1628,6 +1629,7 @@ bool argWithName(){
             argWithNameStatus = expressionParserStart(state);
             //Symtable
             //TO DO kontrola jaký typ vrací exp parser když je "non set"/nil/??
+            DEBUG_PRINTF("Typ parametru je: %d\n",state->expParserReturnType);
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
                 symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
             }
@@ -1879,12 +1881,22 @@ bool parseBuidInFunctions(){
             //Symtable
             symtableFunctionCallStart(symTable,"substring");
 
-            parseBuidInFunctionsStatus = argument();
-
-            if(state->expParserReturnType != T_INT){
-                DEBUG_PRINTF("[Parser] Error function parameter should be int\n");
+            if (activeToken->tokenType != T_IDENTIFIER){
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
+            }
+            if (strcmp(strGetStr(activeToken->value),"of") != 0){
                 raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
+            getNextToken();
+
+            if (activeToken->tokenType != T_COLON){
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+
+            parseBuidInFunctionsStatus = argument();
             
             // verification of: substring(<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
@@ -1892,12 +1904,23 @@ bool parseBuidInFunctions(){
                 return false;
             }
             getNextToken();
-            parseBuidInFunctionsStatus = parseBuidInFunctionsStatus && argument();
 
-            if(state->expParserReturnType != T_INT){
-                DEBUG_PRINTF("[Parser] Error function parameter should be int\n");
+            if (activeToken->tokenType != T_IDENTIFIER){
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
+            }
+            if (strcmp(strGetStr(activeToken->value),"startingAt") != 0){
                 raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
+            getNextToken();
+
+            if (activeToken->tokenType != T_COLON){
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+
+            parseBuidInFunctionsStatus = parseBuidInFunctionsStatus && argument();
 
             // verification of: substring(<argument>,<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
@@ -1905,13 +1928,24 @@ bool parseBuidInFunctions(){
                 return false;
             }
             getNextToken();
-            parseBuidInFunctionsStatus = parseBuidInFunctionsStatus && argument();
-            
-            if(state->expParserReturnType != T_INT){
-                DEBUG_PRINTF("[Parser] Error function parameter should be int\n");
+
+            if (activeToken->tokenType != T_IDENTIFIER){
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
+            }
+            if (strcmp(strGetStr(activeToken->value),"endingBefore") != 0){
                 raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
+            getNextToken();
 
+            if (activeToken->tokenType != T_COLON){
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
+            }
+            getNextToken();
+
+            parseBuidInFunctionsStatus = parseBuidInFunctionsStatus && argument();
+            
             // verification of: substring(<argument>,<argument>,<argument>)
             if (activeToken->tokenType != T_RIGHT_BRACKET){
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
@@ -2073,6 +2107,7 @@ void parseFunctionCall(){
 
         symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," TF@%retval"));
         generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
+        symtableFunctionCallEnd(symTable);
     }else{
         parseFunctionCallStatus = parseBuidInFunctions();
     }
