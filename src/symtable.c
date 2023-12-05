@@ -454,6 +454,7 @@ void symtableFunctionEndOfArguments(symtable *table){
         functionArgument *arg = (functionArgument *)node->data;
         symtableInsert(table,arg->id,false);
         symtableSetDataType(table,arg->type,arg->nullable);
+        symtableSetVariableValue(table);
         node = node->next;
     }
 
@@ -770,7 +771,8 @@ void symtableEndOfFile(symtable *table){
 
     while(funcDataNode != NULL){
         functionData *funcData = (functionData *)funcDataNode->data;
-        
+        printf("FUNC: %s \n",funcData->callName);
+
         if(strcmp(funcData->callName,"write") == 0 
             || strcmp(funcData->callName,"readString") == 0 
             || strcmp(funcData->callName,"readInt") == 0
@@ -822,7 +824,7 @@ void symtableEndOfFile(symtable *table){
                     raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
                 }
                 if(callArg->type != funcArg->type){
-                    DEBUG_PRINTF("[Symtable] Call argument type doesn't match fuction argument type (%d != %d)\n",callArg->type,funcArg->type);
+                    DEBUG_PRINTF("[Symtable] Call argument type doesn't match fuction argument type (%s(%d) != %s(%d))\n",callArg->name,callArg->type,funcArg->name,funcArg->type);
                     raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
                 }
                 

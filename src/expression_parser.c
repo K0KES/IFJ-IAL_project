@@ -852,11 +852,11 @@ int expressionParserStart(programState *PS)
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
-                char *stringWithoutQuote = strGetStr(tokenStackGet(tokenStack, 0)->value);
-                stringWithoutQuote++;                                   // Remove first " from input string
-                stringWithoutQuote[strlen(stringWithoutQuote) - 1] = 0; // Remove last " from string
+                //char *stringWithoutQuote = strGetStr(tokenStackGet(tokenStack, 0)->value);
+                //stringWithoutQuote++;                                   // Remove first " from input string
+                //stringWithoutQuote[strlen(stringWithoutQuote) - 1] = 0; // Remove last " from string
 
-                char *stringAssemblyValue = stringToAssemblyStringFormat(stringWithoutQuote);
+                char *stringAssemblyValue = stringToAssemblyStringFormat(strGetStr(tokenStackGet(tokenStack, 0)->value));
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " string@", stringAssemblyValue));
                 free(stringAssemblyValue);
                 stringAssemblyValue = NULL;

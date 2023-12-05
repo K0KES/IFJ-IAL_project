@@ -245,53 +245,31 @@ char* replaceWord(const char* s, const char* oldW,
 } 
 
 char* stringToAssemblyStringFormat(char* inputString) {
-    
+    /*
+    for (size_t i = 0; inputString[i] != '\0'; i++)
+    {
+        printf("%d ",inputString[i]);
+    }
+
+    printf("\n\n\n");*/
+
     char* output = allocateString(inputString);
-    char uvozovky[] = {34,34};
-    output = replaceWord(output,uvozovky,"");
-    output = replaceWord(output,"\\n","\\010");
-    output = replaceWord(output,"\\r","\\013");
+    
+    char threeQuotesAndNewLine[] = {34,34,34,10,0};
+    char newLineAndThreeQuotes[] = {10,34,34,34,0};
+    char singleQuote[] = {34,0};
+
+    output = replaceWord(output,threeQuotesAndNewLine,"");
+    output = replaceWord(output,newLineAndThreeQuotes,"");
+
+    output = replaceWord(output,singleQuote,"");
+
     output = replaceWord(output,"\n","\\010");
+    output = replaceWord(output,"\r","\\013");
+    
     output = replaceWord(output," ","\\032");
 
     return output;
-    //str_replace(inputString,"\n","\10");
-    //str_replace(inputString,"\n","\10");
-    
-
-    /*
-    int length = 0;
-    const char* p = inputString;
-
-    // Spočítáme délku výsledného řetězce
-    while (*p) {
-        // Escape sekvence nebo bílý znak
-        if (*p == '\\' || *p == '#' || (*p >= 0 && *p <= 32)) { length += 5;} //Escape sekvence má 5 znaků (\x00)
-        else {length++;}
-        p++;
-    }
-
-    char* outputString = (char*)malloc(length + 1);
-    if (!outputString) { raiseError(ERR_INTERNAL); }
-
-    char* q = outputString;
-
-    // Kopírujeme znaky a vytváříme escape sekvence
-    p = inputString;
-    while (*p) {
-        if (*p == '\\' || *p == '#' || (*p >= 0 && *p <= 32)) {
-            // Escape sekvence
-            q += sprintf(q, "\\%03d", *p);
-        } else {
-            // Běžný tisknutelný znak
-            *q++ = *p;
-        }
-        p++;
-    }
-
-    // Nastavíme koncový znak
-    *q = '\0';
-    return outputString;*/
 }
 
 void printList(list *l){
