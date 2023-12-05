@@ -843,7 +843,7 @@ bool callOrAssign(){
             // 37) <callOrAssign> -> (<arguments>)
 
             //Generator
-            symtablePushCode(symTable,"CREATEFRAME");
+            
 
             char *functionName = generatorPopFirstStringFromList(gen->parserStack);
             state->expParserReturnType = symtableGetVariableType(symTable,functionName);
@@ -858,12 +858,14 @@ bool callOrAssign(){
 
             int i = 1;
             char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
+            symtablePushCodeCreateFrame(symTable);
             while(i <= numberOfArguments){
                 snprintf(result, sizeof(result), "%d", i);
                 symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));
                 symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
                 i++;
             }
+            
             
             symtablePushCode(symTable,symTable->lastFunctionCall);
             char *tempGeneratedName = generatorGenerateTempVarName(gen);
@@ -2082,7 +2084,7 @@ void parseFunctionCall(){
         getNextToken();
 
         //Generator
-        symtablePushCode(symTable,"CREATEFRAME");
+        symtablePushCodeCreateFrame(symTable);
 
         //Symtable
         symtableFunctionCallStart(symTable,NULL);

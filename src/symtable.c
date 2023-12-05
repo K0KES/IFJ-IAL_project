@@ -23,6 +23,8 @@ symtable* symtableInit(generator *generator)
     table->functionCodeBody = listInit();
     table->functionCodeFooter = listInit();
 
+    table->createFrameCounter = 0;
+
     generator->table = (void *)table;
 
     if(table->tables == NULL){ free(table); return NULL; }
@@ -611,8 +613,17 @@ void symtableCreateFunctionStructure(symtable *table){
     generatorPushStringToList(table->functionCodeFooter,"#End of function definition");
 }
 
+void symtablePushCodeCreateFrame(symtable *table){
+    table->createFrameCounter ++;
+    if(table->createFrameCounter != 1){
+        return;
+    }
+    symtablePushCode(table,"CREATEFRAME");
+}
+
 void symtablePushCode(symtable *table, char* code){
     if(table == NULL) return;
+
     if(listLength(table->scopes) == 0){
         generatorPushStringToList(table->gen->mainCode,code);
     }else{
@@ -715,7 +726,19 @@ void symtableFunctionCallStart(symtable *table, char *funcName){
     listPushBack(table->functionCalls,funcData);
 }
 
+void symtableFunctionCallEnd(symtable *table){
+    if(listLength(table->functionCalls) > 1){
+        functionData *funcData = (functionData *)listPopLast(table->functionCalls);
+        listPushFirst(table->functionCalls,funcData);
+    }
+    table->createFrameCounter--;
+    if(table->createFrameCounter != 0){
+        symtablePushCode(table,"CREATEFRAME");
+    }
+}
+
 void symtableFunctionCallNextParameter(symtable *table){
+    DEBUG_PRINTF("[Symtable] Function call next parameter\n");
     functionData *funcData = (functionData *)listGetLast(table->functionCalls);
     
     functionArgument *argument = (functionArgument *)malloc(sizeof(functionArgument));
@@ -727,6 +750,7 @@ void symtableFunctionCallNextParameter(symtable *table){
 }
 
 void symtableFunctionCallSetParameterType(symtable *table, enum data_type type, bool nullable){
+    DEBUG_PRINTF("[Symtable] Function call parameter type set\n");
     functionData *funcData = (functionData *)listGetLast(table->functionCalls);
     functionArgument *argument = (functionArgument *)listGetLast(funcData->arguments);
     argument->type = type;
@@ -783,7 +807,7 @@ void symtableEndOfFile(symtable *table){
 
     while(funcDataNode != NULL){
         functionData *funcData = (functionData *)funcDataNode->data;
-        DEBUG_PRINTF("FUNC: %s \n",funcData->callName);
+        DEBUG_PRINTF("FUNC: %s callargs:%d\n",funcData->callName,listLength(funcData->arguments));
 
         if(strcmp(funcData->callName,"write") == 0 
             || strcmp(funcData->callName,"readString") == 0 

@@ -72,6 +72,7 @@ typedef struct symtable_s
     list *functionCodeHeader; 
     list *functionCodeBody;
     list *functionCodeFooter;
+    int createFrameCounter;
 }symtable;
 
 /// @brief Initializes symtable - MUST BE CALLED BEFORE ANY OTHER FUNCTION!
@@ -250,8 +251,8 @@ void symtableSetEndOfVariableDefinition(symtable *table);
 
 
 
-
-
+void symtablePushCodeCreateFrame(symtable *table);
+void symtableFunctionCallEnd(symtable *table);
 void symtableVariableIsConstant(symtable *table);
 void symtableVariableIsNotConstant(symtable *table);
 bool symtableIsVariableDefinedInCurrentScope(symtable *table,char *varName);
