@@ -304,6 +304,13 @@ void symtableVariableIsConstant(symtable *table){
     table->activeItem->isConstant = true;
 }
 
+void symtableVariableIsNotConstant(symtable *table){
+    if(table == NULL) return;
+    if(table->activeItem == NULL) return;
+
+    table->activeItem->isConstant = false;
+}
+
 void symtableSetVariableValue(symtable *table){
     if(table == NULL) return;
     if(table->activeItem == NULL) return;
@@ -425,11 +432,13 @@ void symtableFunctionEndOfArguments(symtable *table){
     }else{
         //TODOOOOO
         currentFunction = (functionData *)listGetLast(owner->funcData->overloadFunctions);
-        /*
-        if(symtableCheckIfOverloadMatches(table->activeItem->funcData,owner->funcData)){
+        
+        DEBUG_PRINTF("ARGS: %d ARGS: %d \n",listLength(currentFunction->arguments),listLength(owner->funcData->arguments));
+
+        if(symtableCheckIfOverloadMatches(currentFunction,owner->funcData)){
             DEBUG_PRINTF("[Symtable] Overload functions are same 2\n");
             raiseError(ERR_UNDEFINED_FUNCTION);
-        }*/
+        }
 
         listNode *overloadNode = owner->funcData->overloadFunctions->first;
         while(overloadNode->next != NULL){
@@ -453,8 +462,11 @@ void symtableFunctionEndOfArguments(symtable *table){
     while(node != NULL){
         functionArgument *arg = (functionArgument *)node->data;
         symtableInsert(table,arg->id,false);
+        symtableVariableIsConstant(table);
         symtableSetDataType(table,arg->type,arg->nullable);
         symtableSetVariableValue(table);
+        symtableSetEndOfVariableDefinition(table);
+        
         node = node->next;
     }
 
