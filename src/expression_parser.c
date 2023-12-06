@@ -873,10 +873,6 @@ int expressionParserStart(programState *PS)
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
-                // char *stringWithoutQuote = strGetStr(tokenStackGet(tokenStack, 0)->value);
-                // stringWithoutQuote++;                                   // Remove first " from input string
-                // stringWithoutQuote[strlen(stringWithoutQuote) - 1] = 0; // Remove last " from string
-
                 char *stringAssemblyValue = stringToAssemblyStringFormat(strGetStr(tokenStackGet(tokenStack, 0)->value));
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " string@", stringAssemblyValue));
                 free(stringAssemblyValue);
@@ -902,20 +898,6 @@ int expressionParserStart(programState *PS)
                 DEBUG_PRINTF("[Exp parser] Float value: %s : %a\n", strGetStr(tokenStackGet(tokenStack, 0)->value), strtof(strGetStr(tokenStackGet(tokenStack, 0)->value), NULL));
                 sprintf(floatString, "%a", strtod(strGetStr(tokenStackGet(tokenStack, 0)->value), NULL));
                 DEBUG_PRINTF("[Exp parser] Float value: %s : %a\n", floatString, strtod(floatString, NULL));
-
-                // raiseError(ERR_INTERNAL);
-
-                // DEBUG_PRINTF("[Exp parser] Float value: %s \n", floatString);
-
-                // DEBUG_PRINTF("[Exp parser] Float value: %f \n", strtof(floatString,NULL));
-                // raiseError(ERR_INTERNAL);
-                // sprintf(&floatString, "%s", strGetStr(tokenStackGet(tokenStack, 0)->value));
-                // DEBUG_PRINTF("[Exp parser] Float value: %s\n", &floatString);
-                // // sprintf(&floatString, "%a", &floatString);
-                // sscanf(&floatString, "%lf", &floatString);
-                // // sscanf(inputString, "%lf", &number)
-                // DEBUG_PRINTF("[Exp parser] Float value: %a\n", &floatString);
-                // raiseError(ERR_INTERNAL);
 
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " float@", floatString));
 
@@ -1578,14 +1560,14 @@ int expressionParserStart(programState *PS)
                 DEBUG_PRINTF("[Exp parser] E -> E!\n");
 
 
-                if (tokenStackGet(tokenStack, 1)->tokenType != T_E)
+                if (tokenStackGet(tokenStack, 1)->tokenType != T_E )
                 {
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
 
 
-                if (tokenStackGet(tokenStack, 1)->is_nullable == false)
+                if (tokenStackGet(tokenStack, 1)->is_nullable == false || tokenStackGet(tokenStack, 1)->tokenExpParserType == KW_NIL)
                 {
                     raiseError(ERR_WRONG_TYPE);
                 }
