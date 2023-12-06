@@ -827,6 +827,7 @@ bool letExp(){
             state->changeToDouble = false;
             letExpStatus = expression();
             if (state->expParserReturnType != DATA_TYPE_BOOL){ raiseError(ERR_WRONG_TYPE); }
+            isLetId = false;
             break;
     }
     DEBUG_PRINTF("[Parser] Leaving function letExp() with %d ...\n",letExpStatus);
