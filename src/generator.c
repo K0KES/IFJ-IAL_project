@@ -309,9 +309,10 @@ char* stringToAssemblyStringFormat(char* inputString) {
 
     int x = 0;
     for (size_t i = 0; inputString[i] != '\0'; i++)
-    {
-        if(inputString[i] > 31){
-            output[x] = inputString[i];
+    {   
+        char c = inputString[i];
+        if(c > 31 || c == 9 || c == 10 | c == 13){
+            output[x] = c;
             x++;
         }
     }
