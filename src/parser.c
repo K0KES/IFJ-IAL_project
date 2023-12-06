@@ -865,14 +865,14 @@ bool callOrAssign(){
             numberOfArguments = 0;
             callOrAssignStatus = arguments();
 
-            int i = 1;
+            int i = numberOfArguments;
             char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
             symtablePushCodeCreateFrame(symTable);
-            while(i <= numberOfArguments){
+            while(i > 0){
                 snprintf(result, sizeof(result), "%d", i);
                 symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));
                 symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
-                i++;
+                i--;
             }
             
             
@@ -2145,13 +2145,13 @@ void parseFunctionCall(){
         numberOfArguments = 0;
         parseFunctionCallStatus = arguments();
 
-        int i = 1;
+        int i = numberOfArguments;
         char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
-        while(i <= numberOfArguments){
+        while(i > 0){
             snprintf(result, sizeof(result), "%d", i);
             symtablePushCode(symTable,concatString(2,"DEFVAR TF@!",result));
             symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
-            i++;
+            i--;
         }
 
         symtablePushCode(symTable,symTable->lastFunctionCall);
