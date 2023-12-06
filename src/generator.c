@@ -306,6 +306,19 @@ char* replaceWord(const char* s, const char* oldW,
 char* stringToAssemblyStringFormat(char* inputString) {
 
     char* output = allocateString(inputString);
+
+    int x = 0;
+    for (size_t i = 0; inputString[i] != '\0'; i++)
+    {
+        if(inputString[i] > 31){
+            output[x] = inputString[i];
+            x++;
+        }
+    }
+    output[x] = '\0';
+
+    inputString = allocateString(output);
+    
     
     char threeQuotesAndNewLine[] = {34,34,34,10,0};
     char newLineAndThreeQuotes[] = {10,34,34,34,0};
