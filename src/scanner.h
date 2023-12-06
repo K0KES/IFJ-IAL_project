@@ -139,12 +139,21 @@ typedef struct {
 
 } token;
 
-//function for cleaning token
+/// @brief function for cleaning token
+/// @param token token that will be cleared
 void tokenClear (token* token);
-//function for handeling stdin and creating tokens
+
+/// @brief function for handeling stdin and creating tokens
+/// @param token where to save token
+/// @param charNumber current charnumber
+/// @param lineNumber current linenumber
 int getToken(token *token, int charNumber, int lineNumber);
 
-//function for checking errors in Multiline string and also check for errors
+
+/// @brief function for checking errors in Multiline string and also check for errors
+/// @param multiLine string that has to be changed by this func
 string* multilineStringCheck (string* multiLine);
 
+/// @brief get token name by Enum
+/// @param tokenType a enum of token
 const char* getTokenName(enum tokenType tokenType);
