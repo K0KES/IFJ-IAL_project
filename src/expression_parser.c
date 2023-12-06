@@ -1660,8 +1660,24 @@ int expressionParserStart(programState *PS)
                 // check if are both operands same type of if any of them is nil
                 if (tokenStackGet(tokenStack, 0)->tokenExpParserType != tokenStackGet(tokenStack, 2)->tokenExpParserType && tokenStackGet(tokenStack, 0)->tokenExpParserType != KW_NIL && tokenStackGet(tokenStack, 2)->tokenExpParserType != KW_NIL)
                 {
-                    DEBUG_PRINTF("[Exp parser] Not matching operand types in ?? \n");
-                    raiseError(ERR_WRONG_TYPE);
+                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
+                    {
+                        // DEBUG_PRINTF("[Exp parser] Changing int to double!\n");
+                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                        tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
+                    }
+                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
+                    {
+                        // DEBUG_PRINTF("[Exp parser] Changing int to double!\n");
+                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_DOUBLE;
+                    }
+                    else
+                    {
+                        DEBUG_PRINTF("[Exp parser] Not matching operand types in ?? \n");
+                        raiseError(ERR_WRONG_TYPE);
+                    }
+
                 }
 
                 // creates temporary nil variable
