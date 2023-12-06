@@ -400,6 +400,7 @@ void symtableSetFunctionArgumentName(symtable *table, char *name){
 }
 
 bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcData){
+    DEBUG_PRINTF("COMPARING OVERLOAD\n");
     listNode *callNode = callData->arguments->first;
     listNode *funcNode = funcData->arguments->first;
     while(true){
@@ -413,6 +414,7 @@ bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcDa
         functionArgument *callArg = (functionArgument *)(callNode->data);
         functionArgument *funcArg = (functionArgument *)(funcNode->data);
 
+        DEBUG_PRINTF("CALL ARG: %s %s %d FUNC ARG: %s %s %d \n",callArg->name,callArg->id,callArg->type,funcArg->name,funcArg->id,funcArg->type);
         if(strcmp(funcArg->name,callArg->name) != 0){
             return false;
         } 
@@ -584,8 +586,9 @@ functionData * symtableGetOverloadedFunction(symtable *table, char* funcName){
 }
 
 enum data_type symtableGetVariableType(symtable *table, char *varName){
+    DEBUG_PRINTF("[Symtable] getting variable type: %s \n",varName);
     symtableItem *item = symtableFindSymtableItem(table,varName);
-
+    
     if(table->currentFunction != NULL){
         functionData *overload = symtableGetOverloadedFunction(table,table->currentFunction->name);
         listNode *argNode = overload->arguments->first;
@@ -602,7 +605,11 @@ enum data_type symtableGetVariableType(symtable *table, char *varName){
     if(item->funcData == NULL){
         return item->type;
     }else{
-        return item->funcData->returnType;
+        if(listLength(item->funcData->overloadFunctions) == 0){
+            return item->funcData->returnType;
+        }else{
+            return table->activeItem->type;
+        }
     }
 }
 
@@ -625,7 +632,11 @@ bool symtableGetVariableNullable(symtable *table, char *varName){
     if(item->funcData == NULL){
         return item->nullable;
     }else{
-        return item->funcData->returnTypeNullable;
+        if(listLength(item->funcData->overloadFunctions) == 0){
+            return item->funcData->returnTypeNullable;
+        }else{
+            return table->activeItem->nullable;
+        }
     }
 }
 
@@ -869,7 +880,7 @@ void symtableFunctionCallNextParameter(symtable *table){
 }
 
 void symtableFunctionCallSetParameterType(symtable *table, enum data_type type, bool nullable){
-    DEBUG_PRINTF("[Symtable] Function call parameter type set\n");
+    DEBUG_PRINTF("[Symtable] Function call parameter type set %d %d\n",type,nullable);
     functionData *funcData = (functionData *)listGetLast(table->functionCalls);
     functionArgument *argument = (functionArgument *)listGetLast(funcData->arguments);
     argument->type = type;
@@ -896,6 +907,7 @@ void symtableFunctionReturnWasCalled(symtable *table){
 void symtableFunctionCallSetExpectedReturnType(symtable *table, enum data_type expectedType, bool expectedNullable){
     functionData *funcData = (functionData *)listGetLast(table->functionCalls);
     if(funcData != NULL){
+        DEBUG_PRINTF("[Symtable] Function call setting expected type %d %d \n",expectedType,expectedNullable);
         funcData->returnType = expectedType;
         funcData->returnTypeNullable = expectedNullable;
     }
@@ -904,6 +916,8 @@ void symtableFunctionCallSetExpectedReturnType(symtable *table, enum data_type e
 void symtableCheckOverload(symtable *table,functionData *funcCall){
     
     symtableItem *owner = symtableFindSymtableItem(table,funcCall->callName);
+
+    
     DEBUG_PRINTF("PROCCESSING OVERLOAD %s call args: %d \n",owner->name,listLength(funcCall->arguments));
     
     DEBUG_PRINTF("COmparing overload... args: %d \n",listLength(owner->funcData->arguments));

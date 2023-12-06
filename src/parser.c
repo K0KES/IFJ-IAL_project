@@ -752,6 +752,7 @@ bool statement(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"write");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_VOID,false);
 
             statementStatus = arguments();
 
@@ -1538,6 +1539,15 @@ bool arguments(){
         case T_INT:
         case T_DOUBLE:
         case T_STRING:
+        case KW_READSTRING:
+        case KW_READINT:
+        case KW_READDOUBLE:
+        case KW_INT_TO_DOUBLE:
+        case KW_DOUBLE_TO_INT:
+        case KW_LENGTH:
+        case KW_SUBSTRING:
+        case KW_ORD:
+        case KW_CHR:
             // 48) <arguments> -> <argument> <argumentsN> <eol>
             argumentsStatus = argument() && argumentsN(); //&& eol()
             break;
@@ -2210,6 +2220,10 @@ void parseFunctionCall(){
             i--;
         }
 
+        state->expParserReturnType = symtableGetVariableType(symTable,functionName);
+        state->expParserReturnTypeNullable = symtableGetVariableNullable(symTable,functionName);
+        state->changeToDouble = false;
+
         symtablePushCode(symTable,symTable->lastFunctionCall);
 
         char *tempGeneratedName = generatorGenerateTempVarName(gen);
@@ -2227,7 +2241,6 @@ void parseFunctionCall(){
     tempToken->lastChar = activeToken->lastChar;
     char *string = allocateString(strGetStr(activeToken->value));
     strSetString(tempToken->value,string);
-
     DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
     listPushBack(state->tokenQueue,tempToken);
     if (parseFunctionCallStatus){
