@@ -49,6 +49,7 @@ enum tokenType acceptedTokenTypes[] = {
     KW_ORD,
     KW_CHR};
 
+// precedence table
 char precedenceTable[10][10] = {
     {'<', '=', '<', '<', '<', '<', '<','>','<', '1'},
     {'1', '>', '>', '>', '>', '>', '>','>','1', '>'},
@@ -172,7 +173,7 @@ bool isTokenTypeAccepted(token *activeToken);
 /// @return Returns 0 if everything is ok, 1 if there is an error
 int setUpActiveToken(token *T);
 
-/// @brief Free all memmory used by token stack
+/// @brief Free all memory used by token stack
 /// @param stack Pointer to token stack
 void tokenStackClear(struct tokenStack *stack);
 
@@ -190,5 +191,3 @@ int isTokenTypeOperatorLike(enum tokenType tokenType);
 /// @param tokenType Input token type
 /// @return Returns false if token can't be function, else returns true
 int isTokenFunction(enum tokenType tokenType);
-
-int dealWithFunction(struct tokenStack *stack, struct tokenQueue *queue, programState *PS);
