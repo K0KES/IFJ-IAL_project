@@ -632,8 +632,6 @@ int expressionParserStart(programState *PS)
         raiseError(ERR_SYNTAX);
     }
 
-    
-
     // exit(1);
     /// print all token types in queue
     struct tokenQueueElement *tQE = tokenQueue->first;
@@ -836,7 +834,16 @@ int expressionParserStart(programState *PS)
                     DEBUG_PRINTF("[Exp parser] Identifier name: %s\n", strGetStr(tokenStackGet(tokenStack, 0)->value));
                     DEBUG_PRINTF("[Exp parser] Identifier is nullable: %d\n", tokenStackGet(tokenStack, 0)->is_nullable);
                     // symtableGetVariableNullable(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value));
-                    strSetString(tokenStackGet(tokenStack, 0)->value, concatString(2, symtableGetVariablePrefix(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value)), strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    // strSetString(tokenStackGet(tokenStack, 0)->value, concatString(2, symtableGetVariablePrefix(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value)), strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    
+                    
+                    char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
+                    char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
+                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
+                    symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " ", concatString(2, symtableGetVariablePrefix(PS->symTable, strGetStr(tokenStackGet(tokenStack, 0)->value)), strGetStr(tokenStackGet(tokenStack, 0)->value))));
+
+                    strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
+                    
                     break;
                 }
             }
@@ -1282,7 +1289,7 @@ int expressionParserStart(programState *PS)
             }
 
             case T_GREATER_EQUAL:
-                        {
+            {
                 DEBUG_PRINTF("[Exp parser] E -> E >= E\n");
                 if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
                 {
