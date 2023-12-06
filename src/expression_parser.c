@@ -208,7 +208,7 @@ char getPrecedence(enum tokenType topOfStackTokenType, enum tokenType currentTok
     unsigned int topOfStackIndex = getIndexInPrecedenceTable(topOfStackTokenType);
     unsigned int currentTokenIndex = getIndexInPrecedenceTable(currentTokenType);
 
-    return precedenceTable[topOfStackIndex * 9 + currentTokenIndex];
+    return precedenceTable[topOfStackIndex * 10 + currentTokenIndex];
 }
 
 unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
@@ -250,16 +250,20 @@ unsigned int getIndexInPrecedenceTable(enum tokenType tokenType)
         return 6;
         break;
 
+    case T_NOT:
+        return 7;
+        break;
+
     case T_IDENTIFIER:
     case T_INT:
     case T_DOUBLE:
     case T_STRING:
     case KW_NIL:
-        return 7;
+        return 8;
         break;
 
     case T_END:
-        return 8;
+        return 9;
         break;
 
     default:
@@ -1676,6 +1680,19 @@ int expressionParserStart(programState *PS)
                 DEBUG_PRINTF("[Exp parser] Default state in the second switch: %s\n", getTokenName(whichTypeIsOnTheStack(tokenStack)));
                 raiseError(ERR_SYNTAX);
                 break;
+
+            case T_NOT:
+            {
+                DEBUG_PRINTF("[Exp parser] E -> E!\n");
+                if (tokenStackGet(tokenStack, 1)->is_nullable == false)
+                {
+                    raiseError(ERR_WRONG_TYPE);
+                }
+                tokenStackGet(tokenStack, 0)->is_nullable = false;
+                tokenStackPop(tokenStack, 1);
+
+                // raiseError(ERR_INTERNAL);
+            }
             }
             break;
 
