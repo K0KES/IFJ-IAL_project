@@ -728,6 +728,10 @@ int expressionParserStart(programState *PS)
         tmpQueueElement = tmpQueueElement->next;
     }
 
+    // DEBUG_PRINTF("[Exp parser] Token on the start of queue %s\n", getTokenName(getFirstFromQueue(tokenQueue)->tokenType));
+    // popFirstFromQueue(tokenQueue);
+    // DEBUG_PRINTF("[Exp parser] Token on the start of queue %s\n", getTokenName(getFirstFromQueue(tokenQueue)->tokenType));
+    // raiseError(ERR_INTERNAL);
     // while loop which process tokens from queue
     while (running)
     {
@@ -787,11 +791,8 @@ int expressionParserStart(programState *PS)
                     if (tokenStackGet(tokenStack, 0)->tokenExpParserType != T_INT && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_DOUBLE && tokenStackGet(tokenStack, 0)->tokenExpParserType != T_STRING && tokenStackGet(tokenStack, 0)->tokenExpParserType != KW_NIL)
                     {
                         DEBUG_PRINTF("[Exp parser] Got no return type from function!\n");
-                        raiseError(ERR_WRONG_RETURN_TYPE);
+                        raiseError(ERR_WRONG_TYPE);
                     }
-
-                    
-
 
                     break;
                     // raiseError(ERR_INTERNAL);
@@ -856,9 +857,9 @@ int expressionParserStart(programState *PS)
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
 
-                //char *stringWithoutQuote = strGetStr(tokenStackGet(tokenStack, 0)->value);
-                //stringWithoutQuote++;                                   // Remove first " from input string
-                //stringWithoutQuote[strlen(stringWithoutQuote) - 1] = 0; // Remove last " from string
+                // char *stringWithoutQuote = strGetStr(tokenStackGet(tokenStack, 0)->value);
+                // stringWithoutQuote++;                                   // Remove first " from input string
+                // stringWithoutQuote[strlen(stringWithoutQuote) - 1] = 0; // Remove last " from string
 
                 char *stringAssemblyValue = stringToAssemblyStringFormat(strGetStr(tokenStackGet(tokenStack, 0)->value));
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " string@", stringAssemblyValue));
@@ -881,8 +882,25 @@ int expressionParserStart(programState *PS)
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-                char floatString[100];
-                sprintf(floatString, "%a", atof(strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                char *floatString = malloc(sizeof(char) * 100); 
+                DEBUG_PRINTF("[Exp parser] Float value: %s : %a\n", strGetStr(tokenStackGet(tokenStack, 0)->value) , strtof(strGetStr(tokenStackGet(tokenStack, 0)->value),NULL));
+                sprintf(floatString, "%a",  strtof(strGetStr(tokenStackGet(tokenStack, 0)->value),NULL));
+                DEBUG_PRINTF("[Exp parser] Float value: %s : %a\n", floatString , strtof(floatString,NULL));
+              
+                // raiseError(ERR_INTERNAL);
+                
+                // DEBUG_PRINTF("[Exp parser] Float value: %s \n", floatString);
+               
+                // DEBUG_PRINTF("[Exp parser] Float value: %f \n", strtof(floatString,NULL));
+                // raiseError(ERR_INTERNAL);
+                // sprintf(&floatString, "%s", strGetStr(tokenStackGet(tokenStack, 0)->value));
+                // DEBUG_PRINTF("[Exp parser] Float value: %s\n", &floatString);
+                // // sprintf(&floatString, "%a", &floatString);
+                // sscanf(&floatString, "%lf", &floatString);
+                // // sscanf(inputString, "%lf", &number)
+                // DEBUG_PRINTF("[Exp parser] Float value: %a\n", &floatString);
+                // raiseError(ERR_INTERNAL);
+
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " float@", floatString));
 
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_DOUBLE;
