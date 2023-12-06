@@ -1804,6 +1804,11 @@ bool parseBuidInFunctions(){
             }
             getNextToken();
 
+            if (activeToken->tokenType == T_RIGHT_BRACKET){
+                DEBUG_PRINTF("[Parser] Error function should have one parameter\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
+
             //Symtable
             symtableFunctionCallStart(symTable,"Int2Double");
 
@@ -1851,6 +1856,11 @@ bool parseBuidInFunctions(){
             }
             getNextToken();
 
+            if (activeToken->tokenType == T_RIGHT_BRACKET){
+                DEBUG_PRINTF("[Parser] Error function should have one parameter\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
+
             //Symtable
             symtableFunctionCallStart(symTable,"Double2Int");
 
@@ -1897,6 +1907,11 @@ bool parseBuidInFunctions(){
                 return false;
             }
             getNextToken();
+
+            if (activeToken->tokenType == T_RIGHT_BRACKET){
+                DEBUG_PRINTF("[Parser] Error function should have one parameter\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
 
             //Symtable
             symtableFunctionCallStart(symTable,"length");
@@ -2067,6 +2082,11 @@ bool parseBuidInFunctions(){
                 return false;
             }
             getNextToken();
+
+            if (activeToken->tokenType == T_RIGHT_BRACKET){
+                DEBUG_PRINTF("[Parser] Error function should have one parameter\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
 
             //Symtable
             symtableFunctionCallStart(symTable,"ord");
