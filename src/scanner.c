@@ -461,6 +461,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '{':
                 case '}':
                 case '?':
+                case '!':
                 case EOF:
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
