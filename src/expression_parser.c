@@ -376,6 +376,7 @@ int popFirstFromQueue(struct tokenQueue *tQ)
 int expressionParserStart(programState *PS)
 {
     bool functionInExpression = false;
+    // bool didSomething = false;
     DEBUG_PRINTF("[Exp parser] Expression parser started...\n");
     // structures init
     token *tmpDebugToken;
@@ -624,6 +625,15 @@ int expressionParserStart(programState *PS)
 
     activeToken->tokenType = T_END;
     addLastToQueue(tokenQueue, activeToken);
+
+    if (getFirstFromQueue(tokenQueue)->tokenType == T_END)
+    {
+        DEBUG_PRINTF("[Exp parser] Error: Empty expression!\n");
+        raiseError(ERR_SYNTAX);
+    }
+
+    
+
     // exit(1);
     /// print all token types in queue
     struct tokenQueueElement *tQE = tokenQueue->first;
