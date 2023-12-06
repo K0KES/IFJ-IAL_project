@@ -7,7 +7,6 @@
 
 enum tokenType typeOfLastToken;
 
-int numberOfArguments = 0;
 bool isLetId = false;
 
 symtable *symTable;
@@ -753,12 +752,11 @@ bool statement(){
             //Symtable
             symtableFunctionCallStart(symTable,"write");
 
-            numberOfArguments = 0;
             statementStatus = arguments();
 
             //Generator
             int i = 0;
-            while (i < numberOfArguments){
+            while (i < symtableFunctionCallGetNumberOfParameters(symTable)){
                 symtablePushCode(symTable,concatString(2,"WRITE ",generatorPopLastStringFromList(gen->parserStack)));
                 i++;
             }
@@ -862,10 +860,9 @@ bool callOrAssign(){
             symtableFunctionCallStart(symTable,NULL);
 
             getNextToken();
-            numberOfArguments = 0;
             callOrAssignStatus = arguments();
 
-            int i = numberOfArguments;
+            int i = symtableFunctionCallGetNumberOfParameters(symTable);
             char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
             symtablePushCodeCreateFrame(symTable);
             while(i > 0){
@@ -1585,8 +1582,6 @@ bool argument(){
     DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
     DEBUG_PRINTF("[Parser] Entering function argument()...\n");
 
-    numberOfArguments++;
-
     symtableFunctionCallNextParameter(symTable);
     switch(activeToken->tokenType) {
         case T_IDENTIFIER:;
@@ -2137,10 +2132,9 @@ void parseFunctionCall(){
         //Symtable
         symtableFunctionCallStart(symTable,NULL);
 
-        numberOfArguments = 0;
         parseFunctionCallStatus = arguments();
 
-        int i = numberOfArguments;
+        int i = symtableFunctionCallGetNumberOfParameters(symTable);
         char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
         while(i > 0){
             snprintf(result, sizeof(result), "%d", i);
