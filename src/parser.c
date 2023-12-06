@@ -7,7 +7,6 @@
 
 enum tokenType typeOfLastToken;
 
-int numberOfArguments = 0;
 bool isLetId = false;
 
 symtable *symTable;
@@ -728,7 +727,8 @@ bool statement(){
                 raiseError(ERR_SYNTAX);
             }
             getNextToken();
-            statementStatus = returnExpression();
+            statementStatus = returnExpression() && eol();
+            symtableFunctionReturnWasCalled(symTable);
             break;
         case T_IDENTIFIER:
             // 30) <statement> -> ID <callOrAssign>
@@ -753,12 +753,11 @@ bool statement(){
             //Symtable
             symtableFunctionCallStart(symTable,"write");
 
-            numberOfArguments = 0;
             statementStatus = arguments();
 
             //Generator
             int i = 0;
-            while (i < numberOfArguments){
+            while (i < symtableFunctionCallGetNumberOfParameters(symTable)){
                 symtablePushCode(symTable,concatString(2,"WRITE ",generatorPopLastStringFromList(gen->parserStack)));
                 i++;
             }
@@ -862,10 +861,9 @@ bool callOrAssign(){
             symtableFunctionCallStart(symTable,NULL);
 
             getNextToken();
-            numberOfArguments = 0;
             callOrAssignStatus = arguments();
 
-            int i = numberOfArguments;
+            int i = symtableFunctionCallGetNumberOfParameters(symTable);
             char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
             symtablePushCodeCreateFrame(symTable);
             while(i > 0){
@@ -1585,8 +1583,6 @@ bool argument(){
     DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
     DEBUG_PRINTF("[Parser] Entering function argument()...\n");
 
-    numberOfArguments++;
-
     symtableFunctionCallNextParameter(symTable);
     switch(activeToken->tokenType) {
         case T_IDENTIFIER:;
@@ -1704,8 +1700,12 @@ bool parseBuidInFunctions(){
             }
             getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                    DEBUG_PRINTF("[Parser] Error function dont need parameters\n");
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                return false; 
             }
 
             //Generator
@@ -1731,8 +1731,12 @@ bool parseBuidInFunctions(){
             }
             getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                    DEBUG_PRINTF("[Parser] Error function dont need parameters\n");
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                return false; 
             }
 
             //Generator
@@ -1758,8 +1762,12 @@ bool parseBuidInFunctions(){
             }
             getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                    DEBUG_PRINTF("[Parser] Error function dont need parameters\n");
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                return false; 
             }
 
             //Generator
@@ -1787,6 +1795,7 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"Int2Double");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_DOUBLE,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -1804,6 +1813,13 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_COMMA){
+                    getNextToken();
+                    if(activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                        DEBUG_PRINTF("[Parser] Error function should have only one parameter\n");
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                    }
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
@@ -1827,6 +1843,7 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"Double2Int");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_INTEGER,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -1844,6 +1861,13 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_COMMA){
+                    getNextToken();
+                    if(activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                        DEBUG_PRINTF("[Parser] Error function should have only one parameter\n");
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                    }
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
@@ -1867,6 +1891,7 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"length");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_INTEGER,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -1884,6 +1909,13 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
             
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_COMMA){
+                    getNextToken();
+                    if(activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                        DEBUG_PRINTF("[Parser] Error function should have only one parameter\n");
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                    }
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
@@ -1910,9 +1942,14 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"substring");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_STRING,true);
 
             if (activeToken->tokenType != T_IDENTIFIER){
-                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                if (activeToken->tokenType == T_RIGHT_BRACKET || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
             }
             if (strcmp(strGetStr(activeToken->value),"of") != 0){
                 raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
@@ -1920,7 +1957,11 @@ bool parseBuidInFunctions(){
             getNextToken();
 
             if (activeToken->tokenType != T_COLON){
-                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                if (activeToken->tokenType == T_COMMA){
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
             }
             getNextToken();
 
@@ -1934,7 +1975,11 @@ bool parseBuidInFunctions(){
             
             // verification of: substring(<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
-                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                if (activeToken->tokenType == T_RIGHT_BRACKET){
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
             }
             getNextToken();
 
@@ -2018,6 +2063,7 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"ord");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_INTEGER,false);
 
             symtablePushCode(symTable,"");
             symtablePushCode(symTable,"#Start of build in function ord()");
@@ -2029,6 +2075,13 @@ bool parseBuidInFunctions(){
             }
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_COMMA){
+                    getNextToken();
+                    if(activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                        DEBUG_PRINTF("[Parser] Error function should have only one parameter\n");
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                    }
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
@@ -2074,15 +2127,23 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"chr");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_STRING,false);
 
             parseBuidInFunctionsStatus = argument();
 
             if(state->expParserReturnType != T_INT){
                 DEBUG_PRINTF("[Parser] Error function parameter should be int\n");
-                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);       
             }
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_COMMA){
+                    getNextToken();
+                    if(activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                        DEBUG_PRINTF("[Parser] Error function should have only one parameter\n");
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                    }
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
@@ -2136,11 +2197,11 @@ void parseFunctionCall(){
 
         //Symtable
         symtableFunctionCallStart(symTable,NULL);
+        symtableFunctionCallSetExpectedReturnType(symTable,symtableGetVariableType(symTable,functionName),symtableGetVariableNullable(symTable,functionName));
 
-        numberOfArguments = 0;
         parseFunctionCallStatus = arguments();
 
-        int i = numberOfArguments;
+        int i = symtableFunctionCallGetNumberOfParameters(symTable);
         char *result = allocateString("Toto zde musime nechat jinak to hodi segfault. Tuto poznamku muzete ingnorovat protoze se stejne prepise :)");
         while(i > 0){
             snprintf(result, sizeof(result), "%d", i);
