@@ -640,6 +640,7 @@ bool statement(){
 
             // verification of: if <eol>  <letExp> <eol> {<statements>} <eol> else
             if (activeToken->tokenType != KW_ELSE){
+                DEBUG_PRINTF("[Parser] Error - missing else\n");
                 DEBUG_PRINTF("[Parser] Leaving function statement() with %d ...\n",false);
                 return false;
             }
@@ -721,6 +722,7 @@ bool statement(){
         case KW_RETURN:
             // 29) <statement> -> return <returnExpression>
             
+            //TO DO přidat do symtable informaci že byl zavolán return a potom kontrolovat jestli byl všude kde měl být
             if(symTable->currentFunction == NULL){
                 DEBUG_PRINTF("[Parser] Error call return out of function\n");
                 raiseError(ERR_SYNTAX);
@@ -828,7 +830,7 @@ bool letExp(){
             if (state->expParserReturnType != DATA_TYPE_BOOL){ raiseError(ERR_WRONG_TYPE); }
             break;
     }
-    DEBUG_PRINTF("[Parser] Leaving function callOrAssign() with %d ...\n",letExpStatus);
+    DEBUG_PRINTF("[Parser] Leaving function letExp() with %d ...\n",letExpStatus);
     return letExpStatus;
 }
 
@@ -937,7 +939,9 @@ bool assign(){
             if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
             else{state->changeToDouble = false;} 
 
+            symTable->inExpression = true;
             assignStatus = expression();
+            symTable->inExpression = false;
 
             if (state->expParserReturnType == DATA_TYPE_NIL){
                 if (lastVarTypeNullable == false){
@@ -1005,7 +1009,9 @@ bool assign(){
             if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
             else{state->changeToDouble = false;} 
 
+            symTable->inExpression = true;
             assignStatus = expression();
+            symTable->inExpression = false;
 
             if (state->expParserReturnType == DATA_TYPE_NIL){
                 if (lastVarTypeNullable == false){
@@ -1074,7 +1080,9 @@ bool assign(){
             if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
             else{state->changeToDouble = false;} 
 
+            symTable->inExpression = true;
             assignStatus = expression();
+            symTable->inExpression = false;
 
             if (state->expParserReturnType == DATA_TYPE_NIL){
                 if (lastVarTypeNullable == false){
@@ -1143,7 +1151,9 @@ bool assign(){
             if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
             else{state->changeToDouble = false;} 
 
+            symTable->inExpression = true;
             assignStatus = expression();
+            symTable->inExpression = false;
 
             if (state->expParserReturnType == DATA_TYPE_NIL){
                 if (lastVarTypeNullable == false){
@@ -1212,7 +1222,9 @@ bool assign(){
             if (lastVarType == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
             else{state->changeToDouble = false;} 
 
+            symTable->inExpression = true;
             assignStatus = expression();
+            symTable->inExpression = false;
 
             if (state->expParserReturnType == DATA_TYPE_NIL){
                 if (lastVarTypeNullable == false){
@@ -1354,7 +1366,10 @@ bool varDecMid(){
                 }
             }
 
+            symTable->inExpression = true;
             varDecMidStatus = expression();
+            symTable->inExpression = false;
+
             if (state->expParserReturnType == DATA_TYPE_NIL) { raiseError(ERR_MISSING_TYPE); }
             symtableSetDataType(symTable,state->expParserReturnType,state->expParserReturnTypeNullable);
             symtableSetVariableValue(symTable);
@@ -1412,7 +1427,9 @@ bool varDef(){
             if (symtableGetActiveItemType(symTable) == DATA_TYPE_DOUBLE){ state->changeToDouble = true; }
             else{state->changeToDouble = false;} 
 
+            symTable->inExpression = true;
             varDefStatus = expression();
+            symTable->inExpression = false;
 
             if (state->expParserReturnType == DATA_TYPE_NIL){
                 if (symtableGetVariableNullable(symTable,symtableGetActiveItemName(symTable)) == false){
@@ -1899,8 +1916,7 @@ bool parseBuidInFunctions(){
             symtableFunctionCallStart(symTable,"substring");
 
             if (activeToken->tokenType != T_IDENTIFIER){
-                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
             if (strcmp(strGetStr(activeToken->value),"of") != 0){
                 raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
@@ -1908,8 +1924,7 @@ bool parseBuidInFunctions(){
             getNextToken();
 
             if (activeToken->tokenType != T_COLON){
-                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
             getNextToken();
 
@@ -1923,14 +1938,12 @@ bool parseBuidInFunctions(){
             
             // verification of: substring(<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
-                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
             getNextToken();
 
             if (activeToken->tokenType != T_IDENTIFIER){
-                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
             if (strcmp(strGetStr(activeToken->value),"startingAt") != 0){
                 raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
@@ -1938,8 +1951,7 @@ bool parseBuidInFunctions(){
             getNextToken();
 
             if (activeToken->tokenType != T_COLON){
-                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
             getNextToken();
 
@@ -1953,14 +1965,12 @@ bool parseBuidInFunctions(){
 
             // verification of: substring(<argument>,<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
-                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
             getNextToken();
 
             if (activeToken->tokenType != T_IDENTIFIER){
-                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
             if (strcmp(strGetStr(activeToken->value),"endingBefore") != 0){
                 raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
@@ -1968,8 +1978,7 @@ bool parseBuidInFunctions(){
             getNextToken();
 
             if (activeToken->tokenType != T_COLON){
-                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
             }
             getNextToken();
 
