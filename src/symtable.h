@@ -259,3 +259,4 @@ void symtableVariableIsNotConstant(symtable *table);
 bool symtableIsVariableDefinedInCurrentScope(symtable *table,char *varName);
 symtableItem *symtableFindSymtableItemInCurrentScope(symtable *table, char *varName);
 bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcData);
+functionData * symtableGetOverloadedFunction(symtable *table, char* funcName);

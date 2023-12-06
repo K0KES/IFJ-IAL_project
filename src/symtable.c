@@ -415,8 +415,8 @@ bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcDa
         callNode = callNode->next;
         funcNode = funcNode->next;
     }
-
-    if(callData->returnType != callData->returnType){
+    
+    if(callData->returnType != funcData->returnType){
         return false;
     }
 
@@ -512,7 +512,8 @@ bool symtableIsVariableDefinedInCurrentScope(symtable *table,char *varName){
 
 bool symtableIsVariableDefined(symtable *table,char *varName){
     if(table->currentFunction != NULL){
-        listNode *argNode = table->currentFunction->funcData->arguments->first;
+        functionData *overload = symtableGetOverloadedFunction(table,table->currentFunction->name);
+        listNode *argNode = overload->arguments->first;
         while(argNode != NULL){
             functionArgument* arg = (functionArgument *)(argNode->data);
             if(strcmp(arg->id,varName) == 0){
@@ -530,7 +531,8 @@ bool symtableIsVariableInitiated(symtable *table,char *varName){
     symtableItem *item = symtableFindSymtableItem(table,varName);
 
     if(table->currentFunction != NULL){
-        listNode *argNode = table->currentFunction->funcData->arguments->first;
+        functionData *overload = symtableGetOverloadedFunction(table,table->currentFunction->name);
+        listNode *argNode = overload->arguments->first;
         while(argNode != NULL){
             functionArgument* arg = (functionArgument *)(argNode->data);
             if(strcmp(arg->id,varName) == 0){
@@ -551,11 +553,25 @@ bool symtableIsActiveVariableInitiated(symtable *table){
     return symtableIsVariableInitiated(table,table->activeItem->name);
 }
 
+functionData * symtableGetOverloadedFunction(symtable *table, char* funcName){
+    symtableItem *owner = symtableFindSymtableItem(table,funcName);
+
+    functionData *currentFunction = NULL;
+    if(listLength(owner->funcData->overloadFunctions) == 0){
+        currentFunction = owner->funcData;
+    }else{
+        currentFunction = (functionData *)listGetLast(owner->funcData->overloadFunctions);
+    }
+
+    return currentFunction;
+}
+
 enum data_type symtableGetVariableType(symtable *table, char *varName){
     symtableItem *item = symtableFindSymtableItem(table,varName);
 
     if(table->currentFunction != NULL){
-        listNode *argNode = table->currentFunction->funcData->arguments->first;
+        functionData *overload = symtableGetOverloadedFunction(table,table->currentFunction->name);
+        listNode *argNode = overload->arguments->first;
         while(argNode != NULL){
             functionArgument* arg = (functionArgument *)(argNode->data);
             if(strcmp(arg->id,varName) == 0){
@@ -577,7 +593,8 @@ bool symtableGetVariableNullable(symtable *table, char *varName){
     symtableItem *item = symtableFindSymtableItem(table,varName);
 
     if(table->currentFunction != NULL){
-        listNode *argNode = table->currentFunction->funcData->arguments->first;
+        functionData *overload = symtableGetOverloadedFunction(table,table->currentFunction->name);
+        listNode *argNode = overload->arguments->first;
         while(argNode != NULL){
             functionArgument* arg = (functionArgument *)(argNode->data);
             if(strcmp(arg->id,varName) == 0){
@@ -717,7 +734,8 @@ char* symtableGetVariablePrefix(symtable *table, char *varName){
     if(table->currentFunction != NULL){
         if(table->activeItem->valueIsSet == false){
             if(table->inExpression){
-                listNode *argNode = table->currentFunction->funcData->arguments->first;
+                functionData *overload = symtableGetOverloadedFunction(table,table->currentFunction->name);
+                listNode *argNode = overload->arguments->first;
                 while(argNode != NULL){
                     functionArgument* arg = (functionArgument *)(argNode->data);
                     if(strcmp(arg->id,varName) == 0){
@@ -963,7 +981,8 @@ void symtableSetActiveItem(symtable *table, char* varName){
     symtableItem *item = symtableFindSymtableItem(table,varName);
     if(item == NULL){
         if(table->currentFunction != NULL){
-            listNode *argNode = table->currentFunction->funcData->arguments->first;
+            functionData *overload = symtableGetOverloadedFunction(table,table->currentFunction->name);
+            listNode *argNode = overload->arguments->first;
             while(argNode != NULL){
                 functionArgument* arg = (functionArgument *)(argNode->data);
                 if(strcmp(arg->id,varName) == 0){
