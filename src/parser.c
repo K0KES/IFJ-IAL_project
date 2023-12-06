@@ -1,7 +1,6 @@
 /// @file parser.c
 /// @author Lukáš Prokeš
 /// @brief Parser 
-/// @date 30.11.2023
 
 #include "parser.h"
 
@@ -721,7 +720,6 @@ bool statement(){
         case KW_RETURN:
             // 29) <statement> -> return <returnExpression>
             
-            //TO DO přidat do symtable informaci že byl zavolán return a potom kontrolovat jestli byl všude kde měl být
             if(symTable->currentFunction == NULL){
                 DEBUG_PRINTF("[Parser] Error call return out of function\n");
                 raiseError(ERR_SYNTAX);
@@ -882,8 +880,6 @@ bool callOrAssign(){
             symtablePushCode(symTable,concatString(2,"DEFVAR ",tempNameWithPrefix));
 
             symtablePushCode(symTable,concatString(3,"MOVE ",tempNameWithPrefix," TF@%retval"));
-            //Návratová hodnota této funkce se stejně nikam neukládá
-            //generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
             symtableFunctionCallEnd(symTable);
             break;
         default:
@@ -1488,22 +1484,6 @@ bool returnExpression(){
 
             returnExpressionStatus = expression();
 
-            /*
-            TO DO chceck if return type is nullable
-            if (state->expParserReturnType == DATA_TYPE_NIL){
-                if (lastVarTypeNullable == false){
-                    raiseError(ERR_WRONG_TYPE);
-                }
-            }else{
-                symtableCheckSameTypes(lastVarType,state->expParserReturnType);
-            }   
-            if (state->expParserReturnTypeNullable){ 
-                if ( symtableGetVariableNullable(symTable,symtableGetActiveItemName(symTable)) == false ){
-                    raiseError(ERR_WRONG_TYPE); 
-                }
-            }  
-            */
-            //TO DO co vrací exp parser v druhém případe následující podmínky -> zkontrolovat typy
             if(symtableGetReturnTypeOfCurrentScope(symTable) == DATA_TYPE_VOID && state->expParserReturnType != DATA_TYPE_NOTSET){
                 DEBUG_PRINTF("[Parser] Error function should return void\n");
                 raiseError(ERR_WRONG_RETURN_TYPE);
@@ -1618,8 +1598,6 @@ bool argument(){
 
             //Symtable
             symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,state->expParserReturnTypeNullable); 
-
-            // TO DO zpětné přetypování argumentu z int na double
             break;
     }
     DEBUG_PRINTF("[Parser] Leaving function argument() with %d ...\n",argumentStatus);
@@ -1658,8 +1636,6 @@ bool argWithName(){
             state->changeToDouble = false;
             argWithNameStatus = expressionParserStart(state);
             //Symtable
-            //TO DO kontrola jaký typ vrací exp parser když je "non set"/nil/??
-            DEBUG_PRINTF("Typ parametru je: %d\n",state->expParserReturnType);
             if (state->expParserReturnType == DATA_TYPE_NOTSET) { 
                 symtableFunctionCallSetParameterType(symTable,state->expParserReturnType,true); 
             }
