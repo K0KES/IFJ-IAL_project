@@ -429,13 +429,15 @@ bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcDa
         funcNode = funcNode->next;
     }
     
+    /*
     DEBUG_PRINTF("CALL %d FUNC %d \n",callData->returnType,funcData->returnType);
     if(callData->returnTypeNullable != funcData->returnTypeNullable){
         return false;
     }
+    
     if(callData->returnType != funcData->returnType){
         return false;
-    }
+    }*/
 
     return true;
 }
@@ -605,11 +607,7 @@ enum data_type symtableGetVariableType(symtable *table, char *varName){
     if(item->funcData == NULL){
         return item->type;
     }else{
-        if(listLength(item->funcData->overloadFunctions) == 0){
-            return item->funcData->returnType;
-        }else{
-            return table->activeItem->type;
-        }
+        return item->funcData->returnType;
     }
 }
 
@@ -632,11 +630,7 @@ bool symtableGetVariableNullable(symtable *table, char *varName){
     if(item->funcData == NULL){
         return item->nullable;
     }else{
-        if(listLength(item->funcData->overloadFunctions) == 0){
-            return item->funcData->returnTypeNullable;
-        }else{
-            return table->activeItem->nullable;
-        }
+        return item->funcData->returnTypeNullable;
     }
 }
 
@@ -901,15 +895,6 @@ void symtableFunctionCallSetParameterName(symtable *table, char* name){
 void symtableFunctionReturnWasCalled(symtable *table){
     if(table->currentFunction != NULL){
         table->currentFunction->funcData->returnWasCalled = true;
-    }
-}
-
-void symtableFunctionCallSetExpectedReturnType(symtable *table, enum data_type expectedType, bool expectedNullable){
-    functionData *funcData = (functionData *)listGetLast(table->functionCalls);
-    if(funcData != NULL){
-        DEBUG_PRINTF("[Symtable] Function call setting expected type %d %d \n",expectedType,expectedNullable);
-        funcData->returnType = expectedType;
-        funcData->returnTypeNullable = expectedNullable;
     }
 }
 
