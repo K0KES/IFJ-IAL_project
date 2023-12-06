@@ -928,7 +928,7 @@ void symtableCheckOverload(symtable *table,functionData *funcCall){
     }
 
     DEBUG_PRINTF("[Symtable] Overload not found \n");
-    raiseError(ERR_UNDEFINED_FUNCTION);
+    raiseError(ERR_SEMANTIC);
 
 
     //symtableFunctionDataFree(funcCall);
