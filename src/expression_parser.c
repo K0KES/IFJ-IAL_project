@@ -1576,6 +1576,15 @@ int expressionParserStart(programState *PS)
             case T_NOT:
             {
                 DEBUG_PRINTF("[Exp parser] E -> E!\n");
+
+
+                if (tokenStackGet(tokenStack, 1)->tokenType != T_E)
+                {
+                    DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
+                    raiseError(ERR_SYNTAX);
+                }
+
+
                 if (tokenStackGet(tokenStack, 1)->is_nullable == false)
                 {
                     raiseError(ERR_WRONG_TYPE);
@@ -1583,8 +1592,7 @@ int expressionParserStart(programState *PS)
 
                 tokenStackPop(tokenStack, 1);
                 tokenStackGet(tokenStack, 0)->is_nullable = false;
-                tokenStackPop(tokenStack, 1);
-                tokenStackGet(tokenStack, 0)->is_nullable = false;
+
 
                 // raiseError(ERR_INTERNAL);
             }

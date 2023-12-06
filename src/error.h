@@ -3,7 +3,7 @@
 
 //Odkomentaruj toto pro debug printy
 // A NEZAPOMEN UDELAT make clean !!!!!!!!!!!!
-// #define ENABLE_PRINTF 
+#define ENABLE_PRINTF 
 #ifdef ENABLE_PRINTF
     #define    DEBUG_PRINTF(f,...)    printf(f,##__VA_ARGS__)
 #else

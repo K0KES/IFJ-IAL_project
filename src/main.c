@@ -16,7 +16,7 @@ int main(int argc, char const *argv[]){
     generatorGenerateOutputToStdOut(programState->gen);
 
     //Odkomentaruj toto jestli chces vystup do souboru
-    // generatorGenerateOutput(programState->gen);
+    generatorGenerateOutput(programState->gen);
 
     // symtablePrintVariables(symTable);
 
