@@ -353,9 +353,7 @@ void symtableSetFunctionArgumentID(symtable *table, char *id){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
 
-    int stringLength = strlen(id) + 1;
-    char *string = (char *)malloc(stringLength);
-    memcpy(string,id,stringLength);
+    char* string = allocateString(id);
 
     functionData *currentFunction = NULL;
     if(listLength(table->activeItem->funcData->overloadFunctions) == 0){
@@ -365,6 +363,10 @@ void symtableSetFunctionArgumentID(symtable *table, char *id){
     }
 
     functionArgument *argument = (functionArgument *)listGetLast(currentFunction->arguments);
+    if(strcmp(argument->name,string) == 0){
+        DEBUG_PRINTF("[Symtable] Function argument name and ID was identical\n");
+        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+    }
     argument->id = string;
 }
 
@@ -372,9 +374,7 @@ void symtableSetFunctionArgumentName(symtable *table, char *name){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
 
-    int stringLength = strlen(name) + 1;
-    char *string = (char *)malloc(stringLength);
-    memcpy(string,name,stringLength);
+    char* string = allocateString(name);
 
     functionData *currentFunction = NULL;
     if(listLength(table->activeItem->funcData->overloadFunctions) == 0){
