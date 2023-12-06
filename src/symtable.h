@@ -43,6 +43,7 @@ typedef struct{
     list *arguments;
     bool endOfArguments;
     char *callName;
+    char *linkCallName;
     list *overloadFunctions;
 } functionData;
 
