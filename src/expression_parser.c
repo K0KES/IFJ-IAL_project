@@ -1706,8 +1706,9 @@ int expressionParserStart(programState *PS)
                 {
                     raiseError(ERR_WRONG_TYPE);
                 }
-                tokenStackGet(tokenStack, 0)->is_nullable = false;
+                
                 tokenStackPop(tokenStack, 1);
+                tokenStackGet(tokenStack, 0)->is_nullable = false;
 
                 // raiseError(ERR_INTERNAL);
             }
