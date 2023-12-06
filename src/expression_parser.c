@@ -881,8 +881,30 @@ int expressionParserStart(programState *PS)
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
+<<<<<<< Updated upstream
                 char floatString[100];
                 sprintf(floatString, "%a", atof(strGetStr(tokenStackGet(tokenStack, 0)->value)));
+=======
+                char *floatString = malloc(sizeof(char) * 100);
+                DEBUG_PRINTF("[Exp parser] Float value: %s : %a\n", strGetStr(tokenStackGet(tokenStack, 0)->value), strtof(strGetStr(tokenStackGet(tokenStack, 0)->value), NULL));
+                sprintf(floatString, "%a", strtod(strGetStr(tokenStackGet(tokenStack, 0)->value), NULL));
+                DEBUG_PRINTF("[Exp parser] Float value: %s : %a\n", floatString, strtod(floatString, NULL));
+
+                // raiseError(ERR_INTERNAL);
+
+                // DEBUG_PRINTF("[Exp parser] Float value: %s \n", floatString);
+
+                // DEBUG_PRINTF("[Exp parser] Float value: %f \n", strtof(floatString,NULL));
+                // raiseError(ERR_INTERNAL);
+                // sprintf(&floatString, "%s", strGetStr(tokenStackGet(tokenStack, 0)->value));
+                // DEBUG_PRINTF("[Exp parser] Float value: %s\n", &floatString);
+                // // sprintf(&floatString, "%a", &floatString);
+                // sscanf(&floatString, "%lf", &floatString);
+                // // sscanf(inputString, "%lf", &number)
+                // DEBUG_PRINTF("[Exp parser] Float value: %a\n", &floatString);
+                // raiseError(ERR_INTERNAL);
+
+>>>>>>> Stashed changes
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " float@", floatString));
 
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_DOUBLE;
@@ -890,7 +912,7 @@ int expressionParserStart(programState *PS)
                 tokenStackGet(tokenStack, 0)->is_number_literal = true;
 
                 strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
-
+                free(floatString);
                 break;
             }
             case KW_NIL:
@@ -939,35 +961,29 @@ int expressionParserStart(programState *PS)
                 {
                     symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
-                else if (tokenStackGet(tokenStack, 0)->is_number_literal == true && tokenStackGet(tokenStack, 0)->is_number_literal == true)
+
+                // float + int
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 0)->is_number_literal == true)
                 {
-                    // float + int
-                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
-                    }
-                    // int + float
-                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                        symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
-                    }
-                    else
-                    {
-                        DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 1\n");
-                        raiseError(ERR_WRONG_TYPE);
-                    }
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
+                }
+                // int + float
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                {
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "ADD ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
+                }
+                else
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 1.1\n");
+                    raiseError(ERR_WRONG_TYPE);
                 }
 
                 // Error
-                else
-                {
-                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 1\n");
-                    raiseError(ERR_WRONG_TYPE);
-                }
+
                 tokenStackGet(tokenStack, 2)->is_number_literal &= tokenStackGet(tokenStack, 0)->is_number_literal;
                 tokenStackPop(tokenStack, 2);
 
@@ -994,34 +1010,27 @@ int expressionParserStart(programState *PS)
                 {
                     symtablePushCode(PS->symTable, concatString(6, "SUB ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
-                else if (tokenStackGet(tokenStack, 0)->is_number_literal == true && tokenStackGet(tokenStack, 0)->is_number_literal == true)
+
+                // float + int
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 0)->is_number_literal == true)
                 {
-                    // float + int
-                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        symtablePushCode(PS->symTable, concatString(6, "SUB ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
-                    }
-                    // int + float
-                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                        symtablePushCode(PS->symTable, concatString(6, "SUB ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
-                    }
-                    else
-                    {
-                        DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 1\n");
-                        raiseError(ERR_WRONG_TYPE);
-                    }
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "SUB ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
-                // Error
+                // int + float
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                {
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "SUB ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
+                }
                 else
                 {
-                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 2\n");
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 1.2\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
+
                 tokenStackGet(tokenStack, 2)->is_number_literal &= tokenStackGet(tokenStack, 0)->is_number_literal;
                 tokenStackPop(tokenStack, 2);
 
@@ -1047,37 +1056,29 @@ int expressionParserStart(programState *PS)
                 {
                     symtablePushCode(PS->symTable, concatString(6, "MUL ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
-                else if (tokenStackGet(tokenStack, 0)->is_number_literal == true && tokenStackGet(tokenStack, 0)->is_number_literal == true)
+
+                // float + int
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 0)->is_number_literal == true)
                 {
-                    // float + int
-                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        symtablePushCode(PS->symTable, concatString(6, "MUL ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
-                    }
-                    // int + float
-                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                        symtablePushCode(PS->symTable, concatString(6, "MUL ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
-                    }
-                    else
-                    {
-                        DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 1\n");
-                        raiseError(ERR_WRONG_TYPE);
-                    }
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "MUL ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
-                // Error
+                // int + float
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                {
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "MUL ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
+                }
                 else
                 {
-                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 3\n");
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 1.3\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
+
                 tokenStackGet(tokenStack, 2)->is_number_literal &= tokenStackGet(tokenStack, 0)->is_number_literal;
                 tokenStackPop(tokenStack, 2);
-
                 break;
             }
 
@@ -1105,34 +1106,28 @@ int expressionParserStart(programState *PS)
                     symtablePushCode(PS->symTable, concatString(6, "IDIV ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
 
-                else if (tokenStackGet(tokenStack, 0)->is_number_literal == true && tokenStackGet(tokenStack, 0)->is_number_literal == true)
+                // float + int
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 0)->is_number_literal == true)
                 {
-                    // float + int
-                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        symtablePushCode(PS->symTable, concatString(6, "DIV ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
-                    }
-                    // int + float
-                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                        symtablePushCode(PS->symTable, concatString(6, "DIV ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
-                    }
-                    else
-                    {
-                        DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 1\n");
-                        raiseError(ERR_WRONG_TYPE);
-                    }
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "DIV ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
                 }
-                // Error
+                // int + float
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                {
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                    symtablePushCode(PS->symTable, concatString(6, "DIV ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                    tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
+                }
                 else
                 {
-                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 4\n");
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 1.4\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
+
+                // Error
+
                 tokenStackGet(tokenStack, 2)->is_number_literal &= tokenStackGet(tokenStack, 0)->is_number_literal;
                 tokenStackPop(tokenStack, 2);
                 break;
@@ -1155,54 +1150,31 @@ int expressionParserStart(programState *PS)
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType == tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
                     DEBUG_PRINTF("[Exp parser] Comparison of same types\n");
-                    char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                    char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                    symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                    tokenStackPop(tokenStack, 2);
-                    tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                    strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 }
-                else if (tokenStackGet(tokenStack, 0)->is_number_literal == true && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                // float + int
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 0)->is_number_literal == true)
                 {
-                    // float + int
-                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                        symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
-                    }
-                    // int + float
-                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                        symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
-                    }
-                    else
-                    {
-                        DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
-                        raiseError(ERR_WRONG_TYPE);
-                    }
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
+                // int + float
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                {
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                }
+
                 else
                 {
-                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9.6\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
+                char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
+
+                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 break;
             }
 
@@ -1223,72 +1195,38 @@ int expressionParserStart(programState *PS)
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType == tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
                     DEBUG_PRINTF("[Exp parser] Comparison of same types\n");
-                    char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                    char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
-                    symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName_0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                    char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
-                    char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
-                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
-                    symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                    symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
-                    tokenStackPop(tokenStack, 2);
-                    tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                    strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName_0);
                 }
-                else if (tokenStackGet(tokenStack, 0)->is_number_literal == true && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+
+                // float + int
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 0)->is_number_literal == true)
                 {
-                    // float + int
-                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
-                        symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName_0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                        char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
-                        symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                        symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName_0);
-                    }
-                    // int + float
-                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
-                        symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName_0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                        char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
-                        symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                        symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName_0);
-                    }
-                    else
-                    {
-                        DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
-                        raiseError(ERR_WRONG_TYPE);
-                    }
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
+                // int + float
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                {
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                }
+
                 else
                 {
-                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9.4\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
+                char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
+                char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
+                symtablePushCode(PS->symTable, concatString(6, "LT ", tempVarName_0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+
+                char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
+                char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+
+                symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName_0);
                 break;
             }
 
@@ -1309,66 +1247,42 @@ int expressionParserStart(programState *PS)
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType == tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
                     DEBUG_PRINTF("[Exp parser] Comparison of same types\n");
-                    char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                    char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                    symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                    tokenStackPop(tokenStack, 2);
-                    tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                    strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 }
-                else if (tokenStackGet(tokenStack, 0)->is_number_literal == true && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                // float + int
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 0)->is_number_literal == true)
                 {
-                    // float + int
-                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                        symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
-                    }
-                    // int + float
-                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                        symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
-                    }
-                    else
-                    {
-                        DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
-                        raiseError(ERR_WRONG_TYPE);
-                    }
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
+                // int + float
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                {
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                }
+
                 else
                 {
-                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9.6\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
+                char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
+
+                symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 break;
             }
 
             case T_GREATER_EQUAL:
-            {
-                // DEBUG_PRINTF("[Exp parser] E -> E >= E\n");
+                        {
+                DEBUG_PRINTF("[Exp parser] E -> E >= E\n");
                 if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
                 {
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
-
                 if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
                 {
                     DEBUG_PRINTF("[Exp parser] Error: Can't compare nullable variable!\n");
@@ -1378,240 +1292,128 @@ int expressionParserStart(programState *PS)
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType == tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
                     DEBUG_PRINTF("[Exp parser] Comparison of same types\n");
-                    char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                    char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
-                    symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName_0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                    char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
-                    char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
-                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
-                    symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                    symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
-                    tokenStackPop(tokenStack, 2);
-                    tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                    strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName_0);
                 }
-                else if (tokenStackGet(tokenStack, 0)->is_number_literal == true && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+
+                // float + int
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 0)->is_number_literal == true)
                 {
-                    // float + int
-                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
-                        symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName_0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                        char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
-                        symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                        symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName_0);
-                    }
-                    // int + float
-                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
-                        symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName_0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                        char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
-                        symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-
-                        symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName_0);
-                    }
-                    else
-                    {
-                        DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
-                        raiseError(ERR_WRONG_TYPE);
-                    }
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
+                // int + float
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                {
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                }
+
                 else
                 {
-                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9.4\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
+                char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
+                char *tempVarName_0 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_0));
+                symtablePushCode(PS->symTable, concatString(6, "GT ", tempVarName_0, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+
+                char *tempGeneratedName_1 = generatorGenerateTempVarName(PS->gen);
+                char *tempVarName_1 = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName_1), tempGeneratedName_1);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName_1));
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName_1, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+
+                symtablePushCode(PS->symTable, concatString(6, "OR ", tempVarName_0, " ", tempVarName_0, " ", tempVarName_1));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName_0);
                 break;
             }
 
             case T_EQUAL:
             {
-                // DEBUG_PRINTF("[Exp parser] E -> E == E\n");
+                DEBUG_PRINTF("[Exp parser] E -> E == E\n");
                 if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
                 {
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
-                // check if any of the operand is nullable
-                // if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
-                // {
-                //     DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
-                //     raiseError(ERR_WRONG_TYPE);
-                // }
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't compare nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType == tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
                     DEBUG_PRINTF("[Exp parser] Comparison of same types\n");
-                    char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                    char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                    symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                    tokenStackPop(tokenStack, 2);
-                    tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                    strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 }
-                // nullable + nill
-                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == KW_NIL || tokenStackGet(tokenStack, 2)->tokenExpParserType == KW_NIL)
+                // float + int
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 0)->is_number_literal == true)
                 {
-                    char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                    char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                    symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                    tokenStackPop(tokenStack, 2);
-                    tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                    strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
-
-                else if (tokenStackGet(tokenStack, 0)->is_number_literal == true && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                // int + float
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->is_number_literal == true)
                 {
-                    // float + int
-                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                        symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
-                    }
-                    // int + float
-                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                        symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
-                    }
-                    else
-                    {
-                        DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
-                        raiseError(ERR_WRONG_TYPE);
-                    }
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
                 }
+
                 else
                 {
-                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9.6\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
+                char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
+
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 break;
             }
             case T_NOT_EQUAL:
             {
-                // i DEBUG_PRINTF("[Exp parser] E -> E != E\n");
+                DEBUG_PRINTF("[Exp parser] E -> E != E\n");
                 if (tokenStackGet(tokenStack, 0)->tokenType != T_E || tokenStackGet(tokenStack, 2)->tokenType != T_E)
                 {
                     DEBUG_PRINTF("[Exp parser] Syntax error missing operand!\n");
                     raiseError(ERR_SYNTAX);
                 }
-                // check if any of the operand is nullable
-                // if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
-                // {
-                //     DEBUG_PRINTF("[Exp parser] Error: Can't add nullable variable!\n");
-                //     raiseError(ERR_WRONG_TYPE);
-                // }
+                if (tokenStackGet(tokenStack, 0)->is_nullable == true || tokenStackGet(tokenStack, 2)->is_nullable == true)
+                {
+                    DEBUG_PRINTF("[Exp parser] Error: Can't compare nullable variable!\n");
+                    raiseError(ERR_WRONG_TYPE);
+                }
 
                 if ((tokenStackGet(tokenStack, 2)->tokenExpParserType == tokenStackGet(tokenStack, 0)->tokenExpParserType))
                 {
                     DEBUG_PRINTF("[Exp parser] Comparison of same types\n");
-                    char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                    char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                    symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                    symtablePushCode(PS->symTable, concatString(4, "NOT ", tempVarName, " ", tempVarName));
-
-                    tokenStackPop(tokenStack, 2);
-                    tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                    strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 }
-                // nullable + nill
-                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == KW_NIL || tokenStackGet(tokenStack, 2)->tokenExpParserType == KW_NIL)
+                // float + int
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 0)->is_number_literal == true)
                 {
-                    char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                    char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                    symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                    symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                    symtablePushCode(PS->symTable, concatString(4, "NOT ", tempVarName, " ", tempVarName));
-                    tokenStackPop(tokenStack, 2);
-                    tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                    strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
                 }
-                else if (tokenStackGet(tokenStack, 0)->is_number_literal == true && tokenStackGet(tokenStack, 2)->is_number_literal == true)
+                // int + float
+                else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->is_number_literal == true)
                 {
-                    // float + int
-                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                        symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        symtablePushCode(PS->symTable, concatString(4, "NOT ", tempVarName, " ", tempVarName));
-
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
-                    }
-                    // int + float
-                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
-                    {
-                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
-                        char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
-                        char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
-                        symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-
-                        symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
-                        symtablePushCode(PS->symTable, concatString(4, "NOT ", tempVarName, " ", tempVarName));
-                        tokenStackPop(tokenStack, 2);
-                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
-                        strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
-                    }
-                    else
-                    {
-                        DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
-                        raiseError(ERR_WRONG_TYPE);
-                    }
+                    symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
                 }
+
                 else
                 {
-                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9\n");
+                    DEBUG_PRINTF("[Exp parser] Error: Wrong type in expression 9.6\n");
                     raiseError(ERR_WRONG_TYPE);
                 }
+                char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
+                char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
+                symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
+
+                symtablePushCode(PS->symTable, concatString(6, "EQ ", tempVarName, " ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                symtablePushCode(PS->symTable, concatString(4, "NOT ", tempVarName, " ", tempVarName));
+                tokenStackPop(tokenStack, 2);
+                tokenStackGet(tokenStack, 0)->tokenExpParserType = T_BOOL;
+                strSetString(tokenStackGet(tokenStack, 0)->value, tempVarName);
                 break;
             }
 
@@ -1642,8 +1444,28 @@ int expressionParserStart(programState *PS)
                 // check if are both operands same type of if any of them is nil
                 if (tokenStackGet(tokenStack, 0)->tokenExpParserType != tokenStackGet(tokenStack, 2)->tokenExpParserType && tokenStackGet(tokenStack, 0)->tokenExpParserType != KW_NIL && tokenStackGet(tokenStack, 2)->tokenExpParserType != KW_NIL)
                 {
+<<<<<<< Updated upstream
                     DEBUG_PRINTF("[Exp parser] Not matching operand types in ?? \n");
                     raiseError(ERR_WRONG_TYPE);
+=======
+                    if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
+                    {
+                        // DEBUG_PRINTF("[Exp parser] Changing int to double!\n");
+                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 2)->value), " ", strGetStr(tokenStackGet(tokenStack, 2)->value)));
+                        tokenStackGet(tokenStack, 2)->tokenExpParserType = T_DOUBLE;
+                    }
+                    else if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_DOUBLE)
+                    {
+                        // DEBUG_PRINTF("[Exp parser] Changing int to double!\n");
+                        symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
+                        tokenStackGet(tokenStack, 0)->tokenExpParserType = T_DOUBLE;
+                    }
+                    else
+                    {
+                        DEBUG_PRINTF("[Exp parser] Not matching operand types in ?? \n");
+                        raiseError(ERR_WRONG_TYPE);
+                    }
+>>>>>>> Stashed changes
                 }
 
                 // creates temporary nil variable
@@ -1688,6 +1510,11 @@ int expressionParserStart(programState *PS)
                 {
                     raiseError(ERR_WRONG_TYPE);
                 }
+<<<<<<< Updated upstream
+=======
+
+                tokenStackPop(tokenStack, 1);
+>>>>>>> Stashed changes
                 tokenStackGet(tokenStack, 0)->is_nullable = false;
                 tokenStackPop(tokenStack, 1);
 
@@ -1712,7 +1539,7 @@ int expressionParserStart(programState *PS)
                 tmpDebugToken = getFirstFromQueue(PS->tokenQueue);
             }
 
-            if (PS->changeToDouble == true && functionInExpression == false && tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT)
+            if (PS->changeToDouble == true && functionInExpression == false && tokenStackGet(tokenStack, 0)->tokenExpParserType == T_INT && tokenStackGet(tokenStack, 0)->is_number_literal == true)
             {
                 DEBUG_PRINTF("[Exp parser] Changing int to double!\n");
                 symtablePushCode(PS->symTable, concatString(4, "INT2FLOAT ", strGetStr(tokenStackGet(tokenStack, 0)->value), " ", strGetStr(tokenStackGet(tokenStack, 0)->value)));
