@@ -190,7 +190,6 @@ void symtableFree(symtable *table){
 
     listDestroy(table->tables);
     listDestroy(table->scopes);
-    //listDestroy(table->functionCalls);
 
     freeContentOfListAndDestroy(table->functionCodeFooter);
     freeContentOfListAndDestroy(table->functionCodeBody);
@@ -428,17 +427,6 @@ bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcDa
         callNode = callNode->next;
         funcNode = funcNode->next;
     }
-    
-    /*
-    DEBUG_PRINTF("CALL %d FUNC %d \n",callData->returnType,funcData->returnType);
-    if(callData->returnTypeNullable != funcData->returnTypeNullable){
-        return false;
-    }
-    
-    if(callData->returnType != funcData->returnType){
-        return false;
-    }*/
-
     return true;
 }
 
@@ -452,7 +440,6 @@ void symtableFunctionEndOfArguments(symtable *table){
     if(listLength(owner->funcData->overloadFunctions) == 0){
         currentFunction = owner->funcData;
     }else{
-        //TODOOOOO
         currentFunction = (functionData *)listGetLast(owner->funcData->overloadFunctions);
         
         DEBUG_PRINTF("ARGS: %d ARGS: %d \n",listLength(currentFunction->arguments),listLength(owner->funcData->arguments));
@@ -479,19 +466,6 @@ void symtableFunctionEndOfArguments(symtable *table){
     symtableItem *oldActive = table->activeItem;
 
     symtableEnterScope(table,table->activeItem->name,table->activeItem);   
-
-    /*
-    listNode *node = currentFunction->arguments->first;
-    while(node != NULL){
-        functionArgument *arg = (functionArgument *)node->data;
-        symtableInsert(table,arg->id,false);
-        symtableVariableIsConstant(table);
-        symtableSetDataType(table,arg->type,arg->nullable);
-        symtableSetVariableValue(table);
-        symtableSetEndOfVariableDefinition(table);
-        
-        node = node->next;
-    }*/
 
     table->activeItem = oldActive;
 
@@ -548,7 +522,6 @@ bool symtableIsVariableDefined(symtable *table,char *varName){
 }
 
 bool symtableIsVariableInitiated(symtable *table,char *varName){
-    DEBUG_PRINTF("---------------Is %s initieted? \n",varName);
     symtableItem *item = symtableFindSymtableItem(table,varName);
 
     if(table->currentFunction != NULL){
@@ -568,7 +541,6 @@ bool symtableIsVariableInitiated(symtable *table,char *varName){
 }
 
 bool symtableIsActiveVariableInitiated(symtable *table){
-    DEBUG_PRINTF("---------------Is active initieted? \n");
     if(table == NULL) return false;
     if(table->activeItem == NULL) return false;
     return symtableIsVariableInitiated(table,table->activeItem->name);
@@ -665,8 +637,6 @@ void symtableCreateFunctionStructure(symtable *table){
         activeFunctionName = concatString(2,table->activeItem->name,str);
     }
 
-    
-
     generatorPushStringToList(table->functionCodeHeader,"");
     generatorPushStringToList(table->functionCodeHeader,"#Start of function definition");
     generatorPushStringToList(table->functionCodeHeader,concatString(2,"LABEL $",activeFunctionName));
@@ -677,12 +647,9 @@ void symtableCreateFunctionStructure(symtable *table){
     listNode *arg = currentFunction->arguments->first;
     
     int i = 1;
-    while(arg != NULL){
-        //char str[128];
-        
+    while(arg != NULL){  
         functionArgument *argData = (functionArgument *)arg->data;
         char str2[128];
-        //sprintf(str, "LF@param%d", i);
 
         char* str = concatString(2,symtableGetVariablePrefix(table,argData->id),argData->id);
 
@@ -736,9 +703,6 @@ void symtablePushCode(symtable *table, char* code){
             }else{
                 generatorPushStringToList(table->functionCodeBody,code);
             }
-
-
-            //generatorPushStringToList(table->functionCodeBody,code);
         }
     }
     
@@ -821,7 +785,6 @@ char* symtableGetFramePrefix(symtable *table, char *varName){
 void symtableFunctionCallStart(symtable *table, char *funcName){
     if(funcName != NULL) table->lastFunctionCall = funcName;
     DEBUG_PRINTF("[Symtable] Function call start CALL START %s \n",table->lastFunctionCall);
-    //table->lastFunctionCall = funcName;
     
     functionData *funcData = (functionData *)(malloc(sizeof(functionData)));
     funcData->returnType = DATA_TYPE_VOID;
@@ -848,7 +811,6 @@ void symtableFunctionCallEnd(symtable *table){
         listPushFirst(table->functionCalls,funcData);
 
         funcData = (functionData *)listGetLast(table->functionCalls);
-        DEBUG_PRINTF("---------FUCN: %s \n",funcData->linkCallName);
         table->lastFunctionCall = funcData->linkCallName;
     }
     if(table->createFrameCounter > 0){
@@ -929,9 +891,6 @@ void symtableCheckOverload(symtable *table,functionData *funcCall){
 
     DEBUG_PRINTF("[Symtable] Overload not found \n");
     raiseError(ERR_UNDEFINED_FUNCTION);
-
-
-    //symtableFunctionDataFree(funcCall);
 }
 
 void symtableEndOfFile(symtable *table){
@@ -952,8 +911,6 @@ void symtableEndOfFile(symtable *table){
             || strcmp(funcData->callName,"ord") == 0
             || strcmp(funcData->callName,"chr") == 0){
 
-            //symtableFunctionDataFree(funcData);
-            //funcData = (functionData *)listPopFirst(table->functionCalls);
             funcDataNode = funcDataNode->next;
             continue;
         }
@@ -962,7 +919,6 @@ void symtableEndOfFile(symtable *table){
         if(item != NULL){
             if(listLength(item->funcData->overloadFunctions) != 0){
                 symtableCheckOverload(table,funcData);
-                //funcData = (functionData *)listPopFirst(table->functionCalls);
                 funcDataNode = funcDataNode->next;
                 continue;
             }
@@ -1012,8 +968,6 @@ void symtableEndOfFile(symtable *table){
             raiseError(ERR_UNDEFINED_FUNCTION);
         }
 
-        //symtableFunctionDataFree(funcData);
-        //funcData = (functionData *)listPopFirst(table->functionCalls);
         funcDataNode = funcDataNode->next;
     }
 
@@ -1042,7 +996,6 @@ void symtableSetActiveItem(symtable *table, char* varName){
 
 void symtableSetFunctionCallName(symtable *table, char* funcName){
     if(table == NULL) return;
-    //table->lastFunctionCall = "test";
     table->lastFunctionCall = concatString(2,funcName,"");
 }
 
