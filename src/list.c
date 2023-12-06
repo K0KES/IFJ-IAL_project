@@ -154,37 +154,3 @@ void *listGet(list *list, int index){
 
     return NULL;
 }
-
-/*
-void main(){
-    list *my_list = listInit();
-
-    int x = 5;
-    int y = 27;
-
-    
-    listPushFirst(&my_list,(void *)&x);
-    listPushFirst(&my_list,(void *)&y);
-    
-    listPushFirst(&my_list,(void *)&y);
-    
-    listPush(my_list,(void *)&x);
-    listPush(my_list,(void *)&y);
-    listPush(my_list,(void *)&x);
-    listPush(my_list,(void *)&y);
-    listPush(my_list,(void *)&x);
-    listPush(my_list,(void *)&y);
-    
-    
-    listPop(my_list);
-
-    while(my_list->size != 0)
-    {
-        int* int_ptr = (int *)listPopFirst(&my_list);
-        DEBUG_PRINTF("%d\n",*int_ptr);
-    }
-
-    listDestroy(my_list);
-    
-    return;
-}*/

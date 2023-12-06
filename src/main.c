@@ -15,11 +15,6 @@ int main(int argc, char const *argv[]){
     //Generate output code
     generatorGenerateOutputToStdOut(programState->gen);
 
-    //Odkomentaruj toto jestli chces vystup do souboru
-    //generatorGenerateOutput(programState->gen);
-
-    // symtablePrintVariables(symTable);
-
     programStateFree(programState);
     return 0;
 }

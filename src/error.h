@@ -43,7 +43,12 @@ enum errorType
     ERR_INTERNAL = 99
 };
 
+/// @brief Raise error end exits program
+/// @param tokenType err type from errorType enum
 void raiseError(enum errorType error);
 
+/// @brief Return name of given error type
+/// @param tokenType err type from errorType enum
+/// @return Pointer to err name
 const char* getErrorName(enum errorType tokenType);
 #endif

@@ -27,14 +27,10 @@ generator* generatorInit(){
 void generatorAddSubstringFunction(generator *gen){
     if(gen->substringGenerated) return;
 
-    //Possible error when calling substring from declaration
-
     generatorPushStringToList(gen->functions,"LABEL $$substring");
     generatorPushStringToList(gen->functions,"PUSHFRAME");
     generatorPushStringToList(gen->functions,"DEFVAR LF@%retval");
     generatorPushStringToList(gen->functions,"DEFVAR LF@length");
-    //generatorPushStringToList(gen->functions,"DEFVAR LF@zero");
-    //generatorPushStringToList(gen->functions,"DEFVAR LF@one");
     generatorPushStringToList(gen->functions,"DEFVAR LF@relation");
     generatorPushStringToList(gen->functions,"DEFVAR LF@result");
     generatorPushStringToList(gen->functions,"DEFVAR LF@char");
@@ -42,8 +38,6 @@ void generatorAddSubstringFunction(generator *gen){
 
     generatorPushStringToList(gen->functions,"MOVE LF@result nil@nil");
     generatorPushStringToList(gen->functions,"MOVE LF@%retval nil@nil");
-    //generatorPushStringToList(gen->functions,"MOVE LF@zero int@0");
-    //generatorPushStringToList(gen->functions,"MOVE LF@one int@1");
     generatorPushStringToList(gen->functions,"STRLEN LF@length LF@!1");
     generatorPushStringToList(gen->functions,"MOVE LF@i LF@!2");
     
@@ -174,7 +168,6 @@ void generatorGenerateOutput(generator *gen){
         line = generatorProccessFunctionCall(gen,line);
         fprintf(fptr, line);
         fprintf(fptr, "\n");
-        //free(line);
         line = NULL;
         line = (char *)listPopFirst(gen->functions);
     }
@@ -186,7 +179,6 @@ void generatorGenerateOutput(generator *gen){
         line = generatorProccessFunctionCall(gen,line);
         fprintf(fptr, line);
         fprintf(fptr, "\n");
-        //free(line);
         line = NULL;
         line = (char *)listPopFirst(gen->mainCode);
     }
@@ -204,7 +196,6 @@ void generatorGenerateOutputToStdOut(generator *gen){
     while(line != NULL){
         line = generatorProccessFunctionCall(gen,line);
         printf("%s\n",line);
-        //free(line);
         line = NULL;
         line = (char *)listPopFirst(gen->functions);
     }
@@ -215,14 +206,13 @@ void generatorGenerateOutputToStdOut(generator *gen){
     while(line != NULL){
         line = generatorProccessFunctionCall(gen,line);
         printf("%s\n",line);
-        //free(line);
         line = NULL;
         line = (char *)listPopFirst(gen->mainCode);
     }
 }
 
 char * allocateString(char * original){
-    char * copy = malloc(strlen(original) + 18); //Why not
+    char * copy = malloc(strlen(original) + 18);
     strcpy(copy, original);
     
     listPushBack(allocatedStrings,copy);
