@@ -39,10 +39,12 @@ typedef struct{
 /// @brief Structure that holds entire function definition data or function callee data
 typedef struct{
     enum data_type returnType;
+    bool returnWasCalled;
     bool returnTypeNullable;
     list *arguments;
     bool endOfArguments;
     char *callName;
+    char *linkCallName;
     list *overloadFunctions;
 } functionData;
 
@@ -73,6 +75,7 @@ typedef struct symtable_s
     list *functionCodeBody;
     list *functionCodeFooter;
     int createFrameCounter;
+    bool inExpression;
 }symtable;
 
 /// @brief Initializes symtable - MUST BE CALLED BEFORE ANY OTHER FUNCTION!
@@ -246,15 +249,54 @@ void symtableCheckSameTypes(enum data_type type1,enum data_type type2);
 void symtableEndOfFile(symtable *table);
 
 /// @brief This function sets endOfDefiniton to true
-/// @param table 
+/// @param table Pointer to symtable
 void symtableSetEndOfVariableDefinition(symtable *table);
 
+/// @brief Function sets flag returnWasCalled on current function to true
+/// @param table Pointer to symtable
+void symtableFunctionReturnWasCalled(symtable *table);
 
+/// @brief Get function call parameters
+/// @param table Pointer to symtable
+/// @return number of parameters
+int symtableFunctionCallGetNumberOfParameters(symtable *table);
 
+/// @brief Inserts CREATEFRAME to correct place
+/// @param table Pointer to symtable
 void symtablePushCodeCreateFrame(symtable *table);
+
+/// @brief This function is called whenever function call ended
+/// @param table Pointer to symtable
 void symtableFunctionCallEnd(symtable *table);
+
+/// @brief Sets active item as constant
+/// @param table Pointer to symtable
 void symtableVariableIsConstant(symtable *table);
+
+/// @brief Sets active item as not constant
+/// @param table Pointer to symtable
 void symtableVariableIsNotConstant(symtable *table);
+
+/// @brief Returns true if variable is defined in current scope
+/// @param table Pointer to symtable
+/// @param varName Variable name
+/// @return true | false
 bool symtableIsVariableDefinedInCurrentScope(symtable *table,char *varName);
+
+/// @brief Finds symtableItem in current scope by its name
+/// @param table Pointer to symtable
+/// @param varName Variable name
+/// @return symtableItem | NULL
 symtableItem *symtableFindSymtableItemInCurrentScope(symtable *table, char *varName);
+
+/// @brief Returns true if callData is same as funcData
+/// @param callData functionData
+/// @param funcData functionData
+/// @return true | false
 bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcData);
+
+/// @brief Returns normal function data or overload function data
+/// @param table Pointer to symtable
+/// @param funcName Function name
+/// @return functionData
+functionData * symtableGetOverloadedFunction(symtable *table, char* funcName);

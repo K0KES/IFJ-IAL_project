@@ -12,7 +12,7 @@
 #pragma once
 
 // Length of array of accepted token types
-unsigned int acceptedTokenTypesLength = 28;
+unsigned int acceptedTokenTypesLength = 29;
 
 // Array of accepted token types
 enum tokenType acceptedTokenTypes[] = {
@@ -37,6 +37,8 @@ enum tokenType acceptedTokenTypes[] = {
 
     KW_NIL,
 
+    T_NOT,
+
     KW_READDOUBLE,
     KW_READINT,
     KW_READSTRING,
@@ -47,16 +49,18 @@ enum tokenType acceptedTokenTypes[] = {
     KW_ORD,
     KW_CHR};
 
-char precedenceTable[9][9] = {
-    {'<', '=', '<', '<', '<', '<', '<', '<', '1'},
-    {'1', '>', '>', '>', '>', '>', '>', '1', '>'},
-    {'<', '>', '>', '>', '>', '>', '>', '<', '>'},
-    {'<', '>', '<', '>', '>', '>', '>', '<', '>'},
-    {'<', '>', '<', '<', '>', '>', '>', '<', '>'},
-    {'<', '>', '<', '<', '>', '>', '>', '<', '>'},
-    {'<', '>', '<', '<', '>', '<', '<', '<', '>'},
-    {'1', '>', '>', '>', '>', '>', '>', '1', '>'},
-    {'<', '1', '<', '<', '<', '<', '<', '<', '0'}};
+// precedence table
+char precedenceTable[10][10] = {
+    {'<', '=', '<', '<', '<', '<', '<','>','<', '1'},
+    {'1', '>', '>', '>', '>', '>', '>','>','1', '>'},
+    {'<', '>', '>', '>', '>', '>', '>','<','<', '>'},
+    {'<', '>', '<', '>', '>', '>', '>','<','<', '>'},
+    {'<', '>', '<', '<', '>', '>', '>','<','<', '>'},
+    {'<', '>', '<', '<', '>', '>', '>','<','<', '>'},
+    {'<', '>', '<', '<', '>', '<', '<','<','<', '>'},
+    {'>', '>', '>', '>', '>', '>', '>','>','>', '>'},
+    {'1', '>', '>', '>', '>', '>', '>','>','1', '>'},
+    {'<', '1', '<', '<', '<', '<', '<','<','<', '0'}};
 
 /*Token stack*/
 
@@ -169,7 +173,7 @@ bool isTokenTypeAccepted(token *activeToken);
 /// @return Returns 0 if everything is ok, 1 if there is an error
 int setUpActiveToken(token *T);
 
-/// @brief Free all memmory used by token stack
+/// @brief Free all memory used by token stack
 /// @param stack Pointer to token stack
 void tokenStackClear(struct tokenStack *stack);
 
@@ -187,5 +191,3 @@ int isTokenTypeOperatorLike(enum tokenType tokenType);
 /// @param tokenType Input token type
 /// @return Returns false if token can't be function, else returns true
 int isTokenFunction(enum tokenType tokenType);
-
-int dealWithFunction(struct tokenStack *stack, struct tokenQueue *queue, programState *PS);

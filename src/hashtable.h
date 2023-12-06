@@ -1,3 +1,11 @@
+/**
+ * @file hashtable.h
+ * @author Vít Slavíček
+ * @brief Hashtable implementation in C from IAL
+ * @date 9.10.2023
+ * 
+*/
+
 /*
  * Hlavičkový súbor pre tabuľku s rozptýlenými položkami.
  * Tento súbor neupravujte.

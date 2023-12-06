@@ -3,7 +3,7 @@
 
 //Odkomentaruj toto pro debug printy
 // A NEZAPOMEN UDELAT make clean !!!!!!!!!!!!
-#define ENABLE_PRINTF 
+//#define ENABLE_PRINTF 
 #ifdef ENABLE_PRINTF
     #define    DEBUG_PRINTF(f,...)    printf(f,##__VA_ARGS__)
 #else
@@ -43,7 +43,12 @@ enum errorType
     ERR_INTERNAL = 99
 };
 
+/// @brief Raise error end exits program
+/// @param tokenType err type from errorType enum
 void raiseError(enum errorType error);
 
+/// @brief Return name of given error type
+/// @param tokenType err type from errorType enum
+/// @return Pointer to err name
 const char* getErrorName(enum errorType tokenType);
 #endif
