@@ -178,7 +178,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                             strAddChar(token->value, c);  
                             state = S_INT;
                         }
-                        else if (!isalnum(c)) { raiseError(ERR_LEXICAL); }
+                        else { raiseError(ERR_LEXICAL); }
                         break;
                 }
                 if (state != S_NEW_LINE) lastChar = c;
@@ -983,7 +983,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     stringHexaFirst = (stringHexaFirst << 4) + stringHexaSecond;
                     // printf("result:%d\n", stringHexaFirst);
                     strAddChar(token->value, stringHexaFirst);
-                    
+                    stringHexaCount = 0;
+                    stringHexaFirst = 0;
+                    stringHexaSecond = 0;
                     state = S_STRING;
                     break;
                 case 'a':
@@ -1201,6 +1203,9 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     if (lastChar != '{') { raiseError(ERR_LEXICAL); }
                     stringHexaFirst = (stringHexaFirst << 4) + stringHexaSecond;
                     strAddChar(multiLineString, stringHexaFirst);
+                     stringHexaCount = 0;
+                    stringHexaFirst = 0;
+                    stringHexaSecond = 0;
                     
                     state = S_MULTILINE_STRING;
                     break;
