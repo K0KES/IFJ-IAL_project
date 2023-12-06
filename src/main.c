@@ -20,7 +20,6 @@ int main(int argc, char const *argv[]){
 }
 
 
-
 programState *programStateInit(){
     programState *state = (programState*)malloc(sizeof(programState));
     if (state == NULL) {raiseError(ERR_INTERNAL);}
