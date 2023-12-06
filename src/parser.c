@@ -1699,8 +1699,12 @@ bool parseBuidInFunctions(){
             }
             getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                    DEBUG_PRINTF("[Parser] Error function dont need parameters\n");
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                return false; 
             }
 
             //Generator
@@ -1726,8 +1730,12 @@ bool parseBuidInFunctions(){
             }
             getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                    DEBUG_PRINTF("[Parser] Error function dont need parameters\n");
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                return false; 
             }
 
             //Generator
@@ -1753,8 +1761,12 @@ bool parseBuidInFunctions(){
             }
             getNextToken();
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                    DEBUG_PRINTF("[Parser] Error function dont need parameters\n");
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
-                return false;
+                return false; 
             }
 
             //Generator
@@ -1799,6 +1811,13 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_COMMA){
+                    getNextToken();
+                    if(activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                        DEBUG_PRINTF("[Parser] Error function should have only one parameter\n");
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                    }
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
@@ -1839,6 +1858,13 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_COMMA){
+                    getNextToken();
+                    if(activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                        DEBUG_PRINTF("[Parser] Error function should have only one parameter\n");
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                    }
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
@@ -1879,6 +1905,13 @@ bool parseBuidInFunctions(){
             generatorPushStringFirstToList(gen->parserStack,tempNameWithPrefix);
             
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_COMMA){
+                    getNextToken();
+                    if(activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                        DEBUG_PRINTF("[Parser] Error function should have only one parameter\n");
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                    }
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
@@ -1907,7 +1940,11 @@ bool parseBuidInFunctions(){
             symtableFunctionCallStart(symTable,"substring");
 
             if (activeToken->tokenType != T_IDENTIFIER){
-                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                if (activeToken->tokenType == T_RIGHT_BRACKET || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
             }
             if (strcmp(strGetStr(activeToken->value),"of") != 0){
                 raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
@@ -1915,7 +1952,11 @@ bool parseBuidInFunctions(){
             getNextToken();
 
             if (activeToken->tokenType != T_COLON){
-                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                if (activeToken->tokenType == T_COMMA){
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
             }
             getNextToken();
 
@@ -1929,7 +1970,11 @@ bool parseBuidInFunctions(){
             
             // verification of: substring(<argument>,<argument>
             if (activeToken->tokenType != T_COMMA){
-                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                if (activeToken->tokenType == T_RIGHT_BRACKET){
+                    raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                }
+                DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
+                return false;
             }
             getNextToken();
 
@@ -2024,6 +2069,13 @@ bool parseBuidInFunctions(){
             }
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_COMMA){
+                    getNextToken();
+                    if(activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                        DEBUG_PRINTF("[Parser] Error function should have only one parameter\n");
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                    }
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
@@ -2074,10 +2126,17 @@ bool parseBuidInFunctions(){
 
             if(state->expParserReturnType != T_INT){
                 DEBUG_PRINTF("[Parser] Error function parameter should be int\n");
-                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);       
             }
 
             if (activeToken->tokenType != T_RIGHT_BRACKET){
+                if (activeToken->tokenType == T_COMMA){
+                    getNextToken();
+                    if(activeToken->tokenType == T_IDENTIFIER || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
+                        DEBUG_PRINTF("[Parser] Error function should have only one parameter\n");
+                        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+                    }
+                }
                 DEBUG_PRINTF("[Parser] Leaving function parseBuidInFunctions() with %d ...\n",false);
                 return false;
             }
