@@ -416,11 +416,11 @@ bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcDa
         callNode = callNode->next;
         funcNode = funcNode->next;
     }
-
+    /*
     DEBUG_PRINTF("CALL %d FUNC %d \n",callData->returnType,funcData->returnType);
     if(callData->returnType != funcData->returnType){
         return false;
-    }
+    }*/
 
     return true;
 }
@@ -483,7 +483,9 @@ void symtableFunctionEndOfArguments(symtable *table){
 
 enum data_type symtableGetReturnTypeOfCurrentScope(symtable *table){
     if(table->currentFunction == NULL) return DATA_TYPE_NOTSET;
-    return table->currentFunction->funcData->returnType;
+    functionData *overload = symtableGetOverloadedFunction(table,table->currentFunction->name);
+    DEBUG_PRINTF("--------RETURN TYPE OF CURRENT SCOPE %d \n",overload->returnType);
+    return overload->returnType;
 }
 
 symtableItem *symtableFindSymtableItemInCurrentScope(symtable *table, char *varName){
@@ -877,7 +879,7 @@ void symtableCheckOverload(symtable *table,functionData *funcCall){
     symtableItem *owner = symtableFindSymtableItem(table,funcCall->callName);
     DEBUG_PRINTF("PROCCESSING OVERLOAD %s call args: %d \n",owner->name,listLength(funcCall->arguments));
     
-    
+    DEBUG_PRINTF("COmparing overload... args: %d \n",listLength(owner->funcData->arguments));
     if(symtableCheckIfOverloadMatches(funcCall,owner->funcData)){
         DEBUG_PRINTF("FOUND OVERLOAD :) \n");
         return;
