@@ -727,7 +727,8 @@ bool statement(){
                 raiseError(ERR_SYNTAX);
             }
             getNextToken();
-            statementStatus = returnExpression();
+            statementStatus = returnExpression() && eol();
+            symtableFunctionReturnWasCalled(symTable);
             break;
         case T_IDENTIFIER:
             // 30) <statement> -> ID <callOrAssign>
@@ -1794,6 +1795,7 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"Int2Double");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_DOUBLE,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -1841,6 +1843,7 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"Double2Int");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_INTEGER,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -1888,6 +1891,7 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"length");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_INTEGER,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -1938,6 +1942,7 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"substring");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_STRING,true);
 
             if (activeToken->tokenType != T_IDENTIFIER){
                 if (activeToken->tokenType == T_RIGHT_BRACKET || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
@@ -2058,6 +2063,7 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"ord");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_INTEGER,false);
 
             symtablePushCode(symTable,"");
             symtablePushCode(symTable,"#Start of build in function ord()");
@@ -2121,6 +2127,7 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"chr");
+            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_STRING,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -2190,6 +2197,7 @@ void parseFunctionCall(){
 
         //Symtable
         symtableFunctionCallStart(symTable,NULL);
+        symtableFunctionCallSetExpectedReturnType(symTable,symtableGetVariableType(symTable,functionName),symtableGetVariableNullable(symTable,functionName));
 
         parseFunctionCallStatus = arguments();
 
