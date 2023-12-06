@@ -462,6 +462,13 @@ int getToken(token *token, int charNumber, int lineNumber) {
                 case '}':
                 case '?':
                 case '!':
+                case '.':
+                case '+':
+                case '\\':
+                case '\"':
+                case '*':
+                case '-':
+                case '/':
                 case EOF:
                     if (strCmpConstStr(token->value, "Double") == 0) {
                         token->tokenType = KW_DOUBLE;
@@ -620,7 +627,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     break;
                 //IDENTIFIER
                 default:
-                    if (isalnum(c) || c == '_') {
+                    if (isalnum(c) || c == '_' || isalpha(c)) {
                         strAddChar(token->value, c);
                         charNumber++;
                     }
@@ -983,7 +990,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     if (lastChar != '{') { raiseError(ERR_LEXICAL); }
                     stringHexaFirst = (stringHexaFirst << 4) + stringHexaSecond;
                     // printf("result:%d\n", stringHexaFirst);
-                    strAddChar(token->value, stringHexaFirst);
+                    strAddChar(token->value, (char) stringHexaFirst);
                     stringHexaCount = 0;
                     stringHexaFirst = 0;
                     stringHexaSecond = 0;
@@ -1203,7 +1210,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                     if (stringHexaCount > 2 ) { raiseError(ERR_LEXICAL); }
                     if (lastChar != '{') { raiseError(ERR_LEXICAL); }
                     stringHexaFirst = (stringHexaFirst << 4) + stringHexaSecond;
-                    strAddChar(multiLineString, stringHexaFirst);
+                    strAddChar(multiLineString, (char) stringHexaFirst);
                      stringHexaCount = 0;
                     stringHexaFirst = 0;
                     stringHexaSecond = 0;

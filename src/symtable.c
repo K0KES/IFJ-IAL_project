@@ -459,14 +459,14 @@ void symtableFunctionEndOfArguments(symtable *table){
 
         if(symtableCheckIfOverloadMatches(currentFunction,owner->funcData)){
             DEBUG_PRINTF("[Symtable] Overload functions are same 2\n");
-            raiseError(ERR_UNDEFINED_FUNCTION);
+            raiseError(ERR_SEMANTIC);
         }
 
         listNode *overloadNode = owner->funcData->overloadFunctions->first;
         while(overloadNode->next != NULL){
             if(symtableCheckIfOverloadMatches(currentFunction,(functionData *)(overloadNode->data))){
                 DEBUG_PRINTF("[Symtable] Overload functions are same\n");
-                raiseError(ERR_UNDEFINED_FUNCTION);
+                raiseError(ERR_SEMANTIC);
             }
             overloadNode = overloadNode->next;
         }

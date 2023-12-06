@@ -304,7 +304,6 @@ char* replaceWord(const char* s, const char* oldW,
 } 
 
 char* stringToAssemblyStringFormat(char* inputString) {
-
     char* output = allocateString(inputString);
     
     char threeQuotesAndNewLine[] = {34,34,34,10,0};
