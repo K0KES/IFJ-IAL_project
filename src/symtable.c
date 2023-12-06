@@ -735,7 +735,7 @@ char* symtableGetScopePrefixName(symtable *table){
 }
 
 char* symtableGetVariablePrefix(symtable *table, char *varName){
-    if(table->currentFunction != NULL){
+    if(table->currentFunction != NULL && table->activeItem != NULL){
         if(table->activeItem->valueIsSet == false){
             if(table->inExpression){
                 functionData *overload = symtableGetOverloadedFunction(table,table->currentFunction->name);
