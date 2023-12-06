@@ -909,7 +909,6 @@ bool assign(){
 
     enum data_type lastVarType = symtableGetActiveItemType(symTable);
     bool lastVarTypeNullable = symtableGetVariableNullable(symTable,symtableGetActiveItemName(symTable));
-    //TO DO přetypování intu na double
     switch(activeToken->tokenType) {
         case T_ASSIGNMENT:;
             // 61) <assign> -> = <expression>
@@ -1341,7 +1340,6 @@ bool varDecMid(){
             break;
         case T_ASSIGNMENT:;
             // 41) <varDecMid> -> = <expression>
-            //TO DO přetypování intu na double
             int assignTokenLastChar = activeToken->lastChar;
             getNextToken();
 
@@ -1399,7 +1397,6 @@ bool varDef(){
             break;
         case T_ASSIGNMENT:;
             // 43) <varDef> -> = <expression>
-            //TO DO přetypování intu na double
             int assignTokenLastChar = activeToken->lastChar;
             getNextToken();
 
@@ -1690,7 +1687,6 @@ bool expression(){
 }
 
 bool parseBuidInFunctions(){
-    //TO DO přidat do gramatiky když se bude volat ze statement
     bool parseBuidInFunctionsStatus = false;
     DEBUG_PRINTF("[Parser] Token: %s\n",getTokenName(activeToken->tokenType));
     DEBUG_PRINTF("[Parser] Entering function parseBuidInFunctions()...\n");
@@ -2051,7 +2047,6 @@ bool parseBuidInFunctions(){
             char *argumentString = generatorPopFirstStringFromList(gen->parserStack);
 
             symtablePushCode(symTable,concatString(4, "STRLEN ", stringLengthVarPrefix, " ", argumentString));
-            //TO DO dodat originálni label na skok 
             char *originalLabel  = generatorGenerateTempVarName(gen);
             symtablePushCode(symTable,concatString(5, "JUMPIFEQ ",originalLabel," ", stringLengthVarPrefix, " int@0"));
             symtablePushCode(symTable,concatString(5, "STRI2INT ",tempNameWithPrefix," ",argumentString, " int@0"));
