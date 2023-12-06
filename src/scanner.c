@@ -690,7 +690,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         // DEBUG_PRINTF("\n\nChyba na radku: %d, znak: %d\n\n", lineNumber, charNumber);
                          raiseError(ERR_LEXICAL);    
                     }
-                    token->tokenType = T_INT;
+                    token->tokenType = T_DOUBLE;
                     ungetc(c, stdin);
                     token->position->charNumber = charNumber;
                     token->position->lineNumber = lineNumber;
@@ -708,7 +708,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                          raiseError(ERR_LEXICAL);
                     }
                     else {
-                        token->tokenType = T_INT;
+                        token->tokenType = T_DOUBLE;
                         ungetc(c, stdin);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
@@ -730,7 +730,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                          raiseError(ERR_LEXICAL);
                     }
                     else {
-                        token->tokenType = T_INT;
+                        token->tokenType = T_DOUBLE;
                         ungetc(c, stdin);
                         token->position->charNumber = charNumber;
                         token->position->lineNumber = lineNumber;
