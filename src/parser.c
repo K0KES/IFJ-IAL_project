@@ -804,6 +804,7 @@ bool letExp(){
                 return false;
             }
 
+            if (symtableIsVariableInitiated(symTable,strGetStr(activeToken->value)) == false) {raiseError(ERR_UNDEFINED_VARIABLE);}
             if (symtableGetVariableNullable(symTable,strGetStr(activeToken->value)) == false){ raiseError(ERR_SEMANTIC);}
             isLetId = true;
             symtableSetVariableNullable(symTable,strGetStr(activeToken->value),false);
@@ -2129,6 +2130,11 @@ bool parseBuidInFunctions(){
                 return false;
             }
             getNextToken();
+
+            if (activeToken->tokenType == T_RIGHT_BRACKET){
+                DEBUG_PRINTF("[Parser] Error function should have one parameter\n");
+                raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+            }
 
             //Symtable
             symtableFunctionCallStart(symTable,"chr");
