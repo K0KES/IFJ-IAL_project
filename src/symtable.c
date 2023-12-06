@@ -225,6 +225,7 @@ void symtableInsert(symtable *table, char *varName, bool isFunction){
         newSymtableItem->funcData->returnType = DATA_TYPE_VOID;
         newSymtableItem->funcData->arguments = listInit();
         newSymtableItem->funcData->overloadFunctions = listInit();
+        newSymtableItem->funcData->linkCallName = NULL;
     }
 
     ht_insert(currentTable,string,newSymtableItem);
@@ -805,9 +806,10 @@ void symtableFunctionCallStart(symtable *table, char *funcName){
     functionData *funcData = (functionData *)(malloc(sizeof(functionData)));
     funcData->returnType = DATA_TYPE_VOID;
     funcData->arguments = listInit();
+    funcData->overloadFunctions = listInit();
     funcData->callName = concatString(2,table->lastFunctionCall,"");
-
-    table->lastFunctionCall = concatString(3,"$$$",generatorGenerateTempVarName(table->gen),"$$$");
+    funcData->linkCallName = concatString(3,"$$$",generatorGenerateTempVarName(table->gen),"$$$");
+    table->lastFunctionCall = funcData->linkCallName;
     ht_insert(table->gen->functionCallsTable,table->lastFunctionCall,funcData);
 
     listPushBack(table->functionCalls,funcData);
@@ -824,6 +826,10 @@ void symtableFunctionCallEnd(symtable *table){
     if(listLength(table->functionCalls) > 1){
         functionData *funcData = (functionData *)listPopLast(table->functionCalls);
         listPushFirst(table->functionCalls,funcData);
+
+        funcData = (functionData *)listGetLast(table->functionCalls);
+        DEBUG_PRINTF("---------FUCN: %s \n",funcData->linkCallName);
+        table->lastFunctionCall = funcData->linkCallName;
     }
     if(table->createFrameCounter > 0){
         table->createFrameCounter--;
@@ -831,6 +837,8 @@ void symtableFunctionCallEnd(symtable *table){
     if(table->createFrameCounter != 0){
         symtablePushCode(table,"CREATEFRAME");
     }
+
+    
 }
 
 void symtableFunctionCallNextParameter(symtable *table){

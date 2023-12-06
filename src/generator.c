@@ -133,10 +133,10 @@ void generatorFree(generator *gen){
 char* generatorProccessFunctionCall(generator *gen, char* line){
     symtable *table = (symtable *)gen->table;
     ht_item_t *item = ht_search(gen->functionCallsTable,line);
-    if(item != NULL){
+    if(item != NULL){ 
         functionData * callData = (functionData *)item->data;
         symtableItem *owner = symtableFindSymtableItem(table,callData->callName);
-
+        
         if(listLength(owner->funcData->overloadFunctions) == 0){
             return concatString(2,"CALL $",callData->callName);
         }else{
