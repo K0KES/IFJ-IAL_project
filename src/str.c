@@ -1,4 +1,3 @@
-//jednoducha knihovna pro praci s nekonecne dlouhymi retezci
 #include <string.h>
 #include <stdlib.h>
 #include "str.h"
@@ -14,7 +13,6 @@
 #define STR_ERROR   1
 #define STR_SUCCESS 0
 
-// funkce vytvori novy retezec
 string *strInit() {
    string *s = (string *)malloc(sizeof(string));
    s->listData = listInit();
@@ -24,7 +22,6 @@ string *strInit() {
    return s;
 }
 
-// funkce uvolni retezec z pameti
 void strFree(string *s) {
    listDestroy(s->listData);
    s->listData = NULL;
@@ -34,35 +31,17 @@ void strFree(string *s) {
    s = NULL;
 }
 
-// funkce vymaze obsah retezce
 void strClear(string *s) {
    listClear(s->listData);
    strUpdateStr(s);
 }
 
-// prida na konec retezce jeden znak
 int strAddChar(string *s1, char c) {
    listPushBack(s1->listData,c);
-
-   /*
-   if (s1->length +1 >= s1->allocSize)
-   {  
-      // pamet nestaci, je potreba provest realokaci
-      if ((s1->str = (char*) realloc(s1->str, s1->length + STR_LEN_INC)) == NULL) {   
-           DEBUG_PRINTF("\n\nERRORNULL\n");
-         raiseError(ERR_INTERNAL);
-      }
-      s1->allocSize = s1->length + STR_LEN_INC;
-   }
-   s1->str[s1->length] = c;
-   s1->length++;
-   s1->str[s1->length] = '\0';*/
-
    strUpdateStr(s1);
    return STR_SUCCESS;
 }
 
-// prekopiruje retezec s2 do s1
 int strCopyString(string *s1, string *s2) {
    strClear(s1);
 
@@ -74,17 +53,6 @@ int strCopyString(string *s1, string *s2) {
 
    strUpdateStr(s1);
 
-   /*
-   int newLength = s2->length;
-   if (newLength >= s1->allocSize)
-   {
-      // pamet nestaci, je potreba provest realokaci
-      if ((s1->str = (char*) realloc(s1->str, newLength + 1)) == NULL) 
-         raiseError(ERR_INTERNAL);
-      s1->allocSize = newLength + 1;
-   }
-   strcpy(s1->str, s2->str);
-   s1->length = newLength;*/
    return STR_SUCCESS;
 }
 
@@ -92,7 +60,6 @@ char strGetCharOnIndex(string *s1, int index){
    return (char)listGet(s1->listData,index);
 }
 
-// porovna oba retezce a vrati vysledek
 int strCmpString(string *s1, string *s2) {
    char* text1 = strGetStr(s1);
    char* text2 = strGetStr(s2);
@@ -100,11 +67,8 @@ int strCmpString(string *s1, string *s2) {
    return strcmp(text1, text2);
 }
 
-// porovna nas retezec s konstantnim retezcem
 int strCmpConstStr(string *s1, char* s2) {
    char* text1 = strGetStr(s1);
-
-   //printf("COMPRAITNG %s %s = %d \n",text1,s2,strcmp(text1, s2));
    return strcmp(text1, s2);
 }
 
@@ -143,28 +107,19 @@ char* strCreateStr(string *s){
    return text;
 }
 
-// vrati textovou cast retezce
 char *strGetStr(string *s) {
    return s->str;
 }
 
-// vrati delku daneho retezce
 int strGetLength(string *s) {
    return listLength(s->listData);
 }
 
 void strPrint (string *s) {
-   
-   // int i = 0;
-   // while (s->str[i] != '\0') {
-   //    printf("%c", s->str[i]);
-   //    i++;
-   // }
-   
+   //DEBUG
 }
 
 void strpPop (string *s) {
    listPopLast(s->listData);
-
    strUpdateStr(s);
 }
