@@ -145,6 +145,6 @@ void tokenClear (token* token);
 int getToken(token *token, int charNumber, int lineNumber);
 
 //function for checking errors in Multiline string and also check for errors
-string* multilineStringCheck (string* multiLine, int firtCharPos);
+string* multilineStringCheck (string* multiLine);
 
 const char* getTokenName(enum tokenType tokenType);
