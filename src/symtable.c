@@ -199,7 +199,7 @@ void symtableInsert(symtable *table, char *varName, bool isFunction){
             symtableItem *owner = symtableFindSymtableItem(table,varName);
 
             functionData *funcData = (functionData *)malloc(sizeof(functionData));
-            funcData->returnType = DATA_TYPE_NOTSET;
+            funcData->returnType = DATA_TYPE_VOID;
             funcData->arguments = listInit();
 
             listPushBack(owner->funcData->overloadFunctions,funcData);
@@ -415,7 +415,8 @@ bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcDa
         callNode = callNode->next;
         funcNode = funcNode->next;
     }
-    
+
+    DEBUG_PRINTF("CALL %d FUNC %d \n",callData->returnType,funcData->returnType);
     if(callData->returnType != funcData->returnType){
         return false;
     }
@@ -802,7 +803,7 @@ void symtableFunctionCallStart(symtable *table, char *funcName){
     //table->lastFunctionCall = funcName;
     
     functionData *funcData = (functionData *)(malloc(sizeof(functionData)));
-    funcData->returnType = DATA_TYPE_NOTSET;
+    funcData->returnType = DATA_TYPE_VOID;
     funcData->arguments = listInit();
     funcData->callName = concatString(2,table->lastFunctionCall,"");
 
