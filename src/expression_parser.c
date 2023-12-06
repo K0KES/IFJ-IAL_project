@@ -881,10 +881,6 @@ int expressionParserStart(programState *PS)
                 char *tempGeneratedName = generatorGenerateTempVarName(PS->gen);
                 char *tempVarName = concatString(2, symtableGetVariablePrefix(PS->symTable, tempGeneratedName), tempGeneratedName);
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
-<<<<<<< Updated upstream
-                char floatString[100];
-                sprintf(floatString, "%a", atof(strGetStr(tokenStackGet(tokenStack, 0)->value)));
-=======
                 char *floatString = malloc(sizeof(char) * 100);
                 DEBUG_PRINTF("[Exp parser] Float value: %s : %a\n", strGetStr(tokenStackGet(tokenStack, 0)->value), strtof(strGetStr(tokenStackGet(tokenStack, 0)->value), NULL));
                 sprintf(floatString, "%a", strtod(strGetStr(tokenStackGet(tokenStack, 0)->value), NULL));
@@ -904,7 +900,6 @@ int expressionParserStart(programState *PS)
                 // DEBUG_PRINTF("[Exp parser] Float value: %a\n", &floatString);
                 // raiseError(ERR_INTERNAL);
 
->>>>>>> Stashed changes
                 symtablePushCode(PS->symTable, concatString(4, "MOVE ", tempVarName, " float@", floatString));
 
                 tokenStackGet(tokenStack, 0)->tokenExpParserType = T_DOUBLE;
@@ -1444,10 +1439,6 @@ int expressionParserStart(programState *PS)
                 // check if are both operands same type of if any of them is nil
                 if (tokenStackGet(tokenStack, 0)->tokenExpParserType != tokenStackGet(tokenStack, 2)->tokenExpParserType && tokenStackGet(tokenStack, 0)->tokenExpParserType != KW_NIL && tokenStackGet(tokenStack, 2)->tokenExpParserType != KW_NIL)
                 {
-<<<<<<< Updated upstream
-                    DEBUG_PRINTF("[Exp parser] Not matching operand types in ?? \n");
-                    raiseError(ERR_WRONG_TYPE);
-=======
                     if (tokenStackGet(tokenStack, 0)->tokenExpParserType == T_DOUBLE && tokenStackGet(tokenStack, 2)->tokenExpParserType == T_INT)
                     {
                         // DEBUG_PRINTF("[Exp parser] Changing int to double!\n");
@@ -1465,7 +1456,6 @@ int expressionParserStart(programState *PS)
                         DEBUG_PRINTF("[Exp parser] Not matching operand types in ?? \n");
                         raiseError(ERR_WRONG_TYPE);
                     }
->>>>>>> Stashed changes
                 }
 
                 // creates temporary nil variable
@@ -1510,11 +1500,8 @@ int expressionParserStart(programState *PS)
                 {
                     raiseError(ERR_WRONG_TYPE);
                 }
-<<<<<<< Updated upstream
-=======
 
                 tokenStackPop(tokenStack, 1);
->>>>>>> Stashed changes
                 tokenStackGet(tokenStack, 0)->is_nullable = false;
                 tokenStackPop(tokenStack, 1);
 
