@@ -827,6 +827,7 @@ bool letExp(){
             state->changeToDouble = false;
             letExpStatus = expression();
             if (state->expParserReturnType != DATA_TYPE_BOOL){ raiseError(ERR_WRONG_TYPE); }
+            isLetId = false;
             break;
     }
     DEBUG_PRINTF("[Parser] Leaving function letExp() with %d ...\n",letExpStatus);
@@ -1538,6 +1539,15 @@ bool arguments(){
         case T_INT:
         case T_DOUBLE:
         case T_STRING:
+        case KW_READSTRING:
+        case KW_READINT:
+        case KW_READDOUBLE:
+        case KW_INT_TO_DOUBLE:
+        case KW_DOUBLE_TO_INT:
+        case KW_LENGTH:
+        case KW_SUBSTRING:
+        case KW_ORD:
+        case KW_CHR:
             // 48) <arguments> -> <argument> <argumentsN> <eol>
             argumentsStatus = argument() && argumentsN(); //&& eol()
             break;
@@ -1795,7 +1805,6 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"Int2Double");
-            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_DOUBLE,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -1843,7 +1852,6 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"Double2Int");
-            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_INTEGER,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -1891,7 +1899,6 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"length");
-            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_INTEGER,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -1942,7 +1949,6 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"substring");
-            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_STRING,true);
 
             if (activeToken->tokenType != T_IDENTIFIER){
                 if (activeToken->tokenType == T_RIGHT_BRACKET || activeToken->tokenType == T_INT || activeToken->tokenType == T_DOUBLE || activeToken->tokenType == T_STRING){
@@ -2063,7 +2069,6 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"ord");
-            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_INTEGER,false);
 
             symtablePushCode(symTable,"");
             symtablePushCode(symTable,"#Start of build in function ord()");
@@ -2127,7 +2132,6 @@ bool parseBuidInFunctions(){
 
             //Symtable
             symtableFunctionCallStart(symTable,"chr");
-            symtableFunctionCallSetExpectedReturnType(symTable,DATA_TYPE_STRING,false);
 
             parseBuidInFunctionsStatus = argument();
 
@@ -2197,8 +2201,7 @@ void parseFunctionCall(){
 
         //Symtable
         symtableFunctionCallStart(symTable,NULL);
-        symtableFunctionCallSetExpectedReturnType(symTable,symtableGetVariableType(symTable,functionName),symtableGetVariableNullable(symTable,functionName));
-
+        
         parseFunctionCallStatus = arguments();
 
         int i = symtableFunctionCallGetNumberOfParameters(symTable);
@@ -2209,6 +2212,10 @@ void parseFunctionCall(){
             symtablePushCode(symTable,concatString(4,"MOVE TF@!",result," ",generatorPopFirstStringFromList(gen->parserStack)));
             i--;
         }
+
+        state->expParserReturnType = symtableGetVariableType(symTable,functionName);
+        state->expParserReturnTypeNullable = symtableGetVariableNullable(symTable,functionName);
+        state->changeToDouble = false;
 
         symtablePushCode(symTable,symTable->lastFunctionCall);
 
@@ -2227,7 +2234,6 @@ void parseFunctionCall(){
     tempToken->lastChar = activeToken->lastChar;
     char *string = allocateString(strGetStr(activeToken->value));
     strSetString(tempToken->value,string);
-
     DEBUG_PRINTF("[Parser] Pushing token %s to tokenQueue\n",getTokenName(tempToken->tokenType));
     listPushBack(state->tokenQueue,tempToken);
     if (parseFunctionCallStatus){

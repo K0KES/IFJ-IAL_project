@@ -263,4 +263,3 @@ bool symtableIsVariableDefinedInCurrentScope(symtable *table,char *varName);
 symtableItem *symtableFindSymtableItemInCurrentScope(symtable *table, char *varName);
 bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcData);
 functionData * symtableGetOverloadedFunction(symtable *table, char* funcName);
-void symtableFunctionCallSetExpectedReturnType(symtable *table, enum data_type expectedType, bool expectedNullable);
