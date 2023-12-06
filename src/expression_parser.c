@@ -884,8 +884,8 @@ int expressionParserStart(programState *PS)
                 symtablePushCode(PS->symTable, concatString(2, "DEFVAR ", tempVarName));
                 char *floatString = malloc(sizeof(char) * 100); 
                 DEBUG_PRINTF("[Exp parser] Float value: %s : %a\n", strGetStr(tokenStackGet(tokenStack, 0)->value) , strtof(strGetStr(tokenStackGet(tokenStack, 0)->value),NULL));
-                sprintf(floatString, "%a",  strtof(strGetStr(tokenStackGet(tokenStack, 0)->value),NULL));
-                DEBUG_PRINTF("[Exp parser] Float value: %s : %a\n", floatString , strtof(floatString,NULL));
+                sprintf(floatString, "%a",  strtod(strGetStr(tokenStackGet(tokenStack, 0)->value),NULL));
+                DEBUG_PRINTF("[Exp parser] Float value: %s : %a\n", floatString , strtod(floatString,NULL));
               
                 // raiseError(ERR_INTERNAL);
                 
