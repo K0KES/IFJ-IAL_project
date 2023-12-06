@@ -39,6 +39,7 @@ typedef struct{
 /// @brief Structure that holds entire function definition data or function callee data
 typedef struct{
     enum data_type returnType;
+    bool returnWasCalled;
     bool returnTypeNullable;
     list *arguments;
     bool endOfArguments;
@@ -252,7 +253,7 @@ void symtableEndOfFile(symtable *table);
 void symtableSetEndOfVariableDefinition(symtable *table);
 
 
-
+void symtableFunctionReturnWasCalled(symtable *table);
 int symtableFunctionCallGetNumberOfParameters(symtable *table);
 void symtablePushCodeCreateFrame(symtable *table);
 void symtableFunctionCallEnd(symtable *table);
