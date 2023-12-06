@@ -813,7 +813,14 @@ void symtableFunctionCallStart(symtable *table, char *funcName){
     listPushBack(table->functionCalls,funcData);
 }
 
+int symtableFunctionCallGetNumberOfParameters(symtable *table){
+    functionData *funcData = (functionData *)listGetLast(table->functionCalls);
+    return listLength(funcData->arguments);
+}
+
 void symtableFunctionCallEnd(symtable *table){
+    DEBUG_PRINTF("[Symtable] Function call ENDED \n");
+    
     if(listLength(table->functionCalls) > 1){
         functionData *funcData = (functionData *)listPopLast(table->functionCalls);
         listPushFirst(table->functionCalls,funcData);

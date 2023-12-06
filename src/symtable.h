@@ -252,6 +252,7 @@ void symtableSetEndOfVariableDefinition(symtable *table);
 
 
 
+int symtableFunctionCallGetNumberOfParameters(symtable *table);
 void symtablePushCodeCreateFrame(symtable *table);
 void symtableFunctionCallEnd(symtable *table);
 void symtableVariableIsConstant(symtable *table);
