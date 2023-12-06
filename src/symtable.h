@@ -73,6 +73,7 @@ typedef struct symtable_s
     list *functionCodeBody;
     list *functionCodeFooter;
     int createFrameCounter;
+    bool inExpression;
 }symtable;
 
 /// @brief Initializes symtable - MUST BE CALLED BEFORE ANY OTHER FUNCTION!

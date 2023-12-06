@@ -12,6 +12,7 @@ typedef struct generator_h
     list *parserStack; 
     ht_table_t *functionCallsTable;
     void* table;
+    bool substringGenerated;
 }generator;
 
 
@@ -43,6 +44,8 @@ void printList(list *l);
 
 char* stringToAssemblyStringFormat(char* inputString);
 char * allocateString(char * string);
+
+void generatorAddSubstringFunction(generator *gen);
 
 /*
 

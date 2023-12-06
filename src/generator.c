@@ -19,8 +19,67 @@ generator* generatorInit(){
     ht_init(&gen->functionCallsTable);
 
     gen->counter = 1;
+    gen->substringGenerated = false;
 
     return gen;
+}
+
+void generatorAddSubstringFunction(generator *gen){
+    if(gen->substringGenerated) return;
+
+    //Possible error when calling substring from declaration
+
+    generatorPushStringToList(gen->functions,"LABEL $$substring");
+    generatorPushStringToList(gen->functions,"PUSHFRAME");
+    generatorPushStringToList(gen->functions,"DEFVAR LF@%retval");
+    generatorPushStringToList(gen->functions,"DEFVAR LF@length");
+    //generatorPushStringToList(gen->functions,"DEFVAR LF@zero");
+    //generatorPushStringToList(gen->functions,"DEFVAR LF@one");
+    generatorPushStringToList(gen->functions,"DEFVAR LF@relation");
+    generatorPushStringToList(gen->functions,"DEFVAR LF@result");
+    generatorPushStringToList(gen->functions,"DEFVAR LF@char");
+    generatorPushStringToList(gen->functions,"DEFVAR LF@i");
+
+    generatorPushStringToList(gen->functions,"MOVE LF@result nil@nil");
+    generatorPushStringToList(gen->functions,"MOVE LF@%retval nil@nil");
+    //generatorPushStringToList(gen->functions,"MOVE LF@zero int@0");
+    //generatorPushStringToList(gen->functions,"MOVE LF@one int@1");
+    generatorPushStringToList(gen->functions,"STRLEN LF@length LF@!1");
+    generatorPushStringToList(gen->functions,"MOVE LF@i LF@!2");
+    
+    generatorPushStringToList(gen->functions,"LT LF@relation LF@!2 int@0");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
+
+    generatorPushStringToList(gen->functions,"LT LF@relation LF@!3 int@0");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
+
+    generatorPushStringToList(gen->functions,"GT LF@relation LF@!2 LF@length");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
+
+    generatorPushStringToList(gen->functions,"EQ LF@relation LF@!2 LF@length");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
+
+    generatorPushStringToList(gen->functions,"GT LF@relation LF@!2 LF@!3");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
+
+    generatorPushStringToList(gen->functions,"GT LF@relation LF@!3 LF@length");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@relation bool@true");
+    
+    generatorPushStringToList(gen->functions,"MOVE LF@result string@");
+
+    generatorPushStringToList(gen->functions,"LABEL $$substring$$while");
+    generatorPushStringToList(gen->functions,"JUMPIFEQ $$substring$$return LF@i LF@!3");
+    generatorPushStringToList(gen->functions,"GETCHAR LF@char LF@!1 LF@i");
+    generatorPushStringToList(gen->functions,"CONCAT LF@result LF@result LF@char");
+    generatorPushStringToList(gen->functions,"ADD LF@i LF@i int@1");
+    generatorPushStringToList(gen->functions,"JUMP $$substring$$while");
+
+    generatorPushStringToList(gen->functions,"LABEL $$substring$$return");
+    generatorPushStringToList(gen->functions,"MOVE LF@%retval LF@result");
+    generatorPushStringToList(gen->functions,"POPFRAME");
+    generatorPushStringToList(gen->functions,"RETURN");
+    
+    gen->substringGenerated = true;
 }
 
 void generatorPushStringFirstToList(list *list, char *string){
@@ -250,11 +309,19 @@ char* stringToAssemblyStringFormat(char* inputString) {
     
     char threeQuotesAndNewLine[] = {34,34,34,10,0};
     char newLineAndThreeQuotes[] = {10,34,34,34,0};
+    char threeQuotes[] = {34,34,34,0};
     char singleQuote[] = {34,0};
     char singleQuoteEscape[] = {92,34,0};
+    
+    bool multiline = false;
 
     output = replaceWord(output,threeQuotesAndNewLine,"");
+    if(strcmp(output,inputString) != 0){
+        multiline = true;
+    }
     output = replaceWord(output,newLineAndThreeQuotes,"");
+
+    output = replaceWord(output,threeQuotes,"");
 
     output = replaceWord(output,"\\n","\\010");
     output = replaceWord(output,"\\r","\\013");
@@ -262,17 +329,20 @@ char* stringToAssemblyStringFormat(char* inputString) {
     output = replaceWord(output,"\\\\","\\092");
     output = replaceWord(output,"\n","\\010");
     output = replaceWord(output,"\r","\\013");
+    output = replaceWord(output,"#","\\035");
     
     output = replaceWord(output," ","\\032");
 
     output = replaceWord(output,singleQuoteEscape,singleQuote);
 
-    if(output[0] == '"'){
-        memmove(output, output+1, strlen(output));
+    
+    if(output[0] == '"' && !multiline){
+        if(output[strlen(output)-1] == '"'){
+            memmove(output, output+1, strlen(output));
+            output[strlen(output)-1] = '\0';
+        }
     }
-    if(output[strlen(output)-1] == '"'){
-        output[strlen(output)-1] = '\0';
-    }
+    
 
     return output;
 }

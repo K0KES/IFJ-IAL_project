@@ -24,6 +24,7 @@ symtable* symtableInit(generator *generator)
     table->functionCodeFooter = listInit();
 
     table->createFrameCounter = 0;
+    table->inExpression = false;
 
     generator->table = (void *)table;
 
@@ -353,9 +354,7 @@ void symtableSetFunctionArgumentID(symtable *table, char *id){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
 
-    int stringLength = strlen(id) + 1;
-    char *string = (char *)malloc(stringLength);
-    memcpy(string,id,stringLength);
+    char* string = allocateString(id);
 
     functionData *currentFunction = NULL;
     if(listLength(table->activeItem->funcData->overloadFunctions) == 0){
@@ -365,6 +364,10 @@ void symtableSetFunctionArgumentID(symtable *table, char *id){
     }
 
     functionArgument *argument = (functionArgument *)listGetLast(currentFunction->arguments);
+    if(strcmp(argument->name,string) == 0){
+        DEBUG_PRINTF("[Symtable] Function argument name and ID was identical\n");
+        raiseError(ERR_WRONG_NUMBER_OF_ARGUMENTS);
+    }
     argument->id = string;
 }
 
@@ -372,9 +375,7 @@ void symtableSetFunctionArgumentName(symtable *table, char *name){
     if(table->activeItem == NULL) return;
     if(table->activeItem->funcData == NULL) return;
 
-    int stringLength = strlen(name) + 1;
-    char *string = (char *)malloc(stringLength);
-    memcpy(string,name,stringLength);
+    char* string = allocateString(name);
 
     functionData *currentFunction = NULL;
     if(listLength(table->activeItem->funcData->overloadFunctions) == 0){
@@ -460,6 +461,7 @@ void symtableFunctionEndOfArguments(symtable *table){
 
     symtableEnterScope(table,table->activeItem->name,table->activeItem);   
 
+    /*
     listNode *node = currentFunction->arguments->first;
     while(node != NULL){
         functionArgument *arg = (functionArgument *)node->data;
@@ -470,7 +472,7 @@ void symtableFunctionEndOfArguments(symtable *table){
         symtableSetEndOfVariableDefinition(table);
         
         node = node->next;
-    }
+    }*/
 
     table->activeItem = oldActive;
 
@@ -509,12 +511,35 @@ bool symtableIsVariableDefinedInCurrentScope(symtable *table,char *varName){
 }
 
 bool symtableIsVariableDefined(symtable *table,char *varName){
+    if(table->currentFunction != NULL){
+        listNode *argNode = table->currentFunction->funcData->arguments->first;
+        while(argNode != NULL){
+            functionArgument* arg = (functionArgument *)(argNode->data);
+            if(strcmp(arg->id,varName) == 0){
+                return true;
+            }
+            argNode = argNode->next;
+        }
+    }
+
     return symtableFindSymtableItem(table,varName) != NULL;
 }
 
 bool symtableIsVariableInitiated(symtable *table,char *varName){
     DEBUG_PRINTF("---------------Is %s initieted? \n",varName);
     symtableItem *item = symtableFindSymtableItem(table,varName);
+
+    if(table->currentFunction != NULL){
+        listNode *argNode = table->currentFunction->funcData->arguments->first;
+        while(argNode != NULL){
+            functionArgument* arg = (functionArgument *)(argNode->data);
+            if(strcmp(arg->id,varName) == 0){
+                return true;
+            }
+            argNode = argNode->next;
+        }
+    }
+
     if(item == NULL) return false;
     return item->valueIsSet;
 }
@@ -529,6 +554,17 @@ bool symtableIsActiveVariableInitiated(symtable *table){
 enum data_type symtableGetVariableType(symtable *table, char *varName){
     symtableItem *item = symtableFindSymtableItem(table,varName);
 
+    if(table->currentFunction != NULL){
+        listNode *argNode = table->currentFunction->funcData->arguments->first;
+        while(argNode != NULL){
+            functionArgument* arg = (functionArgument *)(argNode->data);
+            if(strcmp(arg->id,varName) == 0){
+                return arg->type;
+            }
+            argNode = argNode->next;
+        }
+    }
+
     if(item == NULL) return DATA_TYPE_NOTSET;
     if(item->funcData == NULL){
         return item->type;
@@ -539,6 +575,17 @@ enum data_type symtableGetVariableType(symtable *table, char *varName){
 
 bool symtableGetVariableNullable(symtable *table, char *varName){
     symtableItem *item = symtableFindSymtableItem(table,varName);
+
+    if(table->currentFunction != NULL){
+        listNode *argNode = table->currentFunction->funcData->arguments->first;
+        while(argNode != NULL){
+            functionArgument* arg = (functionArgument *)(argNode->data);
+            if(strcmp(arg->id,varName) == 0){
+                return arg->nullable;
+            }
+            argNode = argNode->next;
+        }
+    }
 
     if(item == NULL) return false;
     if(item->funcData == NULL){
@@ -667,6 +714,21 @@ char* symtableGetScopePrefixName(symtable *table){
 }
 
 char* symtableGetVariablePrefix(symtable *table, char *varName){
+    if(table->currentFunction != NULL){
+        if(table->activeItem->valueIsSet == false){
+            if(table->inExpression){
+                listNode *argNode = table->currentFunction->funcData->arguments->first;
+                while(argNode != NULL){
+                    functionArgument* arg = (functionArgument *)(argNode->data);
+                    if(strcmp(arg->id,varName) == 0){
+                        return allocateString("LF@%");
+                    }
+                    argNode = argNode->next;
+                }
+            }
+        }
+    }
+    
     if(listLength(table->scopes) == 0){
         return concatString(2,symtableGetFramePrefix(table,varName),symtableGetScopePrefixName(table));
     }else{
@@ -690,7 +752,13 @@ char* symtableGetVariablePrefix(symtable *table, char *varName){
             
         }
     }
-    return allocateString(symtableGetFramePrefix(table,varName));
+    if(strstr(varName,"temp") != NULL){
+        return allocateString(symtableGetFramePrefix(table,varName));
+    }else{
+        return allocateString("LF@%");
+    }
+
+    
 }
 
 char* symtableGetFramePrefix(symtable *table, char *varName){
@@ -731,7 +799,9 @@ void symtableFunctionCallEnd(symtable *table){
         functionData *funcData = (functionData *)listPopLast(table->functionCalls);
         listPushFirst(table->functionCalls,funcData);
     }
-    table->createFrameCounter--;
+    if(table->createFrameCounter > 0){
+        table->createFrameCounter--;
+    }
     if(table->createFrameCounter != 0){
         symtablePushCode(table,"CREATEFRAME");
     }
@@ -891,7 +961,19 @@ void symtableEndOfFile(symtable *table){
 void symtableSetActiveItem(symtable *table, char* varName){
     if(table == NULL) return;
     symtableItem *item = symtableFindSymtableItem(table,varName);
-    if(item == NULL) return;
+    if(item == NULL){
+        if(table->currentFunction != NULL){
+            listNode *argNode = table->currentFunction->funcData->arguments->first;
+            while(argNode != NULL){
+                functionArgument* arg = (functionArgument *)(argNode->data);
+                if(strcmp(arg->id,varName) == 0){
+                    DEBUG_PRINTF("[Symtable] Expected manipulation with function argument\n");
+                    raiseError(ERR_SEMANTIC);
+                }
+                argNode = argNode->next;
+            }
+        }
+    }
     table->activeItem = item;
 }
 
@@ -915,6 +997,7 @@ char *symtableGetActiveItemName(symtable *table){
 
 void symtableCheckSameTypes(enum data_type type1,enum data_type type2){
     if(type1 == type2) {return;}
+    DEBUG_PRINTF("[Symtable] types doesn't match\n");
     raiseError(ERR_WRONG_TYPE);
 }
 
