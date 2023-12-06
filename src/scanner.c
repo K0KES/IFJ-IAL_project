@@ -745,6 +745,7 @@ int getToken(token *token, int charNumber, int lineNumber) {
                         charNumber++;
                         lastChar = c;
                     }
+                    else if (c == '.') { raiseError(LEX_ERROR); }
                     else if (c == 'e' || c == 'E') {
                         strAddChar(token->value, c);
                         charNumber++;
