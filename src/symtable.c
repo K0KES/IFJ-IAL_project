@@ -426,11 +426,14 @@ bool symtableCheckIfOverloadMatches(functionData *callData, functionData *funcDa
         callNode = callNode->next;
         funcNode = funcNode->next;
     }
-    /*
+    
     DEBUG_PRINTF("CALL %d FUNC %d \n",callData->returnType,funcData->returnType);
+    if(callData->returnTypeNullable != funcData->returnTypeNullable){
+        return false;
+    }
     if(callData->returnType != funcData->returnType){
         return false;
-    }*/
+    }
 
     return true;
 }
@@ -887,6 +890,14 @@ void symtableFunctionCallSetParameterName(symtable *table, char* name){
 void symtableFunctionReturnWasCalled(symtable *table){
     if(table->currentFunction != NULL){
         table->currentFunction->funcData->returnWasCalled = true;
+    }
+}
+
+void symtableFunctionCallSetExpectedReturnType(symtable *table, enum data_type expectedType, bool expectedNullable){
+    functionData *funcData = (functionData *)listGetLast(table->functionCalls);
+    if(funcData != NULL){
+        funcData->returnType = expectedType;
+        funcData->returnTypeNullable = expectedNullable;
     }
 }
 
